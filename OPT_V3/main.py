@@ -30,7 +30,7 @@ if cities != "Mycampus":
 
 else:
     LBUS, SUBS = load_Mycampus(N_PERIODS_MAX)
-
+    print(SUBS)
     keyes = list(LBUS.keys())
     N_PERIODS = len(LBUS[keyes[1]].load_MW)
 

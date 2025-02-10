@@ -15,7 +15,10 @@ def optimize(LBUS, SUBS, LINES, LINES_OPT, N_PERIODS):
     model.buses = Set(initialize=LBUS.keys())
     model.subs = Set(initialize=SUBS.keys())
 
-    model.B = model.subs|model.buses 
+    model.B = model.buses | model.subs
+    model.B2 = model.buses | {sub for sub in model.subs if SUBS[sub].b_type != "HV_sub"}
+    model.B3 = {sub for sub in model.subs if SUBS[sub].b_type == "HV_sub"}
+    
     print("Sets defined successfully!")
 
     #Variables
@@ -47,8 +50,8 @@ def optimize(LBUS, SUBS, LINES, LINES_OPT, N_PERIODS):
 
     model.voltage_squared = Var(model.periods, model.B, within=NonNegativeReals)
 
-    model.p_imp = Param(model.periods, model.buses, mutable=True)
-    model.q_imp = Param(model.periods, model.buses, mutable=True)
+    model.p_imp = Param(model.periods, model.B2, mutable=True)
+    model.q_imp = Param(model.periods, model.B2, mutable=True)
 
     print("Variables defined successfully!")
     #Parameters (this will come from the user sizing)
@@ -79,6 +82,13 @@ def optimize(LBUS, SUBS, LINES, LINES_OPT, N_PERIODS):
 
             else:
                 print(f"Skipping p={p}, b={b}: Bus ID {b} not found in LBUS")
+
+    for p in model.periods:
+        for b in model.B2:  
+            #Check if `b` exists in LBUS
+            if b in SUBS:
+                model.p_imp[p, b] = 0
+                model.q_imp[p, b] = 0
 
 
     print("Loads defined successfully!")
@@ -189,8 +199,8 @@ def optimize(LBUS, SUBS, LINES, LINES_OPT, N_PERIODS):
         return m.line_act[l] == sum(m.line_opt[l,c] for c in m.conductors)
 
     def topology_rule(m):
-        return sum(m.line_act[l] for l in m.lines) == len(LBUS.keys())
-
+        return sum(m.line_act[l] for l in m.lines) == len(LBUS.keys()) + len(SUBS.keys()) - 1
+    
     def total_overloads_rule(m,p):
         return sum(m.line_overload[p,l,c] for l in m.lines for c in m.conductors) == m.phi[p]
 
@@ -204,7 +214,8 @@ def optimize(LBUS, SUBS, LINES, LINES_OPT, N_PERIODS):
     model.budget_balance = Constraint(rule=budget_balance)
     model.active_power_rule = Constraint(model.periods, model.lines, rule=active_power_rule)
     model.reactive_power_rule = Constraint(model.periods, model.lines, rule=reactive_power_rule)
-    model.curent_squared_rule = Constraint(model.periods, model.lines, rule=curent_squared_rule)
+    """model.curent_squared_rule = Constraint(model.periods, model.lines, rule=curent_squared_rule)"""
+    # Qua bisogna fare si che P e Q delle sub non HV sia come per i bus e non slack
     model.active_power_subs_rule = Constraint(model.periods, model.subs, rule=active_power_subs_rule)
     model.reactive_power_subs_rule = Constraint(model.periods, model.subs, rule=reactive_power_subs_rule)
     model.active_power_lbus_rule = Constraint(model.periods, model.buses, rule=active_power_lbus_rule)
@@ -215,6 +226,7 @@ def optimize(LBUS, SUBS, LINES, LINES_OPT, N_PERIODS):
     model.apparent_power_subs_rule = Constraint(model.periods, model.subs, rule=apparent_power_subs_rule)
     model.subs_capacity_rule = Constraint(model.periods, model.subs, rule=subs_capacity_rule)
     model.max_capacity_rule = Constraint(model.subs, rule=max_capacity_rule)
+    #Qua è un casino perchè la sub può esserci o no e quindi deve avere il coef non si può semplicemente buttare in lbus
     model.subs_voltage_rule_1 = Constraint(model.periods, model.subs, rule=subs_voltage_rule_1)
     model.subs_voltage_rule_2 = Constraint(model.periods, model.subs, rule=subs_voltage_rule_2)
     model.lbus_voltage_rule_1 = Constraint(model.periods, model.lines, model.conductors, rule=lbus_voltage_rule_1)
