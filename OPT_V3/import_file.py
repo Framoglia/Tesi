@@ -34,65 +34,24 @@ def load_conductors_csv(file_path):
 @dataclass
 class Bus:
     bus_id: int
+    b_type: str
     voltage_level: float
+    district: str
     load_MW: list[float]
     load_MVAR: list[float]
     x_coord: float
     y_coord: float
-"""
-def load_buses_csv(file_path,N_PERIODS,offset):
-    buses_dict = {}
-    
-    with open(file_path, mode='r', newline='') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        
-        for row in csv_reader:
-            if N_PERIODS == 1:
-                load_MW = float(row['Load [MW]'])
-                load_MVAR = float(row['Load [MVAR]'])
-            else:
-                load_MW = [random.uniform(0,float(row['Load [MW]'])) for _ in range(N_PERIODS)]
-                load_MVAR = [random.uniform(0, float(row['Load [MVAR]'])) for _ in range(N_PERIODS)]
 
-
-            bus = Bus(
-                bus_id=int(row['Bus ID'])+offset,
-                voltage_level=float(row['Voltage Level [kV]']),
-                load_MW= load_MW,
-                load_MVAR= load_MVAR,
-                x_coord=float(row['x_coord']),
-                y_coord=float(row['y_coord'])
-            )
-            buses_dict[int(row['Bus ID'])+offset] = bus  # Store in dict by bus_id
-            
-    return buses_dict
-"""
 @dataclass
 class Substation:
     substation_id: int
+    b_type: str
     voltage_level: float
+    district: str
     max_capacity: float
     x_coord: float
     y_coord: float
-"""
-def load_substations_csv(file_path):
-    substations_dict = {}
-    
-    with open(file_path, mode='r', newline='') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        
-        for row in csv_reader:
-            substation = Substation(
-                substation_id=int(row['Substation ID']),
-                voltage_level=float(row['Voltage Level [kV]']),
-                max_capacity=float(row['Max capacyty [MVA]']),
-                x_coord=float(row['x_coord']),
-                y_coord=float(row['y_coord'])
-            )
-            substations_dict[int(row['Substation ID'])] = substation  # Store in dict by substation_id
-            
-    return substations_dict
-"""
+
 from extract_building import extract
 
 def load_bus(folder_path,city, N_PERIODS_MAX):
@@ -134,6 +93,119 @@ def load_bus(folder_path,city, N_PERIODS_MAX):
             buses_dict[building_id] = bus
 
     return buses_dict, substations_dict, updated_buildings
+
+
+import pandas as pd
+
+def load_Mycampus(N_PERIODS):
+
+    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V3\Mycampus.csv"
+    buses_dict = {}
+    substations_dict = {}
+
+    # Load data from CSV
+    df = pd.read_csv(csv_path)
+
+    # Clean data (ensure all relevant columns exist and strip spaces)
+    df.columns = df.columns.str.strip()
+    df["District"] = df["District"].fillna("Unknown").astype(str).str.strip()
+    df["Type"] = df["Type"].fillna("Unknown").astype(str).str.strip()
+    df["Position"] = df["Position"].astype(str).str.strip()
+
+    # Extract coordinates (ensure negative numbers in the coordinates are handled)
+    df[['X', 'Y']] = df['Position'].str.extract(r'\((-?\d+);(-?\d+)\)').astype(float)
+
+    # Loop through the dataframe and classify as buses or substations
+    for _, row in df.iterrows():
+        bus_id = int(row["Bus ID"])  # Ensure Bus ID is unique with offset if necessary
+        bus_type = row["Type"]
+        x, y = row["X"], row["Y"]
+
+        # Check if it is a substation or bus
+        if bus_type in ["HV_sub", "MV_sub", "LV_sub"]:  # Substation
+            substation = Substation(
+                substation_id=bus_id,
+                b_type=row["Type"],
+                voltage_level=float(row["Voltage"]),
+                district=row["District"],
+                max_capacity=10000,  # You can define this as needed
+                x_coord=x,
+                y_coord=y
+            )
+            substations_dict[bus_id] = substation
+        
+        else:  # Load bus
+            if N_PERIODS == 1:
+                load_MW = float(row["Active Power"])
+                load_MVAR = float(row["Reactive Power"])
+            else:
+                load_MW = [random.uniform(0.8*float(row["Active Power"]), 1.2*float(row["Active Power"])) for _ in range(N_PERIODS)]
+                load_MVAR = [random.uniform(0.8*float(row["Reactive Power"]), 1.2*float(row["Reactive Power"])) for _ in range(N_PERIODS)]
+            
+            bus = Bus(
+                bus_id=bus_id,
+                b_type=row["Type"],
+                voltage_level=float(row["Voltage"]),
+                district=row["District"],
+                load_MW=load_MW,
+                load_MVAR=load_MVAR,
+                x_coord=x,
+                y_coord=y
+            )
+            buses_dict[bus_id] = bus
+
+    return buses_dict, substations_dict
+
+
+"""
+def load_buses_csv(file_path,N_PERIODS,offset):
+    buses_dict = {}
+    
+    with open(file_path, mode='r', newline='') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        
+        for row in csv_reader:
+            if N_PERIODS == 1:
+                load_MW = float(row['Load [MW]'])
+                load_MVAR = float(row['Load [MVAR]'])
+            else:
+                load_MW = [random.uniform(0,float(row['Load [MW]'])) for _ in range(N_PERIODS)]
+                load_MVAR = [random.uniform(0, float(row['Load [MVAR]'])) for _ in range(N_PERIODS)]
+
+
+            bus = Bus(
+                bus_id=int(row['Bus ID'])+offset,
+                voltage_level=float(row['Voltage Level [kV]']),
+                load_MW= load_MW,
+                load_MVAR= load_MVAR,
+                x_coord=float(row['x_coord']),
+                y_coord=float(row['y_coord'])
+            )
+            buses_dict[int(row['Bus ID'])+offset] = bus  # Store in dict by bus_id
+            
+    return buses_dict
+"""
+
+"""
+def load_substations_csv(file_path):
+    substations_dict = {}
+    
+    with open(file_path, mode='r', newline='') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        
+        for row in csv_reader:
+            substation = Substation(
+                substation_id=int(row['Substation ID']),
+                voltage_level=float(row['Voltage Level [kV]']),
+                max_capacity=float(row['Max capacyty [MVA]']),
+                x_coord=float(row['x_coord']),
+                y_coord=float(row['y_coord'])
+            )
+            substations_dict[int(row['Substation ID'])] = substation  # Store in dict by substation_id
+            
+    return substations_dict
+"""
+
 
 @dataclass
 class Line:
