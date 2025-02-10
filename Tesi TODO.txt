@@ -1,0 +1,26 @@
+03/02 
+
+Starting from the file the Bastien will give me i define the high voltage node and possible connection and i optimize the layout defining the powerflow eq and the conductors set. I minimize the cost defined as discounted investment plus losses.
+
+I actually started replicating the opt that Manon did.
+
+05/02
+
+The opt of manon is working, I could apply it to a bigger case, I want to implement it in the Campus grids
+I have to retrieve the bus info and loads from the file.
+
+06/02
+
+What do i consider as substation in the campus grid.
+How do i take into consideration the different voltage levels?
+
+I basically have to define a new framework where substation can be arbitrarily placed?
+This would mean having a very big opt problem?
+
+So I have the highest voltage source
+
+I have to connect it to a substation with a cable of said voltage.
+
+From this substation i start a network connecting each voltage_1 level bus
+
+then i have to identify the substation for voltage_2 level and optimizing the respective network
