@@ -41,7 +41,7 @@ def plot_opt(m, LBUS, SUBS, LINES, LINES_OPT, N_PERIODS):
             plt.scatter(SUBS[bus].x_coord, SUBS[bus].y_coord, s=100, c='red', marker='s', label='SUBS' if bus == list(SUBS.keys())[0] else "")
 
         bus_voltage = sum(m.voltage_squared[p,bus].value**0.5 for p in m.periods)/len(m.periods)
-        """plt.text(
+        plt.text(
             x-0.15,  # x-coordinate of the bus
             y+0.15,  # y-coordinate of the bus
             f'{bus_voltage:.2f}',  # Voltage value formatted to 2 decimal places
@@ -50,7 +50,7 @@ def plot_opt(m, LBUS, SUBS, LINES, LINES_OPT, N_PERIODS):
             bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.3'),  # Styled box
             horizontalalignment='center',  # Center text horizontally
             verticalalignment='bottom'     # Place text above the point
-        )"""
+        )
 
     
     import numpy as np
@@ -120,7 +120,7 @@ def plot_opt(m, LBUS, SUBS, LINES, LINES_OPT, N_PERIODS):
                     reactive_power = sum(m.reactive_power[p, line].value for p in m.periods) / len(m.periods)
 
                     # Display the current, active and reactive power at the midpoint of the line
-                    """plt.text(
+                    plt.text(
                         midpoint_x + 0.15,  # x-coordinate of the text
                         midpoint_y - 0.15,  # y-coordinate of the text
                         f'I: {current:.2f} A\nP: {active_power:.2f} MW\nQ: {reactive_power:.2f} MVar',  # Formatted text
@@ -129,7 +129,7 @@ def plot_opt(m, LBUS, SUBS, LINES, LINES_OPT, N_PERIODS):
                         bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.3'),  # Styled box
                         horizontalalignment='center',  # Center text horizontally
                         verticalalignment='top'        # Place text below the point
-                    )"""
+                    )
                     
                             
 
