@@ -54,7 +54,7 @@ class Substation:
 
 from extract_building import extract
 
-def load_bus(folder_path,city, N_PERIODS_MAX):
+def load_bus(folder_path, city, N_PERIODS_MAX):
     updated_buildings = extract(folder_path, city, N_PERIODS_MAX)
     buses_dict = {}
     substations_dict = {}
@@ -99,7 +99,8 @@ import pandas as pd
 
 def load_Mycampus(N_PERIODS):
 
-    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V3\Mycampus.csv"
+    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V4\Mycampus.csv"
+    slack_dict = {}
     buses_dict = {}
     substations_dict = {}
 
@@ -122,7 +123,20 @@ def load_Mycampus(N_PERIODS):
         x, y = row["X"], row["Y"]
 
         # Check if it is a substation or bus
-        if bus_type in ["HV_sub", "MV_sub", "LV_sub"]:  # Substation
+        if bus_type in ["HV_sub"]:  # Substation
+            substation = Substation(
+                substation_id=bus_id,
+                b_type=row["Type"],
+                voltage_level=float(row["Voltage"]),
+                district=row["District"],
+                max_capacity=10000,  # You can define this as needed
+                x_coord=x,
+                y_coord=y
+            )
+            slack_dict[bus_id] = substation
+
+    
+        elif bus_type in ["MV_sub", "LV_sub"]:
             substation = Substation(
                 substation_id=bus_id,
                 b_type=row["Type"],
@@ -133,7 +147,8 @@ def load_Mycampus(N_PERIODS):
                 y_coord=y
             )
             substations_dict[bus_id] = substation
-        
+
+
         else:  # Load bus
             if N_PERIODS == 1:
                 load_MW = float(row["Active Power"])
@@ -154,7 +169,7 @@ def load_Mycampus(N_PERIODS):
             )
             buses_dict[bus_id] = bus
 
-    return buses_dict, substations_dict
+    return buses_dict, substations_dict, slack_dict
 
 
 """
@@ -214,7 +229,7 @@ class Line:
     to_bus: int
     length: float
 
-def load_lines_csv(SUBS,LBUS):
+def load_lines_csv(BUS):
     file_path = 'lines.csv'
     lines_dict = {}
     
@@ -225,15 +240,10 @@ def load_lines_csv(SUBS,LBUS):
             from_bus = int(row['from bus'])
             to_bus = int(row['to bus'])
             
-            if from_bus in SUBS:
-                from_x, from_y = SUBS[from_bus].x_coord, SUBS[from_bus].y_coord
-            else:
-                from_x, from_y = LBUS[from_bus].x_coord, LBUS[from_bus].y_coord
             
-            if to_bus in SUBS:
-                to_x, to_y = SUBS[to_bus].x_coord, SUBS[to_bus].y_coord
-            else:
-                to_x, to_y = LBUS[to_bus].x_coord, LBUS[to_bus].y_coord
+            from_x, from_y = BUS[from_bus].x_coord, BUS[from_bus].y_coord
+            to_x, to_y = BUS[to_bus].x_coord, BUS[to_bus].y_coord
+
             
             length = ((to_x - from_x) ** 2 + (to_y - from_y) ** 2) ** 0.5
             

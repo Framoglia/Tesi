@@ -1,4 +1,4 @@
-def plot_opt(m, LBUS, SUBS, LINES, LINES_OPT, N_PERIODS):
+def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     x_max = 0
     y_max = 0
     x_min = 99
@@ -38,17 +38,20 @@ def plot_opt(m, LBUS, SUBS, LINES, LINES_OPT, N_PERIODS):
         "LV_load": ("x", "blue")   # X, Blue
     }
 
-    for bus in m.B:
+    for bus in m.B | m.subs_hv:
         if bus in m.buses:
             x = LBUS[bus].x_coord
             y = LBUS[bus].y_coord
             b_type = LBUS[bus].b_type  # Assuming each bus has a 'p_type' attribute
-        elif bus in m.subs:
+        elif bus in m.subs_hv:
+            x = SLACK[bus].x_coord
+            y = SLACK[bus].y_coord
+            b_type = SLACK[bus].b_type  # Assuming each substation has a 'p_type' attribute
+        else:
             x = SUBS[bus].x_coord
             y = SUBS[bus].y_coord
-            b_type = SUBS[bus].b_type  # Assuming each substation has a 'p_type' attribute
-        else:
-            continue  # Skip if the bus is not found in LBUS or SUBS
+            b_type = SUBS[bus].b_type
+            
         
         marker, color = type_markers.get(b_type, ("o", "black"))  # Default to black circle if unknown
         plt.scatter(x, y, s=100, c=color, marker=marker, label=b_type if bus == list(m.B)[0] else "")
@@ -192,12 +195,16 @@ BASE_I_MV = BASE_POWER/BASE_VOLTAGE_MV
 BASE_I_LV = BASE_POWER/BASE_VOLTAGE_LV
 
 def fetch_base_z_from_line(DATA, l):
-    LBUS,SUBS,LINES,LINES_OPT,N_PERIODS = DATA
+    LBUS,SUBS,SLACK,LINES,LINES_OPT,N_PERIODS = DATA
     sending_bus = LINES[l].from_bus
     try :
         voltage_level = LBUS[sending_bus].voltage_level
     except :
-        voltage_level = SUBS[sending_bus].voltage_level 
+        try :
+            voltage_level = SUBS[sending_bus].voltage_level 
+        except:
+            voltage_level = SLACK[sending_bus].voltage_level
+
     if voltage_level == 70000:
         return BASE_Z_HV
     elif voltage_level == 15000:
@@ -206,15 +213,44 @@ def fetch_base_z_from_line(DATA, l):
         return BASE_Z_LV
     
 def fetch_base_i_from_line(DATA, l):
-    LBUS,SUBS,LINES,LINES_OPT,N_PERIODS = DATA
+    LBUS,SUBS,SLACK,LINES,LINES_OPT,N_PERIODS = DATA
     sending_bus = LINES[l].from_bus
     try :
         voltage_level = LBUS[sending_bus].voltage_level
     except :
-        voltage_level = SUBS[sending_bus].voltage_level 
+        try :
+            voltage_level = SUBS[sending_bus].voltage_level 
+        except:
+            voltage_level = SLACK[sending_bus].voltage_level
+
     if voltage_level == 70000:
         return BASE_I_HV
     elif voltage_level == 15000:
         return BASE_I_MV
     else:
         return BASE_I_LV
+    
+
+def is_line_from_LV_load(DATA, l):
+    LBUS,SUBS,SLACK,LINES,LINES_OPT,N_PERIODS = DATA
+    receving_bus = LINES[l].from_bus
+    try:
+        LBUS[receving_bus]
+        if LBUS[receving_bus].b_type == "LV_load":
+            return True
+        else:
+            return False
+    except:
+        return False
+    
+def is_line_to_LV_load(DATA, l):
+    LBUS,SUBS,SLACK,LINES,LINES_OPT,N_PERIODS = DATA
+    receving_bus = LINES[l].to_bus
+    try:
+        LBUS[receving_bus]
+        if LBUS[receving_bus].b_type == "LV_load":
+            return True
+        else:
+            return False
+    except:
+        return False

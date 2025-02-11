@@ -44,7 +44,7 @@ def generate_lines(BUS):
                 lines.append((line_id, mv_sub.substation_id, mv_load.bus_id))
                 line_id += 1
     
-    # 3. Connect every LV_sub to every MV_sub in the same district
+    """# 3. Connect every LV_sub to every MV_sub in the same district
     for district, types in buses_by_district.items():
         lv_subs = types['LV_sub']
         mv_subs = types['MV_sub']
@@ -62,6 +62,16 @@ def generate_lines(BUS):
         for lv_sub in lv_subs:
             for lv_load in lv_loads:
                 lines.append((line_id, lv_sub.substation_id, lv_load.bus_id))
+                line_id += 1"""
+    
+    # New. Connect every MV_subs to every LV_load in the same district
+    for district, types in buses_by_district.items():
+        mv_subs = types['MV_sub']
+        lv_loads = types['LV_load']
+        
+        for mv_sub in mv_subs:
+            for lv_load in lv_loads:
+                lines.append((line_id, mv_sub.substation_id, lv_load.bus_id))
                 line_id += 1
 
     # 5. Connect every MV_load to every other MV_load in the same district
