@@ -31,5 +31,5 @@ I've made a modification to V2 called V2.2 where i can iterate over the campuses
 Some campuses run fine while other dont. WHY?? Moreover some do weir shit
 
 Then I've made my test map with HV / MV / LV subs. The data side of it is ok (LBUS, SUBS, LINES) but now the algorithm must be modified. 
-I cannot have every bus as slack, only the HV SUBS are slack while the MV and LV must be more similar to buses with P and Q = 0 
+I cannot have every subs as slack, only the HV SUBS are slack while the MV and LV must be more similar to buses with P and Q = 0 
 Does the voltage must be calculated and not imposed to 1??

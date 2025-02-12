@@ -99,7 +99,7 @@ import pandas as pd
 
 def load_Mycampus(N_PERIODS):
 
-    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V4\Mycampus.csv"
+    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V4\Mycampus2.csv"
     slack_dict = {}
     buses_dict = {}
     substations_dict = {}
@@ -129,7 +129,7 @@ def load_Mycampus(N_PERIODS):
                 b_type=row["Type"],
                 voltage_level=float(row["Voltage"]),
                 district=row["District"],
-                max_capacity=10000,  # You can define this as needed
+                max_capacity=300000000000,  # You can define this as needed
                 x_coord=x,
                 y_coord=y
             )
@@ -142,7 +142,7 @@ def load_Mycampus(N_PERIODS):
                 b_type=row["Type"],
                 voltage_level=float(row["Voltage"]),
                 district=row["District"],
-                max_capacity=10000,  # You can define this as needed
+                max_capacity=100000000000,  # You can define this as needed
                 x_coord=x,
                 y_coord=y
             )

@@ -30,13 +30,12 @@ if cities != "Mycampus":
 
 else:
     LBUS, SUBS, SLACK = load_Mycampus(N_PERIODS_MAX)
-    print(SUBS)
     keyes = list(LBUS.keys())
     N_PERIODS = len(LBUS[keyes[1]].load_MW)
 
     generate_lines(SUBS | LBUS | SLACK)
     print("Lines generated and saved to lines.csv successfully!")
     LINES = load_lines_csv(SUBS | LBUS | SLACK)
-
+    
     optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS)
 

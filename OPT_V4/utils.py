@@ -109,11 +109,15 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
                 from_bus_coords = (LBUS[from_bus].x_coord, LBUS[from_bus].y_coord)
             elif from_bus in SUBS:
                 from_bus_coords = (SUBS[from_bus].x_coord, SUBS[from_bus].y_coord)
+            else:
+                from_bus_coords = (SLACK[from_bus].x_coord, SLACK[from_bus].y_coord)
 
             if to_bus in LBUS:
                 to_bus_coords = (LBUS[to_bus].x_coord, LBUS[to_bus].y_coord)
             elif to_bus in SUBS:
                 to_bus_coords = (SUBS[to_bus].x_coord, SUBS[to_bus].y_coord)
+            else:
+                to_bus_coords = (SLACK[to_bus].x_coord, SLACK[to_bus].y_coord)
 
             # Plot the line with the conductor selected
             for conductor in m.conductors:
@@ -136,7 +140,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
                     reactive_power = sum(m.reactive_power[p, line].value for p in m.periods) / len(m.periods)
 
                     # Display the current, active and reactive power at the midpoint of the line
-                    plt.text(
+                    """plt.text(
                         midpoint_x + 0.15,  # x-coordinate of the text
                         midpoint_y - 0.15,  # y-coordinate of the text
                         f'I: {current:.2f} A\nP: {active_power:.2f} MW\nQ: {reactive_power:.2f} MVar',  # Formatted text
@@ -145,7 +149,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
                         bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.3'),  # Styled box
                         horizontalalignment='center',  # Center text horizontally
                         verticalalignment='top'        # Place text below the point
-                    )
+                    )"""
                     
                             
 
@@ -160,6 +164,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
                 from_bus_coords = (LBUS[from_bus].x_coord, LBUS[from_bus].y_coord)
             elif from_bus in SUBS:
                 from_bus_coords = (SUBS[from_bus].x_coord, SUBS[from_bus].y_coord)
+            
 
             if to_bus in LBUS:
                 to_bus_coords = (LBUS[to_bus].x_coord, LBUS[to_bus].y_coord)
@@ -186,13 +191,13 @@ BASE_VOLTAGE_HV = 70000 #V
 BASE_VOLTAGE_MV = 15000 #V
 BASE_VOLTAGE_LV = 400 #V
 
-BASE_Z_HV = BASE_VOLTAGE_HV**2/BASE_POWER
-BASE_Z_MV = BASE_VOLTAGE_MV**2/BASE_POWER
-BASE_Z_LV = BASE_VOLTAGE_LV**2/BASE_POWER
+BASE_Z_HV = BASE_VOLTAGE_HV**2/BASE_POWER #Ohm
+BASE_Z_MV = BASE_VOLTAGE_MV**2/BASE_POWER #Ohm
+BASE_Z_LV = BASE_VOLTAGE_LV**2/BASE_POWER #Ohm 
 
-BASE_I_HV = BASE_POWER/BASE_VOLTAGE_HV
-BASE_I_MV = BASE_POWER/BASE_VOLTAGE_MV
-BASE_I_LV = BASE_POWER/BASE_VOLTAGE_LV
+BASE_I_HV = BASE_POWER/BASE_VOLTAGE_HV #Amps
+BASE_I_MV = BASE_POWER/BASE_VOLTAGE_MV #Amps
+BASE_I_LV = BASE_POWER/BASE_VOLTAGE_LV #Amps
 
 def fetch_base_z_from_line(DATA, l):
     LBUS,SUBS,SLACK,LINES,LINES_OPT,N_PERIODS = DATA
