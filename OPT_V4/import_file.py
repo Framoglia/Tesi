@@ -99,7 +99,7 @@ import pandas as pd
 
 def load_Mycampus(N_PERIODS):
 
-    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V4\Mycampus2.csv"
+    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V4\MycampusBig.csv"
     slack_dict = {}
     buses_dict = {}
     substations_dict = {}
