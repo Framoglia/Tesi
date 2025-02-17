@@ -42,6 +42,7 @@ def export_optimal_values(model, filename="optimal_solution.csv"):
         "reactive_power_k": model.reactive_power_k,
         "reactive_power": model.reactive_power,
         "voltage_squared": model.voltage_squared,
+        "consumed_power": model.p_imp
     }
     
     max_indices = 0  # Track the maximum number of indices

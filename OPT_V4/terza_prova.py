@@ -65,9 +65,9 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     for p in model.periods:
         for b in model.buses:  
             
-            if 0 <= p-1 < len(LBUS[b].load_MVAR):
-                model.p_imp[p, b] = LBUS[b].load_MW[p-1] *10**3/ BASE_POWER
-                model.q_imp[p, b] = LBUS[b].load_MVAR[p-1] *10**3/ BASE_POWER
+            if 0 <= p-1 < len(LBUS[b].load_kVAR):
+                model.p_imp[p, b] = LBUS[b].load_kW[p-1] * 10**3 / BASE_POWER #1000 VA
+                model.q_imp[p, b] = LBUS[b].load_kVAR[p-1] * 10**3 / BASE_POWER
 
 
     print("Loads defined successfully!")
@@ -76,16 +76,16 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     #Constraints
 
     def conductors_cost(m):
-        return m.C_cond == sum(m.line_opt[l, c] * LINES_OPT[c].cost_keur_per_km * LINES[l].length for l in m.lines for c in m.conductors)
+        return m.C_cond == sum(m.line_opt[l, c] * LINES_OPT[c].cost_keur_per_km * LINES[l].length  / 100 for l in m.lines for c in m.conductors) * 1000 #eur
 
     def substation_cost(m):
-        return m.C_subs == sum(UNIT_COST_SUBS_HV*m.subs_hv_capacity[s]*BASE_POWER for s in m.subs_hv) + sum(UNIT_COST_SUBS_MV*m.subs_mv_capacity[s]*BASE_POWER for s in m.subs_mv)
+        return m.C_subs == sum(UNIT_COST_SUBS_HV * m.subs_hv_capacity[s] * BASE_POWER for s in m.subs_hv) + sum(UNIT_COST_SUBS_MV * m.subs_mv_capacity[s] * BASE_POWER for s in m.subs_mv)
 
     def loss_cost(m,p):
-        return m.C_losses[p] == sum(LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length * m.current_squared_k[p,l,c] for l in m.lines for c in m.conductors) * UNIT_COST_LOSSES
+        return m.C_losses[p] == sum(LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 * m.current_squared_k[p,l,c] for l in m.lines for c in m.conductors) * BASE_POWER / 1000 * UNIT_COST_LOSSES * DELTA_T
 
     def budget_balance(m):
-        return (1+DISCOUNT_RATE)**INV_HORIZON_DSO * (m.C_cond + m.C_subs) + INV_HORIZON_DSO * ALPHA *sum(m.C_losses[p] for p in m.periods) <= INV_HORIZON_DSO * ALPHA * sum(m.p_imp[p,b] for b in m.buses for p in m.periods)*ENERGY_COST * DELTA_T
+        return (1+DISCOUNT_RATE)**INV_HORIZON_DSO * (m.C_cond + m.C_subs) + INV_HORIZON_DSO * ALPHA * sum(m.C_losses[p] for p in m.periods) <= INV_HORIZON_DSO * ALPHA * sum(m.p_imp[p,b] for b in m.buses for p in m.periods) * BASE_POWER / 1000 * ENERGY_COST * DELTA_T
 
     def active_power_rule(m,p,l):
         return m.active_power[p,l] == sum(m.active_power_k[p,l,c] for c in m.conductors)
@@ -97,32 +97,32 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         return m.current_squared[p,l] == sum(m.current_squared_k[p,l,c] for c in m.conductors)
 
     def active_power_subs_hv_rule(m,p,s):    #Ha senso mettere per ogni linea???
-        return m.subs_hv_P[p,s] == -(sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
+        return m.subs_hv_P[p,s] == -(sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
 
     def reactive_power_subs_hv_rule(m,p,s):
-        return m.subs_hv_Q[p,s] == -(sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
+        return m.subs_hv_Q[p,s] == -(sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
 
     def active_power_subs_mv_rule(m,p,s):    
-        return 0 == -(sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
+        return 0 == -(sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
 
     def reactive_power_subs_mv_rule(m,p,s):
-        return 0 == -(sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
+        return 0 == -(sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
 
     def active_power_lbus_rule(m,p,b):
-        return m.p_imp[p,b]  == (sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length for c in m.conductors for l in m.lines if LINES[l].to_bus==b) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==b))
+        return m.p_imp[p,b]  == (sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==b) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==b))
 
     def reactive_power_lbus_rule(m,p,b):
-        return m.q_imp[p,b]  == (sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length for c in m.conductors for l in m.lines if LINES[l].to_bus==b) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==b))
+        return m.q_imp[p,b]  == (sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==b) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==b))
 
     def voltage_rule_1(m,p,l):
         i = LINES[l].from_bus
         j = LINES[l].to_bus
-        return m.voltage_squared[p,j] - m.voltage_squared[p,i] <= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + (LINES_OPT[c].r_per_km**2 + LINES_OPT[c].xl_per_km **2) / fetch_base_z_from_line(DATA, l)**2 * LINES[l].length**2 * m.current_squared_k[p,l,c] for c in m.conductors) + M * (1-m.line_act[l]) 
+        return m.voltage_squared[p,j] - m.voltage_squared[p,i] <= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + (LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) * m.current_squared_k[p,l,c] / (fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100)**2 for c in m.conductors) + M * (1-m.line_act[l]) 
 
     def voltage_rule_2(m,p,l):
         i = LINES[l].from_bus
         j = LINES[l].to_bus
-        return m.voltage_squared[p,j] - m.voltage_squared[p,i] >= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + (LINES_OPT[c].r_per_km**2 + LINES_OPT[c].xl_per_km **2) / fetch_base_z_from_line(DATA, l)**2 * LINES[l].length**2 * m.current_squared_k[p,l,c] for c in m.conductors) - M * (1-m.line_act[l]) 
+        return m.voltage_squared[p,j] - m.voltage_squared[p,i] >= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + (LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) * m.current_squared_k[p,l,c] / (fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100)**2 for c in m.conductors) - M * (1-m.line_act[l]) 
 
     def complex_power_rule(m,p,l):
         return  m.voltage_squared[p,LINES[l].from_bus] * m.current_squared[p,l] >= m.active_power[p,l]**2 + m.reactive_power[p,l]**2
@@ -143,7 +143,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         return m.voltage_squared[p,s] - 1 >= (MIN_VOLTAGE**2 - 1) * (1-m.beta[s])
     
     def apparent_power_subs_mv(m,p,s):
-        return m.subs_mv_S[p,s]**2 >= (sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length for c in m.conductors for l in m.lines if LINES[l].to_bus==s and is_line_from_LV_load) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s and is_line_to_LV_load(DATA,l)))**2 + (sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length for c in m.conductors for l in m.lines if LINES[l].to_bus==s and is_line_from_LV_load(DATA, l)) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s and is_line_to_LV_load(DATA, l)))**2
+        return m.subs_mv_S[p,s]**2 >= (sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s and is_line_from_LV_load) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s and is_line_to_LV_load(DATA,l)))**2 + (sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s and is_line_from_LV_load(DATA, l)) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s and is_line_to_LV_load(DATA, l)))**2
 
     def subs_mv_capacity_rule(m,p,s):
         return m.subs_mv_S[p,s] <= m.subs_mv_capacity[s]
@@ -170,7 +170,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         return m.line_act[l] == sum(m.line_opt[l,c] for c in m.conductors)
 
     def topology_rule(m):
-        return sum(m.line_act[l] for l in m.lines) == len(LBUS.keys()) + sum(m.gamma[s] for s in m.subs_mv)
+        return sum(m.line_act[l] for l in m.lines) == 15 + sum(m.gamma[s] for s in m.subs_mv)
     
     def total_overloads_rule(m,p):
         return sum(m.current_slack[p,l,c] for l in m.lines for c in m.conductors) == m.phi[p]
@@ -239,7 +239,12 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
 
     # Solve the model
     solver = SolverFactory('gurobi')
-    solver.options['MIPGap'] = 0.01
+    solver.options['MIPGap'] = 0.0003
+    solver.options['FeasibilityTol'] = 0.001
+    solver.options['NumericFocus'] = 0
+    solver.options['ScaleFlag'] = 1  # Enable scaling
+
+
     results = solver.solve(model, tee=True)
 
     # Check the solver status

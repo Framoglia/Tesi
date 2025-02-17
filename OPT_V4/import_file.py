@@ -37,8 +37,8 @@ class Bus:
     b_type: str
     voltage_level: float
     district: str
-    load_MW: list[float]
-    load_MVAR: list[float]
+    load_kW: list[float]
+    load_kVAR: list[float]
     x_coord: float
     y_coord: float
 
@@ -78,14 +78,14 @@ def load_bus(folder_path, city, N_PERIODS_MAX):
         else:
             # This means the building is a bus
             # Now, the active and reactive power are lists in 'building.active_power' and 'building.reactive_power'
-            load_MW = building.active_power  # Keep the active power as a list
-            load_MVAR = building.reactive_power  # Keep the reactive power as a list
+            load_kW = building.active_power  # Keep the active power as a list
+            load_kVAR = building.reactive_power  # Keep the reactive power as a list
             
             bus = Bus(
                 bus_id=building.building_id,  # Using building's ID
                 voltage_level=building.voltage_rms,  # Using 'Voltage RMS'
-                load_MW=load_MW,  # Active power as a list
-                load_MVAR=load_MVAR,  # Reactive power as a list
+                load_kW=load_kW,  # Active power as a list
+                load_kVAR=load_kVAR,  # Reactive power as a list
                 x_coord=building.position[0],  # Using Position (x, y)
                 y_coord=building.position[1]
             )
@@ -99,7 +99,7 @@ import pandas as pd
 
 def load_Mycampus(N_PERIODS):
 
-    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V4\MycampusBig.csv"
+    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V4\Mycampus2.csv"
     slack_dict = {}
     buses_dict = {}
     substations_dict = {}
@@ -149,21 +149,23 @@ def load_Mycampus(N_PERIODS):
             substations_dict[bus_id] = substation
 
 
+
         else:  # Load bus
             if N_PERIODS == 1:
-                load_MW = float(row["Active Power"])
-                load_MVAR = float(row["Reactive Power"])
+                load_kW = float(row["Active Power"])
+                load_kVAR = float(row["Reactive Power"])
             else:
-                load_MW = [random.uniform(0.8*float(row["Active Power"]), 1.2*float(row["Active Power"])) for _ in range(N_PERIODS)]
-                load_MVAR = [random.uniform(0.8*float(row["Reactive Power"]), 1.2*float(row["Reactive Power"])) for _ in range(N_PERIODS)]
+                random.seed(37)
+                load_kW = [random.uniform(0.8*float(row["Active Power"]), 1.2*float(row["Active Power"])) for _ in range(N_PERIODS)]
+                load_kVAR = [random.uniform(0.8*float(row["Reactive Power"]), 1.2*float(row["Reactive Power"])) for _ in range(N_PERIODS)]
             
             bus = Bus(
                 bus_id=bus_id,
                 b_type=row["Type"],
                 voltage_level=float(row["Voltage"]),
                 district=row["District"],
-                load_MW=load_MW,
-                load_MVAR=load_MVAR,
+                load_kW=load_kW,
+                load_kVAR=load_kVAR,
                 x_coord=x,
                 y_coord=y
             )
@@ -181,18 +183,18 @@ def load_buses_csv(file_path,N_PERIODS,offset):
         
         for row in csv_reader:
             if N_PERIODS == 1:
-                load_MW = float(row['Load [MW]'])
-                load_MVAR = float(row['Load [MVAR]'])
+                load_kW = float(row['Load [MW]'])
+                load_kVAR = float(row['Load [MVAR]'])
             else:
-                load_MW = [random.uniform(0,float(row['Load [MW]'])) for _ in range(N_PERIODS)]
-                load_MVAR = [random.uniform(0, float(row['Load [MVAR]'])) for _ in range(N_PERIODS)]
+                load_kW = [random.uniform(0,float(row['Load [MW]'])) for _ in range(N_PERIODS)]
+                load_kVAR = [random.uniform(0, float(row['Load [MVAR]'])) for _ in range(N_PERIODS)]
 
 
             bus = Bus(
                 bus_id=int(row['Bus ID'])+offset,
                 voltage_level=float(row['Voltage Level [kV]']),
-                load_MW= load_MW,
-                load_MVAR= load_MVAR,
+                load_kW= load_kW,
+                load_kVAR= load_kVAR,
                 x_coord=float(row['x_coord']),
                 y_coord=float(row['y_coord'])
             )

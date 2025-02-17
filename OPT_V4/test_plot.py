@@ -8,9 +8,8 @@ district_colors = {"A": "red", "B": "blue", "C": "green"}
 type_markers = {
     "HV_sub": "s",   # Square
     "MV_sub": "D",   # Diamond
-    "LV_sub": "^",   # Triangle
     "MV_load": "o",  # Circle
-    "LV_load": "x"   # X
+    "LV_load": "^",   # Triangle
 }
 
 # Load data from CSV

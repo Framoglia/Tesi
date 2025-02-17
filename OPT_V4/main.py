@@ -5,7 +5,7 @@ from terza_prova import optimize
 
 N_PERIODS_MAX = 2
 
-file_path = 'conductors_perf.csv'
+file_path = 'conductors.csv'
 LINES_OPT = load_conductors_csv(file_path)
 
 folder_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\Campus data\UpdatedData"
@@ -20,7 +20,7 @@ if cities != "Mycampus":
         LBUS, SUBS, updated_buildings  = load_bus(folder_path, city, N_PERIODS_MAX)
 
         keyes = list(LBUS.keys())
-        N_PERIODS = len(LBUS[keyes[1]].load_MW)
+        N_PERIODS = len(LBUS[keyes[1]].load_kW)
 
         generate_lines(updated_buildings)
         print("Lines generated and saved to lines.csv successfully!")
@@ -31,7 +31,7 @@ if cities != "Mycampus":
 else:
     LBUS, SUBS, SLACK = load_Mycampus(N_PERIODS_MAX)
     keyes = list(LBUS.keys())
-    N_PERIODS = len(LBUS[keyes[1]].load_MW)
+    N_PERIODS = len(LBUS[keyes[1]].load_kW)
 
     generate_lines(SUBS | LBUS | SLACK)
     print("Lines generated and saved to lines.csv successfully!")

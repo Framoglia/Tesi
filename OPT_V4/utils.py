@@ -16,12 +16,19 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         y_max = max(y_max, SUBS[BUS].y_coord)
         x_min = min(x_min, SUBS[BUS].x_coord)
         y_min = min(y_min, SUBS[BUS].y_coord)
+
+    for BUS in SLACK:
+        x_max = max(x_max, SLACK[BUS].x_coord)
+        y_max = max(y_max, SLACK[BUS].y_coord)
+        x_min = min(x_min, SLACK[BUS].x_coord)
+        y_min = min(y_min, SLACK[BUS].y_coord)
+    
     
     # Extend the bounds a little
-    x_max = x_max + 1
-    y_max = y_max + 1
-    x_min = x_min - 1
-    y_min = y_min - 1
+    x_max = x_max + 10
+    y_max = y_max + 10
+    x_min = x_min - 10
+    y_min = y_min - 10
 
     import matplotlib.pyplot as plt
 
@@ -97,7 +104,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     # Plot lines based on the activated lines and conductors
     for line in m.lines:
         ##DEBUG   print(f"Checking line {line}")
-        if m.line_act[line].value == 1:  # If line is activated
+        if m.line_act[line].value >= 0.8:  # If line is activated
             ##DEBUG   print(f"Line {line} is activated.")
             
             # Get from_bus and to_bus based on whether they are LBUS or SUBS
@@ -122,7 +129,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
             # Plot the line with the conductor selected
             for conductor in m.conductors:
                 ##DEBUG    print(f"Conductor {conductor} activation status: {m.line_opt[line,conductor].value}")
-                if m.line_opt[line, conductor].value == 1:  # If this conductor is selected
+                if m.line_opt[line, conductor].value >= 0.8:  # If this conductor is selected
                     ##DEBUG     print(f"  Conductor {conductor} is used for this line.")
                     # Get the color corresponding to the line's conductor
                     color = color_mapping.get(conductor, 'black')  # defaults to 'black' if line_id not found
@@ -185,23 +192,23 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
 
 
 
-BASE_POWER = 1000000 #VA
+BASE_POWER = 1000 #VA
 
 BASE_VOLTAGE_HV = 70000 #V
 BASE_VOLTAGE_MV = 15000 #V
 BASE_VOLTAGE_LV = 400 #V
 
-BASE_Z_HV = BASE_VOLTAGE_HV**2/BASE_POWER #Ohm
-BASE_Z_MV = BASE_VOLTAGE_MV**2/BASE_POWER #Ohm
-BASE_Z_LV = BASE_VOLTAGE_LV**2/BASE_POWER #Ohm 
+BASE_Z_HV = BASE_VOLTAGE_HV**2/BASE_POWER #Ohm  4.9e6
+BASE_Z_MV = BASE_VOLTAGE_MV**2/BASE_POWER #Ohm  225e3
+BASE_Z_LV = BASE_VOLTAGE_LV**2/BASE_POWER #Ohm  160
 
-BASE_I_HV = BASE_POWER/BASE_VOLTAGE_HV #Amps
-BASE_I_MV = BASE_POWER/BASE_VOLTAGE_MV #Amps
-BASE_I_LV = BASE_POWER/BASE_VOLTAGE_LV #Amps
+BASE_I_HV = BASE_POWER/BASE_VOLTAGE_HV #Amps    0.0143
+BASE_I_MV = BASE_POWER/BASE_VOLTAGE_MV #Amps    0.0667
+BASE_I_LV = BASE_POWER/BASE_VOLTAGE_LV #Amps    2.5000
 
 def fetch_base_z_from_line(DATA, l):
     LBUS,SUBS,SLACK,LINES,LINES_OPT,N_PERIODS = DATA
-    sending_bus = LINES[l].from_bus
+    sending_bus = LINES[l].to_bus
     try :
         voltage_level = LBUS[sending_bus].voltage_level
     except :
@@ -219,7 +226,7 @@ def fetch_base_z_from_line(DATA, l):
     
 def fetch_base_i_from_line(DATA, l):
     LBUS,SUBS,SLACK,LINES,LINES_OPT,N_PERIODS = DATA
-    sending_bus = LINES[l].from_bus
+    sending_bus = LINES[l].to_bus
     try :
         voltage_level = LBUS[sending_bus].voltage_level
     except :

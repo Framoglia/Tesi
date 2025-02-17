@@ -33,3 +33,17 @@ Some campuses run fine while other dont. WHY?? Moreover some do weir shit
 Then I've made my test map with HV / MV / LV subs. The data side of it is ok (LBUS, SUBS, LINES) but now the algorithm must be modified. 
 I cannot have every subs as slack, only the HV SUBS are slack while the MV and LV must be more similar to buses with P and Q = 0 
 Does the voltage must be calculated and not imposed to 1??
+
+
+14/02
+Devo aggiungere la tariff pr la capacity
+Fixo i parametri considerando il PU / i costi moltiplicando per base
+Voglio convertire tutto in grafi?
+Test sui campus possible ma non ho MV/LV substations
+
+Comincio a preparare presentazione per Lunedì
+Cosa voglio fare settimana prossima?
+Cominciare  far variare il load?
+Impostare tariff come variabili
+Cercare relevant cases come può essere urbano / industrial etc...
+
