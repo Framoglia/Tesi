@@ -4,6 +4,7 @@ from import_file import Bus
 from utils import *
 from print_opt import export_optimal_values
 
+
 def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     
     DATA = LBUS,SUBS, SLACK, LINES,LINES_OPT,N_PERIODS
@@ -66,8 +67,8 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         for b in model.buses:  
             
             if 0 <= p-1 < len(LBUS[b].load_kVAR):
-                model.p_imp[p, b] = LBUS[b].load_kW[p-1] * 10**3 / BASE_POWER #1000 VA
-                model.q_imp[p, b] = LBUS[b].load_kVAR[p-1] * 10**3 / BASE_POWER
+                model.p_imp[p, b] = LBUS[b].load_kW[p-1] * 10**4 / BASE_POWER #1000 VA
+                model.q_imp[p, b] = LBUS[b].load_kVAR[p-1] * 10**4 / BASE_POWER
 
 
     print("Loads defined successfully!")
@@ -170,7 +171,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         return m.line_act[l] == sum(m.line_opt[l,c] for c in m.conductors)
 
     def topology_rule(m):
-        return sum(m.line_act[l] for l in m.lines) == 15 + sum(m.gamma[s] for s in m.subs_mv)
+        return sum(m.line_act[l] for l in m.lines) == len(LBUS.keys()) + sum(m.gamma[s] for s in m.subs_mv)
     
     def total_overloads_rule(m,p):
         return sum(m.current_slack[p,l,c] for l in m.lines for c in m.conductors) == m.phi[p]
@@ -239,7 +240,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
 
     # Solve the model
     solver = SolverFactory('gurobi')
-    solver.options['MIPGap'] = 0.0003
+    solver.options['MIPGap'] = 0.01
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 0
     solver.options['ScaleFlag'] = 1  # Enable scaling

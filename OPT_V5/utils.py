@@ -217,6 +217,15 @@ def fetch_base_z_from_line(DATA, l):
         except:
             voltage_level = SLACK[sending_bus].voltage_level
 
+    """print("\nLine Information")
+    print("===========================")
+    print(f"Line ID      : {LINES[l].line_id}")
+    print(f"From Bus     : {LINES[l].from_bus}")
+    print(f"To Bus       : {LINES[l].to_bus}")
+    print(f"Length (km)  : {LINES[l].length:.2f}")
+    print(f"Volatge Level: {voltage_level}")
+    print("===========================\n")"""
+    
     if voltage_level == 70000:
         return BASE_Z_HV
     elif voltage_level == 15000:

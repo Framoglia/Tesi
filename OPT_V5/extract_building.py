@@ -97,7 +97,7 @@ def update_buildings_with_power_data(file_path, buildings, N_PERIODS_MAX):
             if numeric_building_id in buildings:
                 # Extract the data for this building from the current sheet
                 building_data = df[building_id].dropna()  # Drop NaN values
-                building_data = building_data / 1000 # Convert to MW
+                building_data = building_data # Convert to MW
                 if len(building_data) >= N_PERIODS_MAX:
                     building_data = building_data[:N_PERIODS_MAX]
                 # Update the building object with the power data
