@@ -99,7 +99,7 @@ import pandas as pd
 
 def load_Mycampus(N_PERIODS):
 
-    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V4\Mycampus2.csv"
+    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V4\MycampusBig.csv"
     slack_dict = {}
     buses_dict = {}
     substations_dict = {}
@@ -152,8 +152,10 @@ def load_Mycampus(N_PERIODS):
 
         else:  # Load bus
             if N_PERIODS == 1:
-                load_kW = float(row["Active Power"])
-                load_kVAR = float(row["Reactive Power"])
+                load_kW = []
+                load_kVAR = []
+                load_kW.append(float(row["Active Power"]))
+                load_kVAR.append(float(row["Reactive Power"]))
             else:
                 random.seed(37)
                 load_kW = [random.uniform(0.8*float(row["Active Power"]), 1.2*float(row["Active Power"])) for _ in range(N_PERIODS)]

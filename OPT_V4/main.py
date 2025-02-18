@@ -3,7 +3,7 @@ from import_file import load_Mycampus
 from generate_lines import generate_lines
 from terza_prova import optimize
 
-N_PERIODS_MAX = 2
+N_PERIODS_MAX = 1
 
 file_path = 'conductors.csv'
 LINES_OPT = load_conductors_csv(file_path)
