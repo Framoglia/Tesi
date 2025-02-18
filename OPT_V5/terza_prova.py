@@ -118,12 +118,12 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     def voltage_rule_1(m,p,l):
         i = LINES[l].from_bus
         j = LINES[l].to_bus
-        return m.voltage_squared[p,j] - m.voltage_squared[p,i] <= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + (LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) * m.current_squared_k[p,l,c] / (fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100)**2 for c in m.conductors) + M * (1-m.line_act[l]) 
+        return m.voltage_squared[p,j] - m.voltage_squared[p,i] <= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + (LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) * m.current_squared_k[p,l,c] / (fetch_base_z_from_line(DATA, l) / LINES[l].length  * 100)**2 for c in m.conductors) + M * (1-m.line_act[l]) 
 
     def voltage_rule_2(m,p,l):
         i = LINES[l].from_bus
         j = LINES[l].to_bus
-        return m.voltage_squared[p,j] - m.voltage_squared[p,i] >= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + (LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) * m.current_squared_k[p,l,c] / (fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100)**2 for c in m.conductors) - M * (1-m.line_act[l]) 
+        return m.voltage_squared[p,j] - m.voltage_squared[p,i] >= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + (LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) * m.current_squared_k[p,l,c] / (fetch_base_z_from_line(DATA, l) / LINES[l].length  * 100)**2 for c in m.conductors) - M * (1-m.line_act[l]) 
 
     def complex_power_rule(m,p,l):
         return  m.voltage_squared[p,LINES[l].from_bus] * m.current_squared[p,l] >= m.active_power[p,l]**2 + m.reactive_power[p,l]**2
