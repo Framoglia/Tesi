@@ -1,6 +1,6 @@
 from import_file import load_conductors_csv, load_bus, load_lines_csv
 from import_file import load_Mycampus
-from generate_lines import generate_lines
+from generate_lines_v1 import generate_lines
 from terza_prova import optimize
 
 N_PERIODS_MAX = 1
