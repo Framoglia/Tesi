@@ -239,7 +239,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
 
     # Solve the model
     solver = SolverFactory('gurobi')
-    solver.options['MIPGap'] = 0.0003
+    solver.options['MIPGap'] = 0.001
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 0
     solver.options['ScaleFlag'] = 1  # Enable scaling
