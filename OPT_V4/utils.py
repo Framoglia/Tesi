@@ -67,7 +67,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         plt.text(
         x-0.15,  # x-coordinate of the bus
         y+0.15,  # y-coordinate of the bus
-        f'{bus_voltage:.4 f}',  # Voltage value formatted to 2 decimal places
+        f'{bus_voltage:.4f}',  # Voltage value formatted to 2 decimal places
         fontsize=10,           # Font size
         color='black',         # Text color
         bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.3'),  # Styled box

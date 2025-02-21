@@ -1,6 +1,6 @@
 from import_file import load_conductors_csv, load_bus, load_lines_csv
 from import_file import load_Mycampus
-from generate_lines import generate_lines
+from generate_lines_v1 import generate_lines
 from terza_prova import optimize
 
 N_PERIODS_MAX = 1
@@ -25,9 +25,11 @@ for city in cities:
     print("Lines generated and saved to lines.csv successfully!")
     LINES = load_lines_csv(LBUS|SUBS|SLACK)
 
-    """from test_plot import*
+    from test_plot import*
     test(LBUS|SUBS|SLACK,LINES)
-    exit()"""
-
+    plot_opt(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS)
+    #exit()
+    
+    
     optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS)
 

@@ -1,61 +1,124 @@
-import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
-# Define colors for districts
-district_colors = {"A": "red", "B": "blue", "C": "green"}
 
-# Define markers for different types
-type_markers = {
-    "HV_sub": "s",   # Square
-    "MV_sub": "D",   # Diamond
-    "MV_load": "o",  # Circle
-    "LV_load": "^",   # Triangle
-}
+def test(BUS, LINES):
+    number_slack = 0
+    number_sub = 0
+    number_lv_load = 0
+    number_mv_load = 0
 
-# Load data from CSV
-file_path = "Mycampus.csv"
-df = pd.read_csv(file_path)
+    for bus in BUS:
+        if BUS[bus].b_type == 'HV_sub':
+            number_slack += 1
+        elif BUS[bus].b_type == 'MV_sub':
+            number_sub += 1
+        elif BUS[bus].b_type == 'LV_load':
+            print(BUS[bus].load_kW)
+            number_lv_load += 1
+        elif BUS[bus].b_type == 'MV_load':
+            number_mv_load += 1
 
-# Fix column names (remove spaces)
-df.columns = df.columns.str.strip()
+    print("\nSystem Summary:")
+    print("=========================")
+    print(f"High Voltage Substations : {number_slack}")
+    print(f"Medium Voltage Substations: {number_sub}")
+    print(f"Low Voltage Loads        : {number_lv_load}")
+    print(f"Medium Voltage Loads     : {number_mv_load}")
+    print("=========================\n")
 
-# Strip spaces from all relevant columns
-df["District"] = df["District"].fillna("Unknown").astype(str).str.strip()
-df["Type"] = df["Type"].fillna("Unknown").astype(str).str.strip()
-df["Position"] = df["Position"].astype(str).str.strip()
+def plot_opt(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
+    x_max = 0
+    y_max = 0
+    x_min = 99
+    y_min = 99
 
-# Debugging: Print unique values
-print("Unique Districts:", df["District"].unique())
-print("Unique Types:", df["Type"].unique())
+    # Get the max and min coordinates from both LBUS and SUBS
+    for BUS in LBUS:
+        x_max = max(x_max, LBUS[BUS].x_coord)
+        y_max = max(y_max, LBUS[BUS].y_coord)
+        x_min = min(x_min, LBUS[BUS].x_coord)
+        y_min = min(y_min, LBUS[BUS].y_coord)
 
-# Extract coordinates and convert to float (Handle negative numbers as well)
-df[['X', 'Y']] = df['Position'].str.extract(r'\((-?\d+);(-?\d+)\)').astype(float)
+    for BUS in SUBS:
+        x_max = max(x_max, SUBS[BUS].x_coord)
+        y_max = max(y_max, SUBS[BUS].y_coord)
+        x_min = min(x_min, SUBS[BUS].x_coord)
+        y_min = min(y_min, SUBS[BUS].y_coord)
 
-# Drop rows with NaN values in essential columns (Position, District, Type)
-df = df.dropna(subset=["Position", "District", "Type"])
+    for BUS in SLACK:
+        x_max = max(x_max, SLACK[BUS].x_coord)
+        y_max = max(y_max, SLACK[BUS].y_coord)
+        x_min = min(x_min, SLACK[BUS].x_coord)
+        y_min = min(y_min, SLACK[BUS].y_coord)
+    
+    
+    # Extend the bounds a little
+    x_max = x_max + 10
+    y_max = y_max + 10
+    x_min = x_min - 10
+    y_min = y_min - 10
 
-# Plot
-plt.figure(figsize=(10, 8))
+    import matplotlib.pyplot as plt
 
-for _, row in df.iterrows():
-    x, y = row["X"], row["Y"]
-    bus_type = row["Type"]
-    district = row["District"]
+    plt.figure(figsize=(10, 10))
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
 
-    # Get marker and color (default to black circle if missing)
-    marker = type_markers.get(bus_type, "o")
-    color = district_colors.get(district, "black")
+    # Plot LBUS
+    type_markers = {
+        "HV_sub": ("s", "red"),   # Square, Red
+        "MV_sub": ("D", "orange"), # Diamond, Orange
+        "LV_sub": ("^", "yellow"), # Triangle, Yellow
+        "MV_load": ("o", "green"), # Circle, Green
+        "LV_load": ("x", "blue")   # X, Blue
+    }
 
-    plt.scatter(x, y, c=color, marker=marker)
+    for bus in LBUS | SUBS | SLACK:
+        if bus in LBUS:
+            x = LBUS[bus].x_coord
+            y = LBUS[bus].y_coord
+            b_type = LBUS[bus].b_type  # Assuming each bus has a 'p_type' attribute
+        elif bus in SLACK:
+            x = SLACK[bus].x_coord
+            y = SLACK[bus].y_coord
+            b_type = SLACK[bus].b_type  # Assuming each substation has a 'p_type' attribute
+        else:
+            x = SUBS[bus].x_coord
+            y = SUBS[bus].y_coord
+            b_type = SUBS[bus].b_type
+            
+        
+        marker, color = type_markers.get(b_type, ("o", "black"))  # Default to black circle if unknown
+        plt.scatter(x, y, s=100, c=color, marker=marker, label=b_type)
 
-# Define custom handles for the legend
-handles = [plt.Line2D([0], [0], marker=marker, color='w', markerfacecolor='black', markersize=10, label=key) for key, marker in type_markers.items()]
-plt.legend(handles=handles, loc="upper right")
+    # Plot lines based on the activated lines and conductors
+    for line in LINES:
+        from_bus = LINES[line].from_bus
+        to_bus = LINES[line].to_bus
 
-# Labels & Title
-plt.xlabel("X Coordinate")
-plt.ylabel("Y Coordinate")
-plt.title("Campus Electrical Network")
-plt.grid(True)
-plt.show()
+        # Check if the bus is from LBUS or SUBS and retrieve the correct coordinates
+        if from_bus in LBUS:
+            from_bus_coords = (LBUS[from_bus].x_coord, LBUS[from_bus].y_coord)
+        elif from_bus in SUBS:
+            from_bus_coords = (SUBS[from_bus].x_coord, SUBS[from_bus].y_coord)
+        else:
+            from_bus_coords = (SLACK[from_bus].x_coord, SLACK[from_bus].y_coord)
 
+        if to_bus in LBUS:
+            to_bus_coords = (LBUS[to_bus].x_coord, LBUS[to_bus].y_coord)
+        elif to_bus in SUBS:
+            to_bus_coords = (SUBS[to_bus].x_coord, SUBS[to_bus].y_coord)
+        else:
+            to_bus_coords = (SLACK[to_bus].x_coord, SLACK[to_bus].y_coord)
+
+        # Plot the line with dashed style if not activated
+        plt.plot([from_bus_coords[0], to_bus_coords[0]],
+                    [from_bus_coords[1], to_bus_coords[1]],
+                    linestyle=':', color='black')
+    plt.xlabel('X Coordinate')
+    plt.ylabel('Y Coordinate')
+    plt.title('Bus Locations')
+    plt.grid(True)
+    plt.show()
