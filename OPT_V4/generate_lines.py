@@ -1,5 +1,4 @@
 import csv
-import math
 
 def generate_lines(BUS):
     # Extract substations and loads
@@ -64,8 +63,6 @@ def generate_lines(BUS):
             for lv_load in lv_loads:
                 lines.append((line_id, lv_sub.substation_id, lv_load.bus_id))
                 line_id += 1"""
-
-  
     
     # New. Connect every MV_subs to every LV_load in the same district
     for district, types in buses_by_district.items():
@@ -73,79 +70,27 @@ def generate_lines(BUS):
         lv_loads = types['LV_load']
         
         for mv_sub in mv_subs:
-            distances = []
             for lv_load in lv_loads:
-                distance = math.sqrt((mv_sub.x_coord - lv_load.x_coord) ** 2 + (mv_sub.y_coord - lv_load.y_coord) ** 2)
-                distances.append((distance, tuple(sorted([mv_sub.substation_id, lv_load.bus_id]))))
-
-            distances.sort()
-            for _, connection in distances[:1]:
-                bus1, bus2 = connection
-                lines.append((line_id, bus1, bus2))
+                lines.append((line_id, mv_sub.substation_id, lv_load.bus_id))
                 line_id += 1
-
-    lines_temp_mv = set()
 
     # 5. Connect every MV_load to every other MV_load in the same district
     for district, types in buses_by_district.items():
         mv_loads = types['MV_load']
         
-        for bus in mv_loads:  # Loop through each bus
-            distances = []
+        for i in range(len(mv_loads)):
+            for j in range(i + 1, len(mv_loads)):  # Avoid duplicate connections
+                lines.append((line_id, mv_loads[i].bus_id, mv_loads[j].bus_id))
+                line_id += 1
 
-            for other_bus in mv_loads:
-                if bus.bus_id != other_bus.bus_id:  # Avoid self-connections
-                    distance = math.sqrt((bus.x_coord - other_bus.x_coord) ** 2 + (bus.y_coord - other_bus.y_coord) ** 2)
-                    distances.append((distance, tuple(sorted([bus.bus_id, other_bus.bus_id]))))
-
-            # Sort by distance and pick the 3 closest
-            distances.sort()
-            for _, connection in distances[:2]:
-                lines_temp_mv.add(connection)  # Add to the set (ensuring no duplicates)
-
-    # Step 2: Convert to list and assign line_id
-    sorted_lines = sorted(lines_temp_mv)  # Sort connections again
-    for bus1, bus2 in sorted_lines:
-        lines.append((line_id, bus1, bus2))
-        lines.append((line_id, bus2, bus1))
-        line_id += 2
-
-    """# 6. Connect every LV_load to every other LV_load in the same district
+    # 6. Connect every LV_load to every other LV_load in the same district
     for district, types in buses_by_district.items():
         lv_loads = types['LV_load']
         
         for i in range(len(lv_loads)):
             for j in range(i + 1, len(lv_loads)):  # Avoid duplicate connections
                 lines.append((line_id, lv_loads[i].bus_id, lv_loads[j].bus_id))
-                line_id += 1"""
-
-    
-
-    lines_temp_lv = set()  # Use a set to avoid duplicate connections
-
-    # Step 1: Find the 3 closest buses for each bus
-    for district, types in buses_by_district.items():
-        lv_loads = types['LV_load']
-
-        for bus in lv_loads:  # Loop through each bus
-            distances = []
-
-            for other_bus in lv_loads:
-                if bus.bus_id != other_bus.bus_id:  # Avoid self-connections
-                    distance = math.sqrt((bus.x_coord - other_bus.x_coord) ** 2 + (bus.y_coord - other_bus.y_coord) ** 2)
-                    distances.append((distance, tuple(sorted([bus.bus_id, other_bus.bus_id]))))
-
-            # Sort by distance and pick the 3 closest
-            distances.sort()
-            for _, connection in distances[:2]:
-                lines_temp_lv.add(connection)  # Add to the set (ensuring no duplicates)
-
-    # Step 2: Convert to list and assign line_id
-    sorted_lines = sorted(lines_temp_lv)  # Sort connections again
-    for bus1, bus2 in sorted_lines:
-        lines.append((line_id, bus1, bus2))
-        lines.append((line_id, bus2, bus1))
-        line_id += 2
+                line_id += 1
 
     # Write lines to a CSV file with Line ID
     with open('lines.csv', 'w', newline='') as csvfile:
@@ -153,3 +98,4 @@ def generate_lines(BUS):
         writer.writerow(['Line ID', 'from bus', 'to bus'])  # Header
         for line in lines:
             writer.writerow(line)
+

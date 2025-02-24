@@ -4,7 +4,6 @@ from import_file import Bus
 from utils import *
 from print_opt import export_optimal_values
 
-
 def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     
     DATA = LBUS,SUBS, SLACK, LINES,LINES_OPT,N_PERIODS
@@ -32,12 +31,14 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.C_losses = Var(model.periods, within=NonNegativeReals)  
 
     model.line_opt = Var(model.lines, model.conductors, within=Binary)  # Conductor chosen when line is active 
-    model.line_act = Var(model.lines, within=Binary)                    # Is the line activated ?
+    model.line_act_plus = Var(model.lines, within=Binary)                    # Is the line activated ?
+    model.line_act_minus = Var(model.lines, within=Binary)  
+
 
     model.subs_hv_capacity = Var(model.subs_hv, within=NonNegativeReals)
     model.subs_hv_S = Var(model.periods, model.subs_hv, within=NonNegativeReals)
-    model.subs_hv_P = Var(model.periods, model.subs_hv, within=NonNegativeReals)
-    model.subs_hv_Q = Var(model.periods, model.subs_hv, within=NonNegativeReals)
+    model.subs_hv_P = Var(model.periods, model.subs_hv, within=Reals)
+    model.subs_hv_Q = Var(model.periods, model.subs_hv, within=Reals)
     model.beta = Var(model.subs_hv, within=Binary)
 
     model.subs_mv_capacity = Var(model.subs_mv, within=NonNegativeReals)
@@ -49,11 +50,11 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.current_slack = Var(model.periods, model.lines, model.conductors, within=NonNegativeReals)
     model.phi = Var(model.periods, within=NonNegativeReals)
 
-    model.active_power_k = Var( model.periods,model.lines, model.conductors, within=NonNegativeReals)
-    model.active_power = Var(model.periods, model.lines, within=NonNegativeReals)
+    model.active_power_k = Var( model.periods,model.lines, model.conductors, within=Reals)
+    model.active_power = Var(model.periods, model.lines, within=Reals)
 
-    model.reactive_power_k = Var(model.periods, model.lines, model.conductors, within=NonNegativeReals)
-    model.reactive_power = Var(model.periods, model.lines, within=NonNegativeReals)
+    model.reactive_power_k = Var(model.periods, model.lines, model.conductors, within=Reals)
+    model.reactive_power = Var(model.periods, model.lines, within=Reals)
 
     model.voltage_squared = Var(model.periods, model.subs_hv | model.B, within=NonNegativeReals)
 
@@ -67,8 +68,10 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         for b in model.buses:  
             
             if 0 <= p-1 < len(LBUS[b].load_kVAR):
-                model.p_imp[p, b] = LBUS[b].load_kW[p-1] * 10**4 / BASE_POWER #1000 VA
-                model.q_imp[p, b] = LBUS[b].load_kVAR[p-1] * 10**4 / BASE_POWER
+                model.p_imp[p, b] = LBUS[b].load_kW[p-1] * 10**3 / BASE_POWER #1000 VA
+                model.q_imp[p, b] = max(LBUS[b].load_kVAR[p-1] * 10**3 / BASE_POWER, 0)
+
+                print(model.p_imp[p, b].value, model.q_imp[p, b].value)
 
 
     print("Loads defined successfully!")
@@ -104,10 +107,10 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         return m.subs_hv_Q[p,s] == -(sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
 
     def active_power_subs_mv_rule(m,p,s):    
-        return 0 == -(sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
+        return 0 == sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s)
 
     def reactive_power_subs_mv_rule(m,p,s):
-        return 0 == -(sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
+        return 0 == sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s)
 
     def active_power_lbus_rule(m,p,b):
         return m.p_imp[p,b]  == (sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==b) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==b))
@@ -118,12 +121,12 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     def voltage_rule_1(m,p,l):
         i = LINES[l].from_bus
         j = LINES[l].to_bus
-        return m.voltage_squared[p,j] - m.voltage_squared[p,i] <= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + (LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) * m.current_squared_k[p,l,c] / (fetch_base_z_from_line(DATA, l) / LINES[l].length  * 100)**2 for c in m.conductors) + M * (1-m.line_act[l]) 
+        return m.voltage_squared[p,j] - m.voltage_squared[p,i] <= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + m.current_squared_k[p,l,c] * ((LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) / (fetch_base_z_from_line(DATA, l) / LINES[l].length  * 100)**2) for c in m.conductors) + M * (1-m.line_act_plus[l]-m.line_act_minus[l])
 
     def voltage_rule_2(m,p,l):
         i = LINES[l].from_bus
         j = LINES[l].to_bus
-        return m.voltage_squared[p,j] - m.voltage_squared[p,i] >= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + (LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) * m.current_squared_k[p,l,c] / (fetch_base_z_from_line(DATA, l) / LINES[l].length  * 100)**2 for c in m.conductors) - M * (1-m.line_act[l]) 
+        return m.voltage_squared[p,j] - m.voltage_squared[p,i] >= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + m.current_squared_k[p,l,c] * ((LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) / (fetch_base_z_from_line(DATA, l) / LINES[l].length  * 100)**2) for c in m.conductors) - M * (1-m.line_act_plus[l]-m.line_act_minus[l])
 
     def complex_power_rule(m,p,l):
         return  m.voltage_squared[p,LINES[l].from_bus] * m.current_squared[p,l] >= m.active_power[p,l]**2 + m.reactive_power[p,l]**2
@@ -152,14 +155,35 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     def max_mv_capacity_rule(m,s):
         return m.subs_mv_capacity[s] <= m.gamma[s] * SUBS[s].max_capacity / BASE_POWER
 
+    def lbus_voltage_rule_1(m,p,l,c):
+        return m.active_power_k[p,l,c] <= m.line_opt[l,c] * (LINES_OPT[c].imax_kA*1000) / fetch_base_i_from_line(DATA, l) * MAX_VOLTAGE
+
+    def lbus_voltage_rule_2(m,p,l,c):
+        return m.active_power_k[p,l,c] >= -m.line_opt[l,c] * (LINES_OPT[c].imax_kA*1000) / fetch_base_i_from_line(DATA, l) * MAX_VOLTAGE
+
+    def lbus_voltage_rule_3(m,p,l,c):
+        return m.reactive_power_k[p,l,c] <=  m.line_opt[l,c] * (LINES_OPT[c].imax_kA*1000) / fetch_base_i_from_line(DATA, l) * MAX_VOLTAGE
+
+    def lbus_voltage_rule_4(m,p,l,c):
+        return m.reactive_power_k[p,l,c] >= -m.line_opt[l,c] * (LINES_OPT[c].imax_kA*1000) / fetch_base_i_from_line(DATA, l) * MAX_VOLTAGE
+
+    def current_slack_rule_2(m,p,l,c):
+        return m.current_squared_k[p,l,c] - m.current_slack[p,l,c] <= (LINES_OPT[c].imax_kA*1000)**2 / fetch_base_i_from_line(DATA, l)**2 * m.line_opt[l,c]
+
     def line_activation_rule(m,l):
-        return m.line_act[l] == sum(m.line_opt[l,c] for c in m.conductors)
+        return m.line_act_plus[l] + m.line_act_minus[l] == sum(m.line_opt[l,c] for c in m.conductors)
 
     def topology_rule(m):
-        return sum(m.line_act[l] for l in m.lines) == len(LBUS.keys()) + sum(m.gamma[s] for s in m.subs_mv)
+        return sum(m.line_act_plus[l] + m.line_act_minus[l] for l in m.lines) == len(LBUS.keys()) + sum(m.gamma[s] for s in m.subs_mv)
     
+    def total_overloads_rule(m,p):
+        return sum(m.current_slack[p,l,c] for l in m.lines for c in m.conductors) == m.phi[p]
+    
+    def one_direction_rule(m,l):
+        return(m.line_act_plus[l] + m.line_act_minus[l]<=1)
 
-
+    def topology_rule_2(m,s):
+        return sum(m.line_act_minus[l] for l in m.lines if LINES[l].from_bus==s) + sum(m.line_act_plus[l] for l in m.lines if LINES[l].to_bus==s) >= 1
 
 
     print("Constrained defined successfully!")
@@ -209,6 +233,9 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.topology_rule = Constraint(rule=topology_rule)
     model.total_overloads_rule = Constraint(model.periods, rule=total_overloads_rule)
 
+    model.one_dir_cstr = Constraint(model.lines, rule=one_direction_rule)
+    model.topology_cstr_2 = Constraint(model.buses, rule=topology_rule_2)
+
 
     print("Constraint assigned successfully!")
 
@@ -228,16 +255,15 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 0
     solver.options['ScaleFlag'] = 1  # Enable scaling
-
+    solver.options['TimeLimit'] = 180
 
     results = solver.solve(model, tee=True)
-
+    
     # Check the solver status
     if results.solver.status == SolverStatus.ok and results.solver.termination_condition == TerminationCondition.optimal:
         print("Solver found an optimal solution.")
     else:
         print("Solver did not find an optimal solution.")
-        exit()
 
     # Now, you can plot the results using the plot_opt function
     plot_opt(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS)

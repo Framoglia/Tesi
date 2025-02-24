@@ -117,6 +117,7 @@ def load_bus(folder_path, city, N_PERIODS_MAX):
         max_y = max(b.position[1] for b in district_buildings)
 
         # Generate 3 random locations within the boundary
+        random.seed(37)
         for _ in range(2):
             random_x = random.uniform(min_x, max_x)
             random_y = random.uniform(min_y, max_y)

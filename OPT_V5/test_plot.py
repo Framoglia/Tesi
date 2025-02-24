@@ -18,6 +18,7 @@ def test(BUS, LINES):
             print(BUS[bus].load_kW)
             number_lv_load += 1
         elif BUS[bus].b_type == 'MV_load':
+            print(BUS[bus].load_kW)
             number_mv_load += 1
 
     print("\nSystem Summary:")

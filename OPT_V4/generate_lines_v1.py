@@ -117,7 +117,7 @@ def generate_lines(BUS):
     # Step 2: Convert to list and assign line_id
     sorted_lines = sorted(lines_temp)  # Sort connections again
     for bus1, bus2 in sorted_lines:
-        lines.append((line_id, bus1, bus2))
+        lines.append((line_id, bus2, bus1))
         line_id += 1
 
     # Write lines to a CSV file with Line ID

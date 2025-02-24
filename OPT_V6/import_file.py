@@ -74,7 +74,7 @@ def load_bus(folder_path, city, N_PERIODS_MAX):
                 b_type='HV_sub',
                 voltage_level=building.voltage_rms,  # Assuming 'Voltage RMS' field is there
                 district=None,
-                max_capacity=10000000000,  # Set as None, or find the relevant data field
+                max_capacity=100000000000000,  # Set as None, or find the relevant data field
                 x_coord=building.position[0],  # Using Position as (x, y)
                 y_coord=building.position[1]
             )
@@ -126,7 +126,7 @@ def load_bus(folder_path, city, N_PERIODS_MAX):
                 b_type='MV_sub',
                 voltage_level=15000,  # Use the same voltage level as the building
                 district=district,
-                max_capacity=10000000000,  # Default capacity
+                max_capacity=10000000000000,  # Default capacity
                 x_coord=random_x,
                 y_coord=random_y
             )

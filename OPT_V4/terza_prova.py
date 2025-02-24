@@ -69,6 +69,8 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
                 model.p_imp[p, b] = LBUS[b].load_kW[p-1] * 10**3 / BASE_POWER #1000 VA
                 model.q_imp[p, b] = LBUS[b].load_kVAR[p-1] * 10**3 / BASE_POWER
 
+                print(model.p_imp[p, b].value, model.q_imp[p, b].value)
+
 
     print("Loads defined successfully!")
 
@@ -246,7 +248,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
 
 
     results = solver.solve(model, tee=True)
-
+    
     # Check the solver status
     if results.solver.status == SolverStatus.ok and results.solver.termination_condition == TerminationCondition.optimal:
         print("Solver found an optimal solution.")
