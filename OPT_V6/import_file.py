@@ -56,30 +56,23 @@ from extract_building import extract
 
 def load_bus(folder_path, city, N_PERIODS_MAX):
     updated_buildings = extract(folder_path, city, N_PERIODS_MAX)
-    slack_dict = {}
     buses_dict = {}
     substations_dict = {}
-    current_id = 0
 
     # Loop through the updated_buildings to update them with power data
     for building_id, building in updated_buildings.items():
-        
-        current_id = max(current_id,building.building_id)
-
         if building.active_power is None:
             # This means the building is a substation
             # Assuming substation data (substation_id, voltage_level, etc.) is available in the building object
             substation = Substation(
                 substation_id=building.building_id,  # Using ID from the building
-                b_type='HV_sub',
                 voltage_level=building.voltage_rms,  # Assuming 'Voltage RMS' field is there
-                district=None,
-                max_capacity=100000000000000,  # Set as None, or find the relevant data field
+                max_capacity=10000,  # Set as None, or find the relevant data field
                 x_coord=building.position[0],  # Using Position as (x, y)
                 y_coord=building.position[1]
             )
             
-            slack_dict[building_id] = substation
+            substations_dict[building_id] = substation
 
 
         else:
@@ -87,60 +80,26 @@ def load_bus(folder_path, city, N_PERIODS_MAX):
             # Now, the active and reactive power are lists in 'building.active_power' and 'building.reactive_power'
             load_kW = building.active_power  # Keep the active power as a list
             load_kVAR = building.reactive_power  # Keep the reactive power as a list
-            voltage_level = building.voltage_rms
-            if voltage_level == 400:
-                b_type = 'LV_load'
-            else:
-                b_type = 'MV_load'
+            
             bus = Bus(
                 bus_id=building.building_id,  # Using building's ID
-                b_type = b_type,
-                voltage_level=voltage_level,  # Using 'Voltage RMS'
-                district = building.district,
+                voltage_level=building.voltage_rms,  # Using 'Voltage RMS'
                 load_kW=load_kW,  # Active power as a list
                 load_kVAR=load_kVAR,  # Reactive power as a list
                 x_coord=building.position[0],  # Using Position (x, y)
                 y_coord=building.position[1]
             )
-
-            
             
             buses_dict[building_id] = bus
 
-
-    for district in set(b.district for b in updated_buildings.values() if b.district and b.district != 'TFO'):
-        # Find the boundary for this district (min and max x, y)
-        district_buildings = [b for b in updated_buildings.values() if b.district == district]
-        min_x = min(b.position[0] for b in district_buildings)
-        max_x = max(b.position[0] for b in district_buildings)
-        min_y = min(b.position[1] for b in district_buildings)
-        max_y = max(b.position[1] for b in district_buildings)
-
-        # Generate 3 random locations within the boundary
-        for _ in range(2):
-            random_x = random.uniform(min_x, max_x)
-            random_y = random.uniform(min_y, max_y)
-
-            mv_substation = Substation(
-                substation_id=current_id+1,  # Unique ID for each MV substation
-                b_type='MV_sub',
-                voltage_level=15000,  # Use the same voltage level as the building
-                district=district,
-                max_capacity=10000000000000,  # Default capacity
-                x_coord=random_x,
-                y_coord=random_y
-            )
-            substations_dict[current_id+1] = mv_substation
-            current_id += 1
-
-    return buses_dict, substations_dict, slack_dict, updated_buildings
+    return buses_dict, substations_dict, updated_buildings
 
 
 import pandas as pd
 
 def load_Mycampus(N_PERIODS):
 
-    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V4\Mycampus2.csv"
+    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V4\MycampusBig.csv"
     slack_dict = {}
     buses_dict = {}
     substations_dict = {}
@@ -193,8 +152,10 @@ def load_Mycampus(N_PERIODS):
 
         else:  # Load bus
             if N_PERIODS == 1:
-                load_kW = float(row["Active Power"])
-                load_kVAR = float(row["Reactive Power"])
+                load_kW = []
+                load_kVAR = []
+                load_kW.append(float(row["Active Power"]))
+                load_kVAR.append(float(row["Reactive Power"]))
             else:
                 random.seed(37)
                 load_kW = [random.uniform(0.8*float(row["Active Power"]), 1.2*float(row["Active Power"])) for _ in range(N_PERIODS)]
@@ -213,56 +174,6 @@ def load_Mycampus(N_PERIODS):
             buses_dict[bus_id] = bus
 
     return buses_dict, substations_dict, slack_dict
-
-
-"""
-def load_buses_csv(file_path,N_PERIODS,offset):
-    buses_dict = {}
-    
-    with open(file_path, mode='r', newline='') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        
-        for row in csv_reader:
-            if N_PERIODS == 1:
-                load_kW = float(row['Load [MW]'])
-                load_kVAR = float(row['Load [MVAR]'])
-            else:
-                load_kW = [random.uniform(0,float(row['Load [MW]'])) for _ in range(N_PERIODS)]
-                load_kVAR = [random.uniform(0, float(row['Load [MVAR]'])) for _ in range(N_PERIODS)]
-
-
-            bus = Bus(
-                bus_id=int(row['Bus ID'])+offset,
-                voltage_level=float(row['Voltage Level [kV]']),
-                load_kW= load_kW,
-                load_kVAR= load_kVAR,
-                x_coord=float(row['x_coord']),
-                y_coord=float(row['y_coord'])
-            )
-            buses_dict[int(row['Bus ID'])+offset] = bus  # Store in dict by bus_id
-            
-    return buses_dict
-"""
-
-"""
-def load_substations_csv(file_path):
-    substations_dict = {}
-    
-    with open(file_path, mode='r', newline='') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        
-        for row in csv_reader:
-            substation = Substation(
-                substation_id=int(row['Substation ID']),
-                voltage_level=float(row['Voltage Level [kV]']),
-                max_capacity=float(row['Max capacyty [MVA]']),
-                x_coord=float(row['x_coord']),
-                y_coord=float(row['y_coord'])
-            )
-            substations_dict[int(row['Substation ID'])] = substation  # Store in dict by substation_id
-            
-    return substations_dict
-"""
 
 
 @dataclass

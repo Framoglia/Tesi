@@ -13,7 +13,7 @@ folder_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\Campus data\UpdatedData"
 cities = ["Buenos Aires", "Los Angeles", "Singapore", "Vancouver"]  #For this cities the opt is infeasible
 cities = ["Miami", "Guayaquil"]     #Weird result both on objective value and topology
 cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"] #This seem to work fine
-cities = ["Abu Dhabi"]
+cities = ["Brussels"]
 
 for city in cities:
     LBUS, SUBS, SLACK, updated_buildings  = load_bus(folder_path, city, N_PERIODS_MAX)

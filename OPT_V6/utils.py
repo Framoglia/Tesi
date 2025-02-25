@@ -67,7 +67,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         plt.text(
         x-0.15,  # x-coordinate of the bus
         y+0.15,  # y-coordinate of the bus
-        f'{bus_voltage:.2f}',  # Voltage value formatted to 2 decimal places
+        f'{bus_voltage:.4f}',  # Voltage value formatted to 2 decimal places
         fontsize=10,           # Font size
         color='black',         # Text color
         bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.3'),  # Styled box
@@ -104,7 +104,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     # Plot lines based on the activated lines and conductors
     for line in m.lines:
         ##DEBUG   print(f"Checking line {line}")
-        if m.line_act[line].value >= 0.8:  # If line is activated
+        if m.line_act_plus[line].value >= 0.8 or m.line_act_minus[line].value >= 0.8:  # If line is activated
             ##DEBUG   print(f"Line {line} is activated.")
             
             # Get from_bus and to_bus based on whether they are LBUS or SUBS
@@ -182,7 +182,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
             """plt.plot([from_bus_coords[0], to_bus_coords[0]],
                      [from_bus_coords[1], to_bus_coords[1]],
                      linestyle=':', color='black')
-"""
+            """
     plt.xlabel('X Coordinate')
     plt.ylabel('Y Coordinate')
     plt.title('Bus Locations')
@@ -217,15 +217,6 @@ def fetch_base_z_from_line(DATA, l):
         except:
             voltage_level = SLACK[sending_bus].voltage_level
 
-    """print("\nLine Information")
-    print("===========================")
-    print(f"Line ID      : {LINES[l].line_id}")
-    print(f"From Bus     : {LINES[l].from_bus}")
-    print(f"To Bus       : {LINES[l].to_bus}")
-    print(f"Length (km)  : {LINES[l].length:.2f}")
-    print(f"Volatge Level: {voltage_level}")
-    print("===========================\n")"""
-    
     if voltage_level == 70000:
         return BASE_Z_HV
     elif voltage_level == 15000:

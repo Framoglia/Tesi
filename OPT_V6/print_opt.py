@@ -27,7 +27,8 @@ def export_optimal_values(model, filename="optimal_solution.csv"):
     # Extract binary and indexed variables with multiple indices
     multi_indexed_vars = {
         "line_opt": model.line_opt,
-        "line_act": model.line_act,
+        "line_act_plus": model.line_act_plus,
+        "line_act_minus": model.line_act_minus,
         "subs_hv_S": model.subs_hv_S,
         "subs_hv_P": model.subs_hv_P,
         "subs_hv_Q": model.subs_hv_Q,

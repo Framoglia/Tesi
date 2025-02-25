@@ -255,7 +255,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 0
     solver.options['ScaleFlag'] = 1  # Enable scaling
-    solver.options['TimeLimit'] = 180
+    solver.options['TimeLimit'] = 1800
 
     results = solver.solve(model, tee=True)
     
