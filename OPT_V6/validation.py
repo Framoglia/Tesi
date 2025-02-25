@@ -2,6 +2,7 @@ import pandapower as pp
 import pandas as pd
 from pandapower.plotting.plotly import simple_plotly
 from pandapower.plotting.plotly import pf_res_plotly
+import plotly.graph_objects as go
 
 
 
@@ -81,7 +82,7 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
         geodata[mv_bus] = (slack.x_coord + 0.5, slack.y_coord - 0.5)
         slack_mv_map[slack_id] = mv_bus
         # Connect HV and MV with an ideal transformer (adjust std_type as needed)
-        create_ideal_transformer(net, hv_bus, mv_bus, hv_kv=40, lv_kv=15, sn_mva=40, name=f"Slack Transformer {slack_id}")
+        create_ideal_transformer(net, hv_bus, mv_bus, hv_kv=70, lv_kv=15, sn_mva=40, name=f"Slack Transformer {slack_id}")
         # Add ext_grid at HV bus
         pp.create_ext_grid(net, bus=hv_bus, vm_pu=1.0, name=f"ExtGrid {slack_id}")
     
@@ -196,8 +197,7 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
     geo_df = pd.DataFrame.from_dict(geodata, orient='index', columns=['x', 'y'])
     net.bus_geodata = geo_df
     
-    fig = simple_plotly(net)
-    fig.show()
+    custom_load_plot(net)
 
 
     # 7. Run power flow simulation.
@@ -260,4 +260,88 @@ def create_ideal_transformer(net, hv_bus, lv_bus, hv_kv, lv_kv, sn_mva, name):
         i0_percent=0.01,  # Near-zero no-load current
         name=name
     )
+
+
+
+def custom_load_plot(net):
+    """
+    Creates a custom Plotly figure that plots all buses, but marks loads with different symbols
+    depending on their voltage level:
+      - MV loads (e.g., 15 kV) are shown as blue circles.
+      - LV loads (e.g., 0.4 kV) are shown as red diamonds.
+      
+    Assumes that net.bus_geodata contains the x and y coordinates for each bus, and that 
+    net.bus.vn_kv contains the voltage levels.
+    """
+    # Create a blank figure
+    fig = go.Figure()
+
+    # Plot all buses as grey markers (for reference)
+    fig.add_trace(go.Scatter(
+        x=net.bus_geodata.x,
+        y=net.bus_geodata.y,
+        mode='markers',
+        marker=dict(size=8, color='lightgrey'),
+        name='Buses'
+    ))
+
+    # Initialize lists for load coordinates
+    mv_x, mv_y = [], []
+    lv_x, lv_y = [], []
+
+    # Iterate through all loads in the network
+    for idx, load in net.load.iterrows():
+        # Get the pandapower bus index for the load
+        bus_idx = load.bus
+        # Get the voltage at that bus
+        voltage = net.bus.vn_kv.at[bus_idx]
+        # Get the coordinates from bus_geodata
+        x = net.bus_geodata.x.at[bus_idx]
+        y = net.bus_geodata.y.at[bus_idx]
+
+        # Check voltage level and append to the appropriate list
+        if abs(voltage - 15) < 1e-3:  # MV load (15 kV)
+            mv_x.append(x)
+            mv_y.append(y)
+        elif abs(voltage - 0.4) < 1e-3:  # LV load (0.4 kV)
+            lv_x.append(x)
+            lv_y.append(y)
+        else:
+            # If you have other voltage levels, you can add more cases here.
+            pass
+
+    # Plot MV loads with blue circle markers
+    fig.add_trace(go.Scatter(
+        x=mv_x,
+        y=mv_y,
+        mode='markers',
+        marker=dict(symbol='circle', size=12, color='blue'),
+        name='MV Loads (15 kV)'
+    ))
+
+    # Plot LV loads with red diamond markers
+    fig.add_trace(go.Scatter(
+        x=lv_x,
+        y=lv_y,
+        mode='markers',
+        marker=dict(symbol='diamond', size=12, color='red'),
+        name='LV Loads (0.4 kV)'
+    ))
+
+    # Update layout settings
+    fig.update_layout(
+        title="Custom Plot of Loads with Different Markers for MV and LV",
+        xaxis_title="X Coordinate",
+        yaxis_title="Y Coordinate",
+        template="plotly_white"
+    )
+
+    fig.show()
+
+# Example usage:
+# Assuming you already have a solved net with bus_geodata, for example:
+# net = pp.create_empty_network() 
+# (and you have added buses, loads, etc. with proper geodata and voltages)
+# custom_load_plot(net)
+
 

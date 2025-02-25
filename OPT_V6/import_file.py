@@ -56,23 +56,30 @@ from extract_building import extract
 
 def load_bus(folder_path, city, N_PERIODS_MAX):
     updated_buildings = extract(folder_path, city, N_PERIODS_MAX)
+    slack_dict = {}
     buses_dict = {}
     substations_dict = {}
+    current_id = 0
 
     # Loop through the updated_buildings to update them with power data
     for building_id, building in updated_buildings.items():
+        
+        current_id = max(current_id,building.building_id)
+
         if building.active_power is None:
             # This means the building is a substation
             # Assuming substation data (substation_id, voltage_level, etc.) is available in the building object
             substation = Substation(
                 substation_id=building.building_id,  # Using ID from the building
+                b_type='HV_sub',
                 voltage_level=building.voltage_rms,  # Assuming 'Voltage RMS' field is there
-                max_capacity=10000,  # Set as None, or find the relevant data field
+                district=None,
+                max_capacity=10000000000,  # Set as None, or find the relevant data field
                 x_coord=building.position[0],  # Using Position as (x, y)
                 y_coord=building.position[1]
             )
             
-            substations_dict[building_id] = substation
+            slack_dict[building_id] = substation
 
 
         else:
@@ -80,26 +87,61 @@ def load_bus(folder_path, city, N_PERIODS_MAX):
             # Now, the active and reactive power are lists in 'building.active_power' and 'building.reactive_power'
             load_kW = building.active_power  # Keep the active power as a list
             load_kVAR = building.reactive_power  # Keep the reactive power as a list
-            
+            voltage_level = building.voltage_rms
+            if voltage_level == 400:
+                b_type = 'LV_load'
+            else:
+                b_type = 'MV_load'
             bus = Bus(
                 bus_id=building.building_id,  # Using building's ID
-                voltage_level=building.voltage_rms,  # Using 'Voltage RMS'
+                b_type = b_type,
+                voltage_level=voltage_level,  # Using 'Voltage RMS'
+                district = building.district,
                 load_kW=load_kW,  # Active power as a list
                 load_kVAR=load_kVAR,  # Reactive power as a list
                 x_coord=building.position[0],  # Using Position (x, y)
                 y_coord=building.position[1]
             )
+
+            
             
             buses_dict[building_id] = bus
 
-    return buses_dict, substations_dict, updated_buildings
+
+    for district in set(b.district for b in updated_buildings.values() if b.district and b.district != 'TFO'):
+        # Find the boundary for this district (min and max x, y)
+        district_buildings = [b for b in updated_buildings.values() if b.district == district]
+        min_x = min(b.position[0] for b in district_buildings)
+        max_x = max(b.position[0] for b in district_buildings)
+        min_y = min(b.position[1] for b in district_buildings)
+        max_y = max(b.position[1] for b in district_buildings)
+
+        # Generate 3 random locations within the boundary
+        random.seed(37)
+        for _ in range(2):
+            random_x = random.uniform(min_x, max_x)
+            random_y = random.uniform(min_y, max_y)
+
+            mv_substation = Substation(
+                substation_id=current_id+1,  # Unique ID for each MV substation
+                b_type='MV_sub',
+                voltage_level=15000,  # Use the same voltage level as the building
+                district=district,
+                max_capacity=10000000000,  # Default capacity
+                x_coord=random_x,
+                y_coord=random_y
+            )
+            substations_dict[current_id+1] = mv_substation
+            current_id += 1
+
+    return buses_dict, substations_dict, slack_dict
 
 
 import pandas as pd
 
 def load_Mycampus(N_PERIODS):
 
-    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V4\MycampusBig.csv"
+    csv_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\OPT_V6\MycampusBig.csv"
     slack_dict = {}
     buses_dict = {}
     substations_dict = {}

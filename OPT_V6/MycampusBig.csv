@@ -1,6 +1,6 @@
 Bus ID, Position, Size, Type, District, Voltage, Active Power, Reactive Power
-0, (0;0), , HV_sub, , 40000, , 
-1, (100;0), , HV_sub, , 40000, , 
+0, (0;0), , HV_sub, , 70000, , 
+1, (100;0), , HV_sub, , 70000, , 
 2, (0;40), , MV_sub, A, 15000, , 
 3, (50;90), , MV_sub, A, 15000, , 
 4, (80;90), , MV_sub, B, 15000, , 

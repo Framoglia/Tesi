@@ -17,20 +17,19 @@ folder_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\Campus data\UpdatedData"
 cities = ["Buenos Aires", "Los Angeles", "Singapore", "Vancouver"]  #For this cities the opt is infeasible
 cities = ["Miami", "Guayaquil"]     #Weird result both on objective value and topology
 cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"] #This seem to work fine
-cities = "Mycampus"
-
+cities = "Copenhagen"
+print(cities)
 if cities != "Mycampus":
-    for city in cities:
-        LBUS, SUBS, updated_buildings  = load_bus(folder_path, city, N_PERIODS_MAX)
+        LBUS, SUBS, SLACK = load_bus(folder_path, cities, N_PERIODS_MAX)
 
         keyes = list(LBUS.keys())
         N_PERIODS = len(LBUS[keyes[1]].load_kW)
 
-        generate_lines(updated_buildings)
+        generate_lines(SUBS | LBUS | SLACK)
         print("Lines generated and saved to lines.csv successfully!")
-        LINES = load_lines_csv(SUBS,LBUS)
-
-        optimize(LBUS, SUBS, LINES, LINES_OPT, N_PERIODS)
+        LINES = load_lines_csv(SUBS | LBUS | SLACK)
+        
+        model = optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS)
 
 else:
     LBUS, SUBS, SLACK = load_Mycampus(N_PERIODS_MAX)
