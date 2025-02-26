@@ -28,7 +28,7 @@ def test(BUS, LINES):
     print(f"Medium Voltage Loads     : {number_mv_load}")
     print("=========================\n")
 
-def plot_opt(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
+def test_plot(LBUS, SUBS, SLACK, LINES):
     x_max = 0
     y_max = 0
     x_min = 99

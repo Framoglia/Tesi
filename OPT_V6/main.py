@@ -6,6 +6,7 @@ from validation import *
 from print_opt import export_optimal_values
 from utils import plot_opt
 from compare_voltages import plot_voltage_comparison
+from test_plot import test_plot
 
 N_PERIODS_MAX = 1
 
@@ -17,7 +18,7 @@ folder_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\Campus data\UpdatedData"
 cities = ["Buenos Aires", "Los Angeles", "Singapore", "Vancouver"]  #For this cities the opt is infeasible
 cities = ["Miami", "Guayaquil"]     #Weird result both on objective value and topology
 cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"] #This seem to work fine
-cities = "Copenhagen"
+cities = "Miami"
 print(cities)
 if cities != "Mycampus":
         LBUS, SUBS, SLACK = load_bus(folder_path, cities, N_PERIODS_MAX)
@@ -28,7 +29,8 @@ if cities != "Mycampus":
         generate_lines(SUBS | LBUS | SLACK)
         print("Lines generated and saved to lines.csv successfully!")
         LINES = load_lines_csv(SUBS | LBUS | SLACK)
-        
+        test_plot(LBUS, SUBS, SLACK, LINES)
+
         model = optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS)
 
 else:
