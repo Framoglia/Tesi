@@ -36,7 +36,6 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.line_act_plus = Var(model.lines, within=Binary)                    # Is the line activated ?
     model.line_act_minus = Var(model.lines, within=Binary)  
 
-
     model.subs_hv_capacity = Var(model.subs_hv, within=NonNegativeReals)
     model.subs_hv_S = Var(model.periods, model.subs_hv, within=NonNegativeReals)
     model.subs_hv_P = Var(model.periods, model.subs_hv, within=Reals)
@@ -130,8 +129,23 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     def reactive_power_subs_hv_rule(m,p,s):
         return m.subs_hv_Q[p,s] == -(sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
 
-    def apparent_power_subs_hv_rule(m,p,s):
+    def apparent_power_subs_hv(m,p,s):
         return m.subs_hv_S[p,s]**2 >= m.subs_hv_P[p,s]**2 + m.subs_hv_Q[p,s]**2
+    
+    def apparent_power_subs_hv_rule_1(m,p,s):
+        return m.subs_hv_S[p,s] >= m.subs_hv_P[p,s]
+    
+    def apparent_power_subs_hv_rule_2(m,p,s):
+        return m.subs_hv_S[p,s] >= m.subs_hv_Q[p,s]
+    
+    def apparent_power_subs_hv_rule_3(m,p,s):
+        return m.subs_hv_S[p,s] >= - m.subs_hv_Q[p,s]
+    
+    def apparent_power_subs_hv_rule_4(m,p,s):
+        return m.subs_hv_S[p,s] >= (m.subs_hv_Q[p,s] + m.subs_hv_P[p,s])/1.4142
+    
+    def apparent_power_subs_hv_rule_5(m,p,s):
+        return m.subs_hv_S[p,s] >= (-m.subs_hv_Q[p,s] + m.subs_hv_P[p,s])/1.4142
 
     def active_power_subs_mv_rule(m,p,s):    
         return 0 == -(sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
@@ -178,6 +192,21 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
 
     def apparent_power_subs_mv(m,p,s):
         return m.subs_mv_S[p,s]**2 >= m.subs_mv_P[p,s]**2 + m.subs_mv_Q[p,s]**2
+    
+    def apparent_power_subs_mv_rule_1(m,p,s):
+        return m.subs_mv_S[p,s] >= m.subs_mv_P[p,s]
+    
+    def apparent_power_subs_mv_rule_2(m,p,s):
+        return m.subs_mv_S[p,s] >= m.subs_mv_Q[p,s]
+    
+    def apparent_power_subs_mv_rule_3(m,p,s):
+        return m.subs_mv_S[p,s] >= - m.subs_mv_Q[p,s]
+    
+    def apparent_power_subs_mv_rule_4(m,p,s):
+        return m.subs_mv_S[p,s] >= (m.subs_mv_Q[p,s] + m.subs_mv_P[p,s])/1.4142
+    
+    def apparent_power_subs_mv_rule_5(m,p,s):
+        return m.subs_mv_S[p,s] >= (-m.subs_mv_Q[p,s] + m.subs_mv_P[p,s])/1.4142
     
     def subs_mv_capacity_rule(m,p,s):
         return m.subs_mv_S[p,s] <= m.subs_mv_capacity[s]
@@ -239,7 +268,70 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     def voltage_lim_2_rule(m,p,b):
         return m.voltage_squared[p,b] <= MAX_VOLTAGE**2
     
+    def apparent_power_subs_hv_rule(m, p, s):
+        constraints = []
+        
+        # Coefficients from the 16-sided polygon approximation
+        coefficients = [
+            (0.924, 0.383),
+            (1.0, 0.0),
+            (0.707, 0.707),
+            (0.383, 0.924),
+            (-0.383, 0.924),
+            (0.0, 1.0),
+            (-0.707, 0.707),
+            (-0.924, 0.383),
+            (-1.0, 0.0),
+            (-0.924, -0.383),
+            (-0.707, -0.707),
+            (-0.383, -0.924),
+            (-0.0, -1.0),
+            (0.383, -0.924),
+            (0.707, -0.707),
+            (0.924, -0.383)
+        ]
+        
+        # Apply each constraint
+        for a, b in coefficients:
+            constraints.append(
+                m.subs_hv_S[p, s] >= a * m.subs_hv_P[p, s] + b * m.subs_hv_Q[p, s]
+            )
+        
+        return constraints
     
+    def apparent_power_subs_mv_rule(m, p, s):
+        constraints = []
+        
+        # Coefficients from the 16-sided polygon approximation
+        coefficients = [
+            (0.924, 0.383),
+            (1.0, 0.0),
+            (0.707, 0.707),
+            (0.383, 0.924),
+            (-0.383, 0.924),
+            (0.0, 1.0),
+            (-0.707, 0.707),
+            (-0.924, 0.383),
+            (-1.0, 0.0),
+            (-0.924, -0.383),
+            (-0.707, -0.707),
+            (-0.383, -0.924),
+            (-0.0, -1.0),
+            (0.383, -0.924),
+            (0.707, -0.707),
+            (0.924, -0.383)
+        ]
+        
+        # Apply each constraint
+        for a, b in coefficients:
+            constraints.append(
+                m.subs_mv_S[p, s] >= a * m.subs_mv_P[p, s] + b * m.subs_mv_Q[p, s]
+            )
+        
+        return constraints
+
+    
+
     print("Constrained defined successfully!")
 
     model.conductors_cost = Constraint(rule=conductors_cost)
@@ -267,13 +359,40 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.voltage_cstr_2 = Constraint(model.periods, model.lines, rule=voltage_rule_2)
     model.complex_power_cstr = Constraint(model.periods, model.lines, rule=complex_power_rule)
 
-    model.apparent_power_subs_cstr = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv_rule)
+    #model.apparent_power_subs_cstr = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv)
+
+    model.apparent_power_subs_hv_cstr = ConstraintList()
+    for p in model.periods:
+        for s in model.subs_hv:
+            for constr in apparent_power_subs_hv_rule(model, p, s):
+                model.apparent_power_subs_hv_cstr.add(constr)
+                
+    """    
+    model.apparent_power_subs_cstr_1 = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv_rule_1)
+    model.apparent_power_subs_cstr_2 = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv_rule_2)
+    model.apparent_power_subs_cstr_3 = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv_rule_3)
+    model.apparent_power_subs_cstr_4 = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv_rule_4)
+    model.apparent_power_subs_cstr_5 = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv_rule_5)"""
+
     model.subs_capacity_cstr = Constraint(model.periods, model.subs_hv, rule=subs_capacity_rule)
     model.max_capacity_cstr = Constraint(model.subs_hv, rule=max_capacity_rule)
     model.subs_voltage_cstr_1 = Constraint(model.periods, model.subs_hv, rule=subs_voltage_rule_1)
     model.subs_voltage_cstr_2 = Constraint(model.periods, model.subs_hv, rule=subs_voltage_rule_2)
     
-    model.apparent_power_subs_mv_cstr = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv)
+    #model.apparent_power_subs_mv_cstr = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv)
+
+    model.apparent_power_subs_mv_cstr = ConstraintList()
+    for p in model.periods:
+        for s in model.subs_mv:
+            for constr in apparent_power_subs_mv_rule(model, p, s):
+                model.apparent_power_subs_mv_cstr.add(constr)
+
+    """model.apparent_power_subs_mv_cstr_1 = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv_rule_1)
+    model.apparent_power_subs_mv_cstr_2 = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv_rule_2)
+    model.apparent_power_subs_mv_cstr_3 = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv_rule_3)
+    model.apparent_power_subs_mv_cstr_4 = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv_rule_4)
+    model.apparent_power_subs_mv_cstr_5 = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv_rule_5)"""
+
     model.subs_mv_capacity_cstr = Constraint(model.periods, model.subs_mv, rule=subs_mv_capacity_rule)
     model.max_mv_capacity_cstr = Constraint(model.subs_mv, rule=max_mv_capacity_rule)
     
