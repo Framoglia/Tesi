@@ -64,8 +64,8 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.active_power_minus = Var(model.periods, model.lines, within=NonNegativeReals)
     model.reactive_power_minus = Var(model.periods, model.lines, within=NonNegativeReals)
 
-    model.active_power_discr = Var(model.periods, model.lines, model.NPWB, within=Reals)
-    model.reactive_power_discr = Var(model.periods, model.lines, model.NPWB, within=Reals)
+    model.active_power_discr = Var(model.periods, model.lines, model.NPWB, within=NonNegativeReals)
+    model.reactive_power_discr = Var(model.periods, model.lines, model.NPWB, within=NonNegativeReals)
 
     model.voltage_squared = Var(model.periods, model.subs_hv | model.B, within=NonNegativeReals)
 
@@ -443,7 +443,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 0
     solver.options['ScaleFlag'] = 1  # Enable scaling
-    solver.options['TimeLimit'] = 300
+    solver.options['TimeLimit'] = 1800
 
     results = solver.solve(model, tee=True)
     

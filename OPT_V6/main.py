@@ -8,17 +8,17 @@ from utils import plot_opt
 from compare_voltages import plot_voltage_comparison
 from test_plot import test_plot
 
-N_PERIODS_MAX = 3
+N_PERIODS_MAX = 1
 
 file_path = 'conductors.csv'
 LINES_OPT = load_conductors_csv(file_path)
 
 folder_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\Campus data\UpdatedData"
 
-cities = ["Buenos Aires", "Los Angeles", "Singapore", "Vancouver"]  #For this cities the opt is infeasible
-cities = ["Miami", "Guayaquil"]     #Weird result both on objective value and topology
-cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"] #This seem to work fine
-cities = "Brussels"
+cities = ["Buenos Aires", "Los Angeles", "Singapore", "Vancouver"]      #For this cities the opt is infeasible
+cities = ["Miami", "Guayaquil"]                                         #Weird result both on objective value and topology
+cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"]  #This seem to work fine
+cities = "Singapore"
 print(cities)
 if cities != "Mycampus":
         LBUS, SUBS, SLACK = load_bus(folder_path, cities, N_PERIODS_MAX)

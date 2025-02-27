@@ -17,7 +17,7 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
       3. For each bus in SLACK: if active (beta > 0.8), create an HV bus (with ext_grid) and its corresponding MV bus,
          connected via an ideal transformer.
       4. For each line: if built (line_act_plus or line_act_minus > 0.8) and with an optimized conductor (line_opt),
-         connect the proper bus endpoints – using the LV bus for subs/slacks when appropriate.
+         connect the proper bus endpoints using the LV bus for subs/slacks when appropriate.
       5. Run the power flow.
       6. Assign geodata to the network.
     
@@ -105,6 +105,7 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
                 chosen = LINES_OPT[cond]
                 break
         if chosen is None:
+            print(f'NO CONDUCTOR FOUND FOR LINE {line_id}')
             r_per_km, x_per_km, max_i_ka = 0.1, 0.2, 0.4
         else:
             r_per_km = chosen.r_per_km
@@ -197,8 +198,7 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
     geo_df = pd.DataFrame.from_dict(geodata, orient='index', columns=['x', 'y'])
     net.bus_geodata = geo_df
     
-    custom_load_plot(net)
-
+    #custom_load_plot(net)
 
     # 7. Run power flow simulation.
     pp.runpp(net)

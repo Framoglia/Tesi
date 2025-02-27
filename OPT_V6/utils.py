@@ -64,7 +64,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         plt.scatter(x, y, s=100, c=color, marker=marker, label=b_type if bus == list(m.B)[0] else "")
         
         bus_voltage = sum(m.voltage_squared[p,bus].value**0.5 for p in m.periods)/len(m.periods)
-        plt.text(
+        """plt.text(
         x-0.15,  # x-coordinate of the bus
         y+0.15,  # y-coordinate of the bus
         f'{bus_voltage:.4f}',  # Voltage value formatted to 2 decimal places
@@ -73,7 +73,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.3'),  # Styled box
         horizontalalignment='center',  # Center text horizontally
         verticalalignment='bottom'     # Place text above the point
-        )
+        )"""
 
     
     import numpy as np
