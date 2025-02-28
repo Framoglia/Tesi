@@ -198,15 +198,40 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
     geo_df = pd.DataFrame.from_dict(geodata, orient='index', columns=['x', 'y'])
     net.bus_geodata = geo_df
     
-    #custom_load_plot(net)
+    # 7. Run power flow simulation for each timestep.
+    results = {}
 
-    # 7. Run power flow simulation.
-    pp.runpp(net)
-    fig = pf_res_plotly(net)
-    fig.show()
-    
-    
-    return net, pp_bus_map
+    # Identify load elements in the network
+    load_indices = net.load.index
+
+    for t in range(len(next(iter(LBUS.values())).load_kW)):
+        # Deactivate all loads first
+        net.load['in_service'] = False
+        
+        # Activate only the loads for the current timestep
+        for bus_id, bus in LBUS.items():
+            pp_bus = pp_bus_map[bus_id]  # Get the pandapower bus index
+            load_idx = net.load[(net.load.bus == pp_bus) & (net.load.name == f"Load {bus_id} T{t}")].index
+            if not load_idx.empty:
+                net.load.at[load_idx[0], 'p_mw'] = bus.load_kW[t] / 1000
+                net.load.at[load_idx[0], 'q_mvar'] = bus.load_kVAR[t] / 1000
+                net.load.at[load_idx[0], 'in_service'] = True
+        
+        # Run power flow
+        try:
+            pp.runpp(net)
+            results[t] = {
+                "bus": net.res_bus.copy(),
+                "line": net.res_line.copy(),
+                "trafo": net.res_trafo.copy() if not net.trafo.empty else None
+            }
+        except pp.powerflow.LoadflowNotConverged:
+            results[t] = "Power flow did not converge"
+
+    # Activate all loads before exporting the network
+    net.load['in_service'] = True
+        
+    return net, pp_bus_map, results
 
 import pandapower as pp
 

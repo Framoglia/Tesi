@@ -52,6 +52,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.current_squared = Var(model.periods, model.lines, within=NonNegativeReals)
     model.current_slack = Var(model.periods, model.lines, model.conductors, within=NonNegativeReals)
     model.phi = Var(model.periods, within=NonNegativeReals)
+    model.losses = Var(model.periods, model.lines, within=NonNegativeReals)
 
     model.active_power_k = Var( model.periods,model.lines, model.conductors, within=Reals)
     model.active_power = Var(model.periods, model.lines, within=Reals)
@@ -76,12 +77,15 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.SPWB = Param(model.lines, model.NPWB, mutable=True)
     
     for l in model.lines:
-        model.LPWB[l] = MAX_VOLTAGE * max((LINES_OPT[c].imax_kA*1000) for c in model.conductors) / fetch_base_i_from_line(DATA, l) / NPWB
+        model.LPWB[l] = MAX_VOLTAGE * max((LINES_OPT[c].imax_kA*1000) for c in model.conductors) / fetch_base_i_from_line(DATA, l) / NPWB / 35
+        print(f"LPWB[{l}] = {model.LPWB[l].value}")
+        
         for block in model.NPWB:
             if block == 1:
-                model.SPWB[l,block] = 5/6 * model.LPWB[l]
+                model.SPWB[l, block] = 5/6 * model.LPWB[l]
             else:
-                model.SPWB[l,block] = (2 * block - 1) * model.LPWB[l]
+                model.SPWB[l, block] = (2 * block - 1) * model.LPWB[l]
+            print(f"SPWB[{l},{block}] = {model.SPWB[l, block].value}")
 
 
     print("Variables defined successfully!")
@@ -330,6 +334,8 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         
         return constraints
 
+    def losses_rule(m,p,l):
+        return m.losses[p,l] == sum(m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors)
     
 
     print("Constrained defined successfully!")
@@ -424,6 +430,8 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.voltage_lim_1_cstr = Constraint(model.periods, model.B, rule=voltage_lim_1_rule)
     model.voltage_lim_2_cstr = Constraint(model.periods, model.B, rule=voltage_lim_2_rule)
 
+    model.losses_calc_cstr = Constraint(model.periods, model.lines, rule=losses_rule)
+
 
     print("Constraint assigned successfully!")
 
@@ -439,11 +447,11 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
 
     # Solve the model
     solver = SolverFactory('gurobi')
-    solver.options['MIPGap'] = 0.0001
+    solver.options['MIPGap'] = 0.05
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 0
     solver.options['ScaleFlag'] = 1  # Enable scaling
-    solver.options['TimeLimit'] = 1800
+    solver.options['TimeLimit'] = 300
 
     results = solver.solve(model, tee=True)
     

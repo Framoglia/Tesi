@@ -5,10 +5,10 @@ from terza_prova_p_neg import optimize
 from validation import *
 from print_opt import export_optimal_values
 from utils import plot_opt
-from compare_voltages import plot_voltage_comparison
+from compare_voltages import plot_comparisons
 from test_plot import test_plot
 
-N_PERIODS_MAX = 1
+N_PERIODS_MAX = 3
 
 file_path = 'conductors.csv'
 LINES_OPT = load_conductors_csv(file_path)
@@ -18,7 +18,7 @@ folder_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\Campus data\UpdatedData"
 cities = ["Buenos Aires", "Los Angeles", "Singapore", "Vancouver"]      #For this cities the opt is infeasible
 cities = ["Miami", "Guayaquil"]                                         #Weird result both on objective value and topology
 cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"]  #This seem to work fine
-cities = "Singapore"
+cities = "Mycampus"
 print(cities)
 if cities != "Mycampus":
         LBUS, SUBS, SLACK = load_bus(folder_path, cities, N_PERIODS_MAX)
@@ -47,8 +47,8 @@ else:
 
 plot_opt(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS)
 export_optimal_values(model)
-net, pp_bus_map = export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT)
+net, pp_bus_map, results = export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT)
 debug_pandapower_net(net)
 
-plot_voltage_comparison(net, model, pp_bus_map)
+plot_comparisons(net, results, model, pp_bus_map)
 
