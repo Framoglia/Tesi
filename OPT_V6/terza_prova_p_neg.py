@@ -83,14 +83,14 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         X1 = 0  # Start from zero
         for block in model.NPWB:
             
-            LPWB_block = log_interval_length(max_power, NPWB, block)      # Get the length of the current interval
+            LPWB_block = MAX_VOLTAGE * max((LINES_OPT[c].imax_kA*1000) for c in model.conductors) / fetch_base_i_from_line(DATA, l) /NPWB      # Get the length of the current interval
             X2 = X1 + LPWB_block                                            # Compute the boundary points
             model.LPWB[l, block] = LPWB_block
             model.SPWB[l, block] = X1 + X2                                  # Compute the true slope of x^2 using boundary points          
             X1 = X2                                                         # Move to the next interval
 
-            print(f"LPWB[{l},{block}] = {model.LPWB[l, block].value}")
-            print(f"SPWB[{l},{block}] = {model.SPWB[l, block].value}")
+            #print(f"LPWB[{l},{block}] = {model.LPWB[l, block].value}")
+            #print(f"SPWB[{l},{block}] = {model.SPWB[l, block].value}")
 
     for p in model.periods:
         for b in model.buses:  
@@ -172,7 +172,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         return m.voltage_squared[p,j] - m.voltage_squared[p,i] >= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + m.current_squared_k[p,l,c] * ((LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) / (fetch_base_z_from_line(DATA, l) / LINES[l].length  * 100)**2) for c in m.conductors) - M * (1-m.line_act_plus[l]-m.line_act_minus[l])
 
     def complex_power_rule(m,p,l):
-        return  m.current_squared[p,l] >= 0.25* sum(m.SPWB[l,db] * (m.active_power_discr[p,l,db] + m.reactive_power_discr[p,l,db]) for db in model.NPWB)
+        return  m.current_squared[p,l] >= 1 * sum(m.SPWB[l,db] * (m.active_power_discr[p,l,db] + m.reactive_power_discr[p,l,db]) for db in model.NPWB)
 
     def subs_capacity_rule(m,p,s):
         return m.subs_hv_S[p,s] <= m.subs_hv_capacity[s]
@@ -407,7 +407,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 0
     solver.options['ScaleFlag'] = 1  # Enable scaling
-    solver.options['TimeLimit'] = 300
+    solver.options['TimeLimit'] = 600
 
     results = solver.solve(model, tee=True)
     

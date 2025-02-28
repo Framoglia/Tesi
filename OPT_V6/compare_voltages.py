@@ -2,25 +2,26 @@ import math
 import plotly.graph_objects as go
 from utils import *
 
-    
 def plot_comparisons(net, results, model, pp_bus_map):
     """
-    Plots voltage magnitude comparison for each timestep between the optimization model and power flow results.
+    Plots voltage magnitude, line current, and power loss comparisons between 
+    the optimization model and power flow results.
     
     Parameters:
+        net        : The pandapower network model.
         results    : Dictionary containing power flow results for each timestep.
         model      : The optimization model containing voltage values.
-        pp_bus_map : Mapping from original bus IDs to pandapower bus indices.
+        pp_bus_map : Mapping from model bus IDs to pandapower bus indices.
     """
+    def normalize(value, min_val, max_val):
+        return (value - min_val) / (max_val - min_val) if max_val > min_val else 0.5  # Avoid division by zero
+    
     for t, res in results.items():
         if res == "Power flow did not converge":
             continue
 
-        # Prepare voltage comparison data
-        opt_voltages = []
-        pf_voltages = []
-        bus_labels = []
-        
+        # Prepare voltage data
+        opt_voltages, pf_voltages, bus_labels = [], [], []
         for bus_id in model.B:
             if bus_id not in pp_bus_map:
                 continue
@@ -33,11 +34,9 @@ def plot_comparisons(net, results, model, pp_bus_map):
             pf_voltages.append(pf_voltage)
             bus_labels.append(str(bus_id))
         
-        # Prepare line current and power loss comparison
-        opt_currents = []
-        pf_currents = []
-        opt_losses = []
-        pf_losses = []
+        # Prepare current & loss data
+        opt_currents, pf_currents = [], []
+        opt_losses, pf_losses = [], []
         line_labels = []
         
         for line_id in model.lines:
@@ -59,38 +58,60 @@ def plot_comparisons(net, results, model, pp_bus_map):
             opt_losses.append(opt_loss)
             line_labels.append(str(line_id))
 
-        
-        # Create subplots
+        # Compute min-max values for normalization
+        min_v, max_v = min(pf_voltages + opt_voltages), max(pf_voltages + opt_voltages)
+        min_c, max_c = min(pf_currents + opt_currents), max(pf_currents + opt_currents)
+        min_p, max_p = min(pf_losses + opt_losses), max(pf_losses + opt_losses)
+
+        # Normalize values
+        norm_opt_voltages = [normalize(v, min_v, max_v) for v in opt_voltages]
+        norm_pf_voltages = [normalize(v, min_v, max_v) for v in pf_voltages]
+        norm_opt_currents = [normalize(v, min_c, max_c) for v in opt_currents]
+        norm_pf_currents = [normalize(v, min_c, max_c) for v in pf_currents]
+        norm_opt_losses = [normalize(v, min_p, max_p) for v in opt_losses]
+        norm_pf_losses = [normalize(v, min_p, max_p) for v in pf_losses]
+
+        # Create plots
         fig = go.Figure()
         
         # Voltage comparison
         fig.add_trace(go.Scatter(
-            x=opt_voltages, y=pf_voltages, mode='markers+text',
+            x=norm_opt_voltages, y=norm_pf_voltages, mode='markers+text',
             text=bus_labels, textposition="top center",
             marker=dict(size=10, color='blue'),
-            name='Bus Voltages'
+            name='Normalized Bus Voltages'
         ))
         
         # Current comparison
         fig.add_trace(go.Scatter(
-            x=opt_currents, y=pf_currents, mode='markers+text',
+            x=norm_opt_currents, y=norm_pf_currents, mode='markers+text',
             text=line_labels, textposition="top center",
             marker=dict(size=10, color='red'),
-            name='Line Currents'
+            name='Normalized Line Currents'
         ))
         
         # Power loss comparison
         fig.add_trace(go.Scatter(
-            x=opt_losses, y=pf_losses, mode='markers+text',
+            x=norm_opt_losses, y=norm_pf_losses, mode='markers+text',
             text=line_labels, textposition="top center",
             marker=dict(size=10, color='green'),
-            name='Power Losses'
+            name='Normalized Power Losses'
         ))
-        
+
+        # Add Unity Line (y = x)
+        fig.add_trace(go.Scatter(
+            x=[0, 1], y=[0, 1], mode='lines',
+            line=dict(color='black', dash='dash'),
+            name='Unity Line'
+        ))
+
         fig.update_layout(
             title=f"Comparison at Timestep {t+1}",
-            xaxis_title="Optimization (p.u.)",
-            yaxis_title="Power Flow (p.u.)",
+            xaxis_title="Optimization (Normalized)",
+            yaxis_title="Power Flow (Normalized)",
             template="plotly_white"
         )
+
         fig.show()
+
+    return
