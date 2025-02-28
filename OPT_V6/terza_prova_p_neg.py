@@ -73,23 +73,24 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.p_imp = Param(model.periods, model.buses, mutable=True)
     model.q_imp = Param(model.periods, model.buses, mutable=True)
 
-    model.LPWB = Param(model.lines, mutable=True)
+    model.LPWB = Param(model.lines, model.NPWB, mutable=True)
     model.SPWB = Param(model.lines, model.NPWB, mutable=True)
     
+    
     for l in model.lines:
-        model.LPWB[l] = MAX_VOLTAGE * max((LINES_OPT[c].imax_kA*1000) for c in model.conductors) / fetch_base_i_from_line(DATA, l) / NPWB / 35
-        print(f"LPWB[{l}] = {model.LPWB[l].value}")
-        
+        max_power = MAX_VOLTAGE * max((LINES_OPT[c].imax_kA*1000) for c in model.conductors) / fetch_base_i_from_line(DATA, l)
+
+        X1 = 0  # Start from zero
         for block in model.NPWB:
-            if block == 1:
-                model.SPWB[l, block] = 5/6 * model.LPWB[l]
-            else:
-                model.SPWB[l, block] = (2 * block - 1) * model.LPWB[l]
+            
+            LPWB_block = log_interval_length(max_power, NPWB, block)      # Get the length of the current interval
+            X2 = X1 + LPWB_block                                            # Compute the boundary points
+            model.LPWB[l, block] = LPWB_block
+            model.SPWB[l, block] = X1 + X2                                  # Compute the true slope of x^2 using boundary points          
+            X1 = X2                                                         # Move to the next interval
+
+            print(f"LPWB[{l},{block}] = {model.LPWB[l, block].value}")
             print(f"SPWB[{l},{block}] = {model.SPWB[l, block].value}")
-
-
-    print("Variables defined successfully!")
-    #Parameters (this will come from the user sizing)
 
     for p in model.periods:
         for b in model.buses:  
@@ -99,9 +100,6 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
                 model.q_imp[p, b] = LBUS[b].load_kVAR[p-1] * 10**3 / BASE_POWER
 
                 print(model.p_imp[p, b].value, model.q_imp[p, b].value)
-
-
-    print("Loads defined successfully!")
 
 
     #Constraints
@@ -174,7 +172,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         return m.voltage_squared[p,j] - m.voltage_squared[p,i] >= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + m.current_squared_k[p,l,c] * ((LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) / (fetch_base_z_from_line(DATA, l) / LINES[l].length  * 100)**2) for c in m.conductors) - M * (1-m.line_act_plus[l]-m.line_act_minus[l])
 
     def complex_power_rule(m,p,l):
-        return  m.current_squared[p,l] >= sum(m.SPWB[l,db] * (m.active_power_discr[p,l,db] + m.reactive_power_discr[p,l,db]) for db in model.NPWB)
+        return  m.current_squared[p,l] >= 0.25* sum(m.SPWB[l,db] * (m.active_power_discr[p,l,db] + m.reactive_power_discr[p,l,db]) for db in model.NPWB)
 
     def subs_capacity_rule(m,p,s):
         return m.subs_hv_S[p,s] <= m.subs_hv_capacity[s]
@@ -261,10 +259,10 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         return model.reactive_power_plus[p,l] + model.reactive_power_minus[p,l] == sum(m.reactive_power_discr[p,l,d] for d in model.NPWB)
     
     def active_power_discr_limit_rule(m,p,l,d):
-        return m.active_power_discr[p,l,d] <= model.LPWB[l]
+        return m.active_power_discr[p,l,d] <= model.LPWB[l,d]
     
     def reactive_power_discr_limit_rule(m,p,l,d):
-        return m.reactive_power_discr[p,l,d] <= model.LPWB[l]
+        return m.reactive_power_discr[p,l,d] <= model.LPWB[l,d]
     
     def voltage_lim_1_rule(m,p,b):
         return m.voltage_squared[p,b] >= MIN_VOLTAGE**2
@@ -274,63 +272,21 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     
     def apparent_power_subs_hv_rule(m, p, s):
         constraints = []
+        n=16
+        coefficients ,scale_factor = obtain_coef(n)
         
-        # Coefficients from the 16-sided polygon approximation
-        coefficients = [
-            (0.924, 0.383),
-            (1.0, 0.0),
-            (0.707, 0.707),
-            (0.383, 0.924),
-            (-0.383, 0.924),
-            (0.0, 1.0),
-            (-0.707, 0.707),
-            (-0.924, 0.383),
-            (-1.0, 0.0),
-            (-0.924, -0.383),
-            (-0.707, -0.707),
-            (-0.383, -0.924),
-            (-0.0, -1.0),
-            (0.383, -0.924),
-            (0.707, -0.707),
-            (0.924, -0.383)
-        ]
-        
-        # Apply each constraint
         for a, b in coefficients:
-            constraints.append(
-                m.subs_hv_S[p, s] >= a * m.subs_hv_P[p, s] + b * m.subs_hv_Q[p, s]
-            )
+            constraints.append(m.subs_hv_S[p, s] >= a * m.subs_hv_P[p, s] + b * m.subs_hv_Q[p, s])
         
         return constraints
     
     def apparent_power_subs_mv_rule(m, p, s):
         constraints = []
+        n=16
+        coefficients ,scale_factor = obtain_coef(n)
         
-        # Coefficients from the 16-sided polygon approximation
-        coefficients = [
-            (0.924, 0.383),
-            (1.0, 0.0),
-            (0.707, 0.707),
-            (0.383, 0.924),
-            (-0.383, 0.924),
-            (0.0, 1.0),
-            (-0.707, 0.707),
-            (-0.924, 0.383),
-            (-1.0, 0.0),
-            (-0.924, -0.383),
-            (-0.707, -0.707),
-            (-0.383, -0.924),
-            (-0.0, -1.0),
-            (0.383, -0.924),
-            (0.707, -0.707),
-            (0.924, -0.383)
-        ]
-        
-        # Apply each constraint
         for a, b in coefficients:
-            constraints.append(
-                m.subs_mv_S[p, s] >= a * m.subs_mv_P[p, s] + b * m.subs_mv_Q[p, s]
-            )
+            constraints.append(m.subs_mv_S[p, s] >= a * m.subs_mv_P[p, s] + b * m.subs_mv_Q[p, s])
         
         return constraints
 
@@ -447,7 +403,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
 
     # Solve the model
     solver = SolverFactory('gurobi')
-    solver.options['MIPGap'] = 0.05
+    solver.options['MIPGap'] = 0.0005
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 0
     solver.options['ScaleFlag'] = 1  # Enable scaling

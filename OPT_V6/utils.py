@@ -1,3 +1,8 @@
+import math
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+
 def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     x_max = 0
     y_max = 0
@@ -30,7 +35,6 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     x_min = x_min - 10
     y_min = y_min - 10
 
-    import matplotlib.pyplot as plt
 
     plt.figure(figsize=(10, 10))
     plt.xlim(x_min, x_max)
@@ -75,10 +79,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         verticalalignment='bottom'     # Place text above the point
         )"""
 
-    
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import matplotlib.cm as cm
+
 
     # Assuming 'LINES_OPT' is already defined, and it contains the necessary information for each conductor
     # Sort the conductors by 'imax' values
@@ -266,3 +267,60 @@ def is_line_to_LV_load(DATA, l):
             return False
     except:
         return False
+        
+
+def obtain_coef(n):
+    coefficients = [(round(math.cos(k * math.pi / 8), 5), round(math.sin(k * math.pi / 8), 5)) for k in range(n)]
+    
+    scale_factor = 1 / math.cos(math.pi / 16)
+
+    return coefficients, scale_factor
+
+
+coefficients, scale_factor = obtain_coef(10)
+#print(coefficients)
+
+
+def log_interval_length(b, n, i, base=10, epsilon=0.1, a=0):
+    """
+    Computes the length of the i-th interval when dividing the range [a, b] logarithmically into n intervals.
+    
+    The division follows a logarithmic scale, meaning each interval grows exponentially.
+    The interval index `i` starts from 1 (not 0), and the function returns the size of the i-th interval.
+
+    Parameters:
+    - a (float): The start of the range (must be > 0 for logarithmic scaling).
+    - b (float): The end of the range (must be > a).
+    - n (int): The total number of intervals.
+    - i (int): The interval index (1-based, meaning it ranges from 1 to n).
+    - base (float, optional): The logarithm base (default is 10). Use `np.e` for natural logarithm.
+
+    Returns:
+    - float: The length of the i-th interval.
+
+    Raises:
+    - ValueError: If `i` is not in the range [1, n].
+
+    Example Usage:
+    ```python
+    a, b, n = 1, 1000, 5
+    for i in range(1, n + 1):
+        print(f"Interval {i}: Length = {log_interval_length(a, b, n, i)}")
+    ```
+    """
+    if i < 1 or i > n:
+        raise ValueError("Index i must be in range 1 to n")
+    
+    a = a + epsilon
+    b = b + epsilon
+
+    log_a = np.log(a) / np.log(base)  # Log-scale start
+    log_b = np.log(b) / np.log(base)  # Log-scale end
+    
+    delta_L = (log_b - log_a) / n  # Logarithmic step size
+    
+    x_start = base ** (log_a + (i - 1) * delta_L)  # Start of interval i
+    x_end = base ** (log_a + i * delta_L)  # End of interval i
+    
+    return x_end - x_start  # Interval length
+
