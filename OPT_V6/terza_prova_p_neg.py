@@ -83,7 +83,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         X1 = 0  # Start from zero
         for block in model.NPWB:
             
-            LPWB_block = MAX_VOLTAGE * max((LINES_OPT[c].imax_kA*1000) for c in model.conductors) / fetch_base_i_from_line(DATA, l) /NPWB      # Get the length of the current interval
+            LPWB_block = log_interval_length(max_power, NPWB, block)      # Get the length of the current interval
             X2 = X1 + LPWB_block                                            # Compute the boundary points
             model.LPWB[l, block] = LPWB_block
             model.SPWB[l, block] = X1 + X2                                  # Compute the true slope of x^2 using boundary points          
@@ -407,7 +407,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 0
     solver.options['ScaleFlag'] = 1  # Enable scaling
-    solver.options['TimeLimit'] = 600
+    solver.options['TimeLimit'] = 300
 
     results = solver.solve(model, tee=True)
     
