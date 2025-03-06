@@ -172,7 +172,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         return m.voltage_squared[p,j] - m.voltage_squared[p,i] >= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + m.current_squared_k[p,l,c] * ((LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) / (fetch_base_z_from_line(DATA, l) / LINES[l].length  * 100)**2) for c in m.conductors) - M * (1-m.line_act_plus[l]-m.line_act_minus[l])
 
     def complex_power_rule(m,p,l):
-        return  m.current_squared[p,l] >= 0.25 * sum(m.SPWB[l,db] * (m.active_power_discr[p,l,db] + m.reactive_power_discr[p,l,db]) for db in model.NPWB)
+        return  m.current_squared[p,l] >= sum(m.SPWB[l,db] * (m.active_power_discr[p,l,db] + m.reactive_power_discr[p,l,db]) for db in model.NPWB)
 
     def subs_capacity_rule(m,p,s):
         return m.subs_hv_S[p,s] <= m.subs_hv_capacity[s]

@@ -46,7 +46,7 @@ def plot_comparisons(net, results, model, pp_bus_map):
             pp_line = pp_line[0]
             
             # Get per-unit current
-            pf_current = res["line"].loc[pp_line, 'i_ka'] * 1000  # Convert kA to A
+            pf_current = res["line"].loc[pp_line, 'i_ka'] * 1000 * math.sqrt(3) # Convert kA to A
             base_current = BASE_I_MV if net.bus.loc[net.line.loc[pp_line, 'from_bus'], 'vn_kv'] == 15 else BASE_I_LV
             pf_currents.append(pf_current / base_current)
             opt_currents.append(math.sqrt(model.current_squared[t+1, line_id].value))
