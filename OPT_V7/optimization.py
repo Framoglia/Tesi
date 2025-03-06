@@ -1,12 +1,10 @@
 from param import *
 from pyomo.environ import *
-from import_file import Bus
 from utils import *
-import numpy as np
 
 
-def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
-    
+def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
+    lin_type, NPWB, limits, n_segm = lin
     DATA = LBUS,SUBS, SLACK, LINES,LINES_OPT,N_PERIODS
 
     ALPHA = 365/N_PERIODS*24
@@ -20,12 +18,9 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.buses = Set(initialize=LBUS.keys())
     model.subs_hv = Set(initialize=SLACK.keys())
     model.subs_mv = Set(initialize=SUBS.keys())
-    model.NPWB = RangeSet(NPWB)
 
     model.B = model.buses | model.subs_mv
     
-    print("Sets defined successfully!")
-
     #Variables
 
     model.C_cond = Var(within=NonNegativeReals)  
@@ -60,37 +55,40 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.reactive_power_k = Var(model.periods, model.lines, model.conductors, within=Reals)
     model.reactive_power = Var(model.periods, model.lines, within=Reals)
 
-    model.active_power_plus = Var(model.periods, model.lines, within=NonNegativeReals)
-    model.reactive_power_plus = Var(model.periods, model.lines, within=NonNegativeReals)
-    model.active_power_minus = Var(model.periods, model.lines, within=NonNegativeReals)
-    model.reactive_power_minus = Var(model.periods, model.lines, within=NonNegativeReals)
-
-    model.active_power_discr = Var(model.periods, model.lines, model.NPWB, within=NonNegativeReals)
-    model.reactive_power_discr = Var(model.periods, model.lines, model.NPWB, within=NonNegativeReals)
-
     model.voltage_squared = Var(model.periods, model.subs_hv | model.B, within=NonNegativeReals)
 
     model.p_imp = Param(model.periods, model.buses, mutable=True)
     model.q_imp = Param(model.periods, model.buses, mutable=True)
 
-    model.LPWB = Param(model.lines, model.NPWB, mutable=True)
-    model.SPWB = Param(model.lines, model.NPWB, mutable=True)
-    
-    
-    for l in model.lines:
-        max_power = MAX_VOLTAGE * max((LINES_OPT[c].imax_kA*1000) for c in model.conductors) / fetch_base_i_from_line(DATA, l)
+    if lin_type != 0:
+        model.NPWB = RangeSet(NPWB)
+        model.active_power_plus = Var(model.periods, model.lines, within=NonNegativeReals)
+        model.reactive_power_plus = Var(model.periods, model.lines, within=NonNegativeReals)
+        model.active_power_minus = Var(model.periods, model.lines, within=NonNegativeReals)
+        model.reactive_power_minus = Var(model.periods, model.lines, within=NonNegativeReals)
 
-        X1 = 0  # Start from zero
-        for block in model.NPWB:
-            
-            LPWB_block = log_interval_length(max_power, NPWB, block)      # Get the length of the current interval
-            X2 = X1 + LPWB_block                                            # Compute the boundary points
-            model.LPWB[l, block] = LPWB_block
-            model.SPWB[l, block] = X1 + X2                                  # Compute the true slope of x^2 using boundary points          
-            X1 = X2                                                         # Move to the next interval
+        model.active_power_discr = Var(model.periods, model.lines, model.NPWB, within=NonNegativeReals)
+        model.reactive_power_discr = Var(model.periods, model.lines, model.NPWB, within=NonNegativeReals)
 
-            print(f"LPWB[{l},{block}] = {model.LPWB[l, block].value}")
-            print(f"SPWB[{l},{block}] = {model.SPWB[l, block].value}")
+        model.LPWB = Param(model.lines, model.NPWB, mutable=True)
+        model.SPWB = Param(model.lines, model.NPWB, mutable=True)
+    
+        for l in model.lines:
+            max_power = MAX_VOLTAGE * max((LINES_OPT[c].imax_kA*1000) for c in model.conductors) / fetch_base_i_from_line(DATA, l)
+
+            X1 = 0  # Start from zero
+            for block in model.NPWB:
+                if lin_type == 1:
+                    LPWB_block = max_power/NPWB
+                else:
+                    LPWB_block = log_interval_length(max_power, NPWB, block)      # Get the length of the current interval
+                X2 = X1 + LPWB_block                                            # Compute the boundary points
+                model.LPWB[l, block] = LPWB_block
+                model.SPWB[l, block] = X1 + X2                                  # Compute the true slope of x^2 using boundary points          
+                X1 = X2                                                         # Move to the next interval
+
+                #print(f"LPWB[{l},{block}] = {model.LPWB[l, block].value}")
+                #print(f"SPWB[{l},{block}] = {model.SPWB[l, block].value}")
 
     for p in model.periods:
         for b in model.buses:  
@@ -99,7 +97,7 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
                 model.p_imp[p, b] = LBUS[b].load_kW[p-1] * 10**3 / BASE_POWER #1000 VA
                 model.q_imp[p, b] = LBUS[b].load_kVAR[p-1] * 10**3 / BASE_POWER
 
-                print(model.p_imp[p, b].value, model.q_imp[p, b].value)
+                #print(model.p_imp[p, b].value, model.q_imp[p, b].value)
 
 
     #Constraints
@@ -173,6 +171,9 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
 
     def complex_power_rule(m,p,l):
         return  m.current_squared[p,l] >= sum(m.SPWB[l,db] * (m.active_power_discr[p,l,db] + m.reactive_power_discr[p,l,db]) for db in model.NPWB)
+    
+    def conic_complex_power_rule(m,p,l):
+        return  m.voltage_squared[p,LINES[l].from_bus] * m.current_squared[p,l] >= m.active_power[p,l]**2 + m.reactive_power[p,l]**2
 
     def subs_capacity_rule(m,p,s):
         return m.subs_hv_S[p,s] <= m.subs_hv_capacity[s]
@@ -272,29 +273,37 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     
     def apparent_power_subs_hv_rule(m, p, s):
         constraints = []
-        n=16
+        n=n_segm
         coefficients ,scale_factor = obtain_coef(n)
+
+        if limits == 1:
+            mult = scale_factor
+        else: 
+            mult = 1
         
         for a, b in coefficients:
-            constraints.append(m.subs_hv_S[p, s] >= a * m.subs_hv_P[p, s] + b * m.subs_hv_Q[p, s])
+            constraints.append(m.subs_hv_S[p, s] / mult >= a * m.subs_hv_P[p, s] + b * m.subs_hv_Q[p, s])
         
         return constraints
     
     def apparent_power_subs_mv_rule(m, p, s):
         constraints = []
-        n=16
+        n=n_segm
         coefficients ,scale_factor = obtain_coef(n)
+
+        if limits == 1:
+            mult = scale_factor
+        else: 
+            mult = 1
         
         for a, b in coefficients:
-            constraints.append(m.subs_mv_S[p, s] >= a * m.subs_mv_P[p, s] + b * m.subs_mv_Q[p, s])
+            constraints.append(m.subs_mv_S[p, s] / mult >= a * m.subs_mv_P[p, s] + b * m.subs_mv_Q[p, s])
         
         return constraints
 
     def losses_rule(m,p,l):
         return m.losses[p,l] == sum(m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors)
     
-
-    print("Constrained defined successfully!")
 
     model.conductors_cost = Constraint(rule=conductors_cost)
     model.substation_cost = Constraint(rule=substation_cost)
@@ -319,41 +328,29 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     
     model.voltage_cstr_1 = Constraint(model.periods, model.lines, rule=voltage_rule_1)
     model.voltage_cstr_2 = Constraint(model.periods, model.lines, rule=voltage_rule_2)
-    model.complex_power_cstr = Constraint(model.periods, model.lines, rule=complex_power_rule)
-
-    #model.apparent_power_subs_cstr = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv)
-
-    model.apparent_power_subs_hv_cstr = ConstraintList()
-    for p in model.periods:
-        for s in model.subs_hv:
-            for constr in apparent_power_subs_hv_rule(model, p, s):
-                model.apparent_power_subs_hv_cstr.add(constr)
-                
-    """    
-    model.apparent_power_subs_cstr_1 = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv_rule_1)
-    model.apparent_power_subs_cstr_2 = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv_rule_2)
-    model.apparent_power_subs_cstr_3 = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv_rule_3)
-    model.apparent_power_subs_cstr_4 = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv_rule_4)
-    model.apparent_power_subs_cstr_5 = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv_rule_5)"""
 
     model.subs_capacity_cstr = Constraint(model.periods, model.subs_hv, rule=subs_capacity_rule)
     model.max_capacity_cstr = Constraint(model.subs_hv, rule=max_capacity_rule)
     model.subs_voltage_cstr_1 = Constraint(model.periods, model.subs_hv, rule=subs_voltage_rule_1)
     model.subs_voltage_cstr_2 = Constraint(model.periods, model.subs_hv, rule=subs_voltage_rule_2)
-    
-    #model.apparent_power_subs_mv_cstr = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv)
 
-    model.apparent_power_subs_mv_cstr = ConstraintList()
-    for p in model.periods:
-        for s in model.subs_mv:
-            for constr in apparent_power_subs_mv_rule(model, p, s):
-                model.apparent_power_subs_mv_cstr.add(constr)
+    if limits == 0:
+        model.apparent_power_subs_mv_cstr = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv)
 
-    """model.apparent_power_subs_mv_cstr_1 = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv_rule_1)
-    model.apparent_power_subs_mv_cstr_2 = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv_rule_2)
-    model.apparent_power_subs_mv_cstr_3 = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv_rule_3)
-    model.apparent_power_subs_mv_cstr_4 = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv_rule_4)
-    model.apparent_power_subs_mv_cstr_5 = Constraint(model.periods, model.subs_mv, rule=apparent_power_subs_mv_rule_5)"""
+        model.apparent_power_subs_cstr = Constraint(model.periods, model.subs_hv, rule=apparent_power_subs_hv)
+
+    else:
+        model.apparent_power_subs_mv_cstr = ConstraintList()
+        for p in model.periods:
+            for s in model.subs_mv:
+                for constr in apparent_power_subs_mv_rule(model, p, s):
+                    model.apparent_power_subs_mv_cstr.add(constr)
+
+        model.apparent_power_subs_hv_cstr = ConstraintList()
+        for p in model.periods:
+            for s in model.subs_hv:
+                for constr in apparent_power_subs_hv_rule(model, p, s):
+                    model.apparent_power_subs_hv_cstr.add(constr)
 
     model.subs_mv_capacity_cstr = Constraint(model.periods, model.subs_mv, rule=subs_mv_capacity_rule)
     model.max_mv_capacity_cstr = Constraint(model.subs_mv, rule=max_mv_capacity_rule)
@@ -374,32 +371,30 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.one_dir_cstr = Constraint(model.lines, rule=one_direction_rule)
     model.topology_cstr_2 = Constraint(model.buses, rule=topology_rule_2)
 
-    model.active_power_scomposition_cstr = Constraint(model.periods, model.lines, rule=active_power_scomposition_rule)
-    model.reactive_power_scomposition_cstr = Constraint(model.periods, model.lines, rule=reactive_power_scomposition_rule)
+    if lin_type != 0:
+        model.complex_power_cstr = Constraint(model.periods, model.lines, rule=complex_power_rule)
 
-    model.active_power_discr_cstr = Constraint(model.periods, model.lines, rule=active_power_discr_rule)
-    model.reactive_power_discr_cstr = Constraint(model.periods, model.lines, rule=reactive_power_discr_rule)
+        model.active_power_scomposition_cstr = Constraint(model.periods, model.lines, rule=active_power_scomposition_rule)
+        model.reactive_power_scomposition_cstr = Constraint(model.periods, model.lines, rule=reactive_power_scomposition_rule)
 
-    model.active_power_discr_limit_cstr = Constraint(model.periods, model.lines ,model.NPWB, rule=active_power_discr_limit_rule)
-    model.reactive_power_discr_limit_cstr = Constraint(model.periods, model.lines ,model.NPWB, rule=reactive_power_discr_limit_rule)
+        model.active_power_discr_cstr = Constraint(model.periods, model.lines, rule=active_power_discr_rule)
+        model.reactive_power_discr_cstr = Constraint(model.periods, model.lines, rule=reactive_power_discr_rule)
+
+        model.active_power_discr_limit_cstr = Constraint(model.periods, model.lines ,model.NPWB, rule=active_power_discr_limit_rule)
+        model.reactive_power_discr_limit_cstr = Constraint(model.periods, model.lines ,model.NPWB, rule=reactive_power_discr_limit_rule)
+
+    else:
+        model.complex_power_cstr = Constraint(model.periods, model.lines, rule=conic_complex_power_rule)
 
     model.voltage_lim_1_cstr = Constraint(model.periods, model.B, rule=voltage_lim_1_rule)
     model.voltage_lim_2_cstr = Constraint(model.periods, model.B, rule=voltage_lim_2_rule)
 
     model.losses_calc_cstr = Constraint(model.periods, model.lines, rule=losses_rule)
 
-
-    print("Constraint assigned successfully!")
-
     def objective_rule(m):
         return 1/INV_HORIZON_DSO * (m.C_subs + m.C_cond) + ALPHA* sum(m.C_losses[p] + OMEGA * m.phi[p] for p in m.periods)
 
     model.objective_rule = Objective(rule=objective_rule, sense=minimize)
-
-    print("Objective assigned successfully!")
-
-    print("Model created successfully!")
-    print("Model is being solved...")
 
     # Solve the model
     solver = SolverFactory('gurobi')
@@ -408,16 +403,17 @@ def optimize(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     solver.options['NumericFocus'] = 0
     solver.options['ScaleFlag'] = 1  # Enable scaling
     solver.options['TimeLimit'] = 300
+    solver.options['Heuristics'] = 0.7
 
     results = solver.solve(model, tee=True)
     
     # Check the solver status
-    if results.solver.status == SolverStatus.ok and results.solver.termination_condition == TerminationCondition.optimal:
+    """if results.solver.status == SolverStatus.ok:
         print("Solver found an optimal solution.")
+        plot_opt(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS)
     else:
-        print("Solver did not find an optimal solution.")
+        print("Solver did not find an optimal solution.")"""
+
+    plot_opt(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS)
 
     return model
-    
-
-    

@@ -18,7 +18,7 @@ folder_path = r"C:\Users\mogli\OneDrive\Desktop\Tesi\Campus data\UpdatedData"
 cities = ["Buenos Aires", "Los Angeles", "Singapore", "Vancouver"]      #For this cities the opt is infeasible
 cities = ["Miami", "Guayaquil"]                                         #Weird result both on objective value and topology
 cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"]  #This seem to work fine
-cities = "Montreal"
+cities = "Mycampus"
 print(cities)
 if cities != "Mycampus":
         LBUS, SUBS, SLACK = load_bus(folder_path, cities, N_PERIODS_MAX)
