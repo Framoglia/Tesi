@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
+def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting):
     x_max = 0
     y_max = 0
     x_min = 99
@@ -189,13 +189,13 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
     plt.title('Bus Locations')
     plt.legend()
     plt.grid(True)
-    a, b, c, d = lin
+    a, b, c, d = setting
     name=f"optimal_topology_{a}_{b}_{c}_{d}.png"
     plt.savefig(name)
 
 
 
-BASE_POWER = 1000 #VA
+BASE_POWER = 1000000 #VA
 
 BASE_VOLTAGE_HV = 70000 #V
 BASE_VOLTAGE_MV = 15000 #V
@@ -272,9 +272,12 @@ def is_line_to_LV_load(DATA, l):
         
 
 def obtain_coef(n):
-    # Compute coefficients for n-sided polygon
-    coefficients = [(math.cos(k * 2 * math.pi / n), 
-                     math.sin(k * 2 * math.pi / n)) 
+    # Adjust the angle to rotate the first vertex to the positive y-axis
+    angle_offset = math.pi / 2  # 90 degrees in radians
+
+    # Compute coefficients for n-sided polygon with the first vertex on the positive y-axis
+    coefficients = [(math.cos((k * 2 * math.pi / n) + angle_offset), 
+                     math.sin((k * 2 * math.pi / n) + angle_offset)) 
                     for k in range(n)]
     
     # Compute the correct scale factor
@@ -379,6 +382,8 @@ def parse_solver_log(log_file):
             warnings.append(line.strip())
     
     return execution_time, solver_status, gap, best_objective, best_bound, warnings
+
+
 
 
 

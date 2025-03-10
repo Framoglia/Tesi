@@ -126,8 +126,8 @@ def test_plot(LBUS, SUBS, SLACK, LINES):
     plt.grid(True)
     plt.show()
 
-def export_optimal_values(model, lin):
-    filename = f"optimal_values_{lin[0]}_{lin[1]}_{lin[2]}_{lin[3]}.csv"
+def export_optimal_values(model, setting):
+    filename = f"optimal_values_{setting[0]}_{setting[1]}_{setting[2]}_{setting[3]}.csv"
     data = []
     max_indices = 0  # Track max index depth
 
@@ -188,7 +188,7 @@ def debug_pandapower_net(net, filename="network_debug.txt"):
 # net = pp.networks.case_ieee30()  # Load an example network
 # debug_pandapower_net(net)
 
-def plot_comparisons(net, results, model, pp_bus_map, lin):
+def plot_comparisons(net, results, model, pp_bus_map, setting):
     """
     Plots voltage magnitude, line current, and power loss comparisons between 
     the optimization model and power flow results.
@@ -294,7 +294,7 @@ def plot_comparisons(net, results, model, pp_bus_map, lin):
         ax.grid(True, linestyle='--', alpha=0.6)
 
         # Save the figure
-        name = f"comparison_{lin[0]}_{lin[1]}_{lin[2]}_{lin[3]}_t{t+1}.png"
+        name = f"comparison_{setting[0]}_{setting[1]}_{setting[2]}_{setting[3]}_t{t+1}.png"
         plt.savefig(name, dpi=300, bbox_inches='tight')  # High-quality save
 
 
@@ -310,15 +310,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 
-def table_result(settings):
+def table_result(settings, folder_name):
     # Initialize a list to store the table data
     table_data = []
 
     # Create figure for the plot
     plt.figure(figsize=(8, 6))  # Set figure size
 
-    for i, (lin, setting) in enumerate(settings.items()):
-        (opt_values, pf_values), logg = setting  # Extract logg from the experiment
+    for i, (setting, data) in enumerate(settings.items()):
+        (opt_values, pf_values), logg = data  # Extract logg from the experiment
 
         # Ensure data is in 2D shape for sklearn
         opt_values = np.array(opt_values).reshape(-1, 1)
@@ -340,13 +340,13 @@ def table_result(settings):
         plt.scatter(opt_values, pf_values, alpha=0.6)
 
         # Plot the fitted regression line
-        plt.plot(x_fit, y_fit, label=f'Fit {lin[0]}_{lin[1]}_{lin[2]}_{lin[3]} (slope={slope:.2f})', linestyle='--')
+        plt.plot(x_fit, y_fit, label=f'Fit {setting[0]}_{setting[1]}_{setting[2]}_{setting[3]} (slope={slope:.2f})', linestyle='--')
 
         execution_time = logg["execution_time"]
         gap = logg["gap"]
 
-        # Add lin values, execution time, and gap to the table data
-        row = list(lin) + [execution_time, gap]
+        # Add setting values, execution time, and gap to the table data
+        row = list(setting) + [execution_time, gap]
         table_data.append(row)
 
     # Plot unity line (y = x)
@@ -360,10 +360,10 @@ def table_result(settings):
     plt.grid(True, linestyle='--', alpha=0.6)
 
     # Save the plot
-    plt.savefig("Trend_line.png", dpi=300, bbox_inches='tight')  # High-quality save
+    plt.savefig(f"Scatter_{folder_name}.png", dpi=300, bbox_inches='tight')  # High-quality save
 
     # Create a pandas DataFrame for the table
-    column_names = ['Power lin','NPWB','Capacity lin','NLC']  # Dynamically create lin columns
+    column_names = ['Power setting','NPWB','Capacity setting','NLC']  # Dynamically create setting columns
     column_names += ['Execution Time', 'Gap']
 
     df = pd.DataFrame(table_data, columns=column_names)
@@ -372,14 +372,14 @@ def table_result(settings):
     print(df)
 
     # Optionally, you can save the table to a CSV or Excel file
-    df.to_csv("experiment_results.csv", index=False)  # Save as CSV
+    df.to_csv(f"{folder_name}.csv", index=False)  # Save as CSV
 
 def precision(esperiment):
     x,y = esperiment
     return (sum(i for i in x) - sum(i for i in y)) / sum(i for i in y) * 100
 
-def easy_plot(net, lin):
-    file_name = f"easy_plot_{lin[0]}_{lin[1]}_{lin[2]}_{lin[3]}.html"
+def easy_plot(net, setting):
+    file_name = f"easy_plot_{setting[0]}_{setting[1]}_{setting[2]}_{setting[3]}.html"
     # Run power flow before plotting results
     pp.runpp(net)
     

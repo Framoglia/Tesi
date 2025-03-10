@@ -1,30 +1,59 @@
-def linearization_possibilities():
+import os
+import shutil
+import glob
+from datetime import datetime
+
+
+def load_setting():
     """
     Assemble your linearization possiblilities:
 
-    lin[0] => Complex power constraint
+    setting[0] => Complex power constraint
                 0 Conic
                 1 Lin with equal length blocks
                 2 Lin with log lenght block
 
-    lin[1] => Number of block for power linearization
+    setting[1] => Number of block for power linearization
 
-    lin[2] => Type of Substation limits
+    setting[2] => Type of Substation limits
                 0 Conic
                 1 Linearized ext (mult = scale_factor)
                 2 Linearized int (mult = 1)
 
-    lin[3] => Number of segments for linearization
+    setting[3] => Number of segments for linearization
     """
 
     lin_test = {}
-    lin_test[0] = [2,10,1,16] #70, 104, 106, 129
-    lin_test[1] = [2,15,1,16] #75, 99, 101 
-    """lin_test[2] = [1,10,1,16] #un botto
-    lin_test[3] = [1,15,1,16] #prob un botto"""
-    lin_test[4] = [0,10,1,16] #105, 137, 133
+    lin_test[1] = [2,15,2,8] 
+    lin_test[2] = [2,15,2,16] 
+    lin_test[3] = [2,15,0,0]
+    
+
+    string = 'Brussels_test_'
+    folder_name = string + datetime.now().strftime("%d%m-%H%M")
+
+    return lin_test, folder_name
 
 
-    return lin_test
+def move_files_to_folder(folder_name='organized_files'):
+    
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+    
+    # Find all .png and .csv files in the current directory
+    png_files = glob.glob('*.png')
+    csv_files = glob.glob('*.csv')
+    
+    # Move .png files to the new folder
+    for file in png_files:
+        shutil.move(file, os.path.join(folder_name, file))
+    
+    # Move .csv files to the new folder
+    for file in csv_files:
+        shutil.move(file, os.path.join(folder_name, file))
+    
+    print(f"Moved {len(png_files)} .png files and {len(csv_files)} .csv files to '{folder_name}'.")
 
+# Call the function at the end of your script
 

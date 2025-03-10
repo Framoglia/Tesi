@@ -3,8 +3,8 @@ from pyomo.environ import *
 from utils import *
 
 
-def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
-    lin_type, NPWB, limits, n_segm = lin
+def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting):
+    lin_type, NPWB, limits, n_segm = setting
     DATA = LBUS,SUBS, SLACK, LINES,LINES_OPT,N_PERIODS
 
     ALPHA = 365/N_PERIODS*24
@@ -278,7 +278,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
     model.conductors_cost = Constraint(rule=conductors_cost)
     model.substation_cost = Constraint(rule=substation_cost)
     model.loss_cost = Constraint(model.periods, rule=loss_cost)
-    model.budget_balance = Constraint(rule=budget_balance)
+    #model.budget_balance = Constraint(rule=budget_balance)
     
     model.active_power_cstr = Constraint(model.periods, model.lines, rule=active_power_rule)
     model.reactive_power_cstr = Constraint(model.periods, model.lines, rule=reactive_power_rule)
@@ -373,7 +373,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
     solver.options['MIPGap'] = 0.001
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 2
-    solver.options['ScaleFlag'] = 2  # Enable scaling
+    solver.options['ScaleFlag'] = 0  # Enable scaling
     solver.options['TimeLimit'] = 3000
     solver.options['Heuristics'] = 0.1
 
@@ -391,6 +391,6 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
     }
 
 
-    plot_opt(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin)
+    plot_opt(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting)
     
     return model, logg
