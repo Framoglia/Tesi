@@ -278,7 +278,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
     model.conductors_cost = Constraint(rule=conductors_cost)
     model.substation_cost = Constraint(rule=substation_cost)
     model.loss_cost = Constraint(model.periods, rule=loss_cost)
-    #model.budget_balance = Constraint(rule=budget_balance)
+    model.budget_balance = Constraint(rule=budget_balance)
     
     model.active_power_cstr = Constraint(model.periods, model.lines, rule=active_power_rule)
     model.reactive_power_cstr = Constraint(model.periods, model.lines, rule=reactive_power_rule)
@@ -372,20 +372,25 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
 
     solver.options['MIPGap'] = 0.001
     solver.options['FeasibilityTol'] = 0.001
-    solver.options['NumericFocus'] = 0
+    solver.options['NumericFocus'] = 2
     solver.options['ScaleFlag'] = 2  # Enable scaling
     solver.options['TimeLimit'] = 3000
     solver.options['Heuristics'] = 0.1
 
-    results = solver.solve(model, tee=True)
+    results = solver.solve(model, tee=True,  logfile='solver_output.log')
 
-    """if results.solver.status == SolverStatus.ok:
-        print("Solver found an optimal solution.")
-        plot_opt(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS)
-    else:
-        print("Solver did not find an optimal solution.")"""
+    # Example usage:
+    execution_time, solver_status, gap, best_objective, best_bound, warnings = parse_solver_log('solver_output.log')
+    logg = {
+        'execution_time': execution_time,
+        'solver_status': solver_status,
+        'gap': gap,
+        'best_objective': best_objective,
+        'best_bound': best_bound,
+        'warnings': warnings
+    }
+
 
     plot_opt(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin)
     
-
-    return model
+    return model, logg

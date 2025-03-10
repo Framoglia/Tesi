@@ -329,3 +329,61 @@ def log_interval_length(b, n, i, base=2.72, epsilon=0.1, a=0):
     
     return x_end - x_start  # Interval length
 
+import re
+
+import re
+
+import re
+
+def parse_solver_log(log_file):
+    # Open and read the log file
+    with open(log_file, 'r') as f:
+        log_lines = f.readlines()
+
+    # Initialize variables
+    execution_time = None
+    solver_status = None
+    gap = None
+    best_objective = None
+    best_bound = None
+    warnings = []
+
+    # Loop through each line to parse the information
+    for line in log_lines:
+        # Parse execution time (e.g., 'in 97.85 seconds')
+        if "seconds" in line:
+            time_match = re.search(r'(\d+\.\d+)\s+seconds', line)
+            if time_match:
+                execution_time = float(time_match.group(1))
+        
+        # Check for solver status (Optimal solution found)
+        if "Optimal solution found" in line:
+            solver_status = "Optimal"
+        
+        # Look for gap information (e.g., 'gap 0.0983%')
+        gap_match = re.search(r'gap\s*([\d\.]+)%', line)  # For "gap 0.0983%"
+        if gap_match:
+            gap = float(gap_match.group(1))  # The gap value without the '%' symbol
+        
+        # Look for best objective and best bound
+        best_objective_match = re.search(r'Best objective\s*([\d\.]+)', line)
+        if best_objective_match:
+            best_objective = float(best_objective_match.group(1))
+        
+        best_bound_match = re.search(r'best bound\s*([\d\.]+)', line)
+        if best_bound_match:
+            best_bound = float(best_bound_match.group(1))
+        
+        # Look for warnings or other messages
+        if "Warning" in line:
+            warnings.append(line.strip())
+    
+    return execution_time, solver_status, gap, best_objective, best_bound, warnings
+
+
+
+
+
+
+
+

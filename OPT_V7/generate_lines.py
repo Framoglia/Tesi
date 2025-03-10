@@ -122,8 +122,6 @@ def generate_lines(BUS):
         lines.append((line_id, bus1, bus2))
         line_id += 1
 
-
-    print(lines)
     return lines
 
         

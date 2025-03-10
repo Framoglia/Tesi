@@ -306,9 +306,23 @@ import pandapower.networks as pn
 from pandapower.plotting.plotly import simple_plotly, pf_res_plotly
 import numpy as np
 from sklearn.linear_model import LinearRegression
-def plot_comparisons_with_fit(esperiment):
-    for esperiment in esperiment.values():
-        opt_values, pf_values = esperiment
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+def table_result(settings):
+    # Initialize a list to store the table data
+    table_data = []
+
+    # Create figure for the plot
+    plt.figure(figsize=(8, 6))  # Set figure size
+
+    for i, (lin, setting) in enumerate(settings.items()):
+        (opt_values, pf_values), logg = setting  # Extract logg from the experiment
+
+        # Ensure data is in 2D shape for sklearn
+        opt_values = np.array(opt_values).reshape(-1, 1)
+        pf_values = np.array(pf_values).reshape(-1, 1)
 
         # Fit the linear regression model
         model = LinearRegression()
@@ -319,26 +333,50 @@ def plot_comparisons_with_fit(esperiment):
         intercept = model.intercept_[0]
 
         # Generate points for the fitted line
-        x_fit = np.linspace(0, 1, 100).reshape(0, 1)
+        x_fit = np.linspace(0, 1, 100).reshape(-1, 1)
         y_fit = model.predict(x_fit)
 
-        # Plot the fitted line
-        plt.plot(x_fit, y_fit, color='purple', label=f'Ex {esperiment.lin[0]}_{esperiment.lin[1]}_{esperiment.lin[2]}_{esperiment.lin[3]}_ (slope={slope:.2f})')
+        # Plot scatter points
+        plt.scatter(opt_values, pf_values, alpha=0.6)
 
-        # Add the slope to the plot
-        plt.text(0.05, 0.95, f'Slope: {slope:.2f}', fontsize=12, verticalalignment='top', color='purple')
+        # Plot the fitted regression line
+        plt.plot(x_fit, y_fit, label=f'Fit {lin[0]}_{lin[1]}_{lin[2]}_{lin[3]} (slope={slope:.2f})', linestyle='--')
 
-    # Show the plot
-    plt.show()
+        execution_time = logg["execution_time"]
+        gap = logg["gap"]
 
+        # Add lin values, execution time, and gap to the table data
+        row = list(lin) + [execution_time, gap]
+        table_data.append(row)
+
+    # Plot unity line (y = x)
+    plt.plot([0, 1], [0, 1], linestyle='dashed', color='black', label='Unity Line')
+
+    # Labels and title
+    plt.xlabel("Optimization (Normalized)")
+    plt.ylabel("Power Flow (Normalized)")
+    plt.title("Comparison with Linear Fit")
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.6)
+
+    # Save the plot
+    plt.savefig("Trend_line.png", dpi=300, bbox_inches='tight')  # High-quality save
+
+    # Create a pandas DataFrame for the table
+    column_names = ['Power lin','NPWB','Capacity lin','NLC']  # Dynamically create lin columns
+    column_names += ['Execution Time', 'Gap']
+
+    df = pd.DataFrame(table_data, columns=column_names)
+
+    # Print the table
+    print(df)
+
+    # Optionally, you can save the table to a CSV or Excel file
+    df.to_csv("experiment_results.csv", index=False)  # Save as CSV
 
 def precision(esperiment):
     x,y = esperiment
     return (sum(i for i in x) - sum(i for i in y)) / sum(i for i in y) * 100
-    
-
-
-
 
 def easy_plot(net, lin):
     file_name = f"easy_plot_{lin[0]}_{lin[1]}_{lin[2]}_{lin[3]}.html"
