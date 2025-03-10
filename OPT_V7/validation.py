@@ -11,13 +11,11 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
     Builds a pandapower network based on the provided data and solved model.
     
     Steps:
-      1. For each bus in LBUS: create a pandapower bus (MV level), assign its load, and record geodata.
-      2. For each bus in SUBS (substations): if built (gamma > 0.8), create an additional LV bus (stepped down),
-         connect the MV and LV buses with an ideal transformer, and store the LV bus id.
-      3. For each bus in SLACK: if active (beta > 0.8), create an HV bus (with ext_grid) and its corresponding MV bus,
-         connected via an ideal transformer.
+      1. For each bus in LBUS: Bus and additional data.
+      2. For each bus in SUBS (substations): if built (gamma > 0.8), create a MV/LV combo, transformer, store the LV bus id.
+      3. For each bus in SLACK: if active (beta > 0.8), create an HV/MV combo, transformer, store the MV bus id.
       4. For each line: if built (line_act_plus or line_act_minus > 0.8) and with an optimized conductor (line_opt),
-         connect the proper bus endpoints using the LV bus for subs/slacks when appropriate.
+         connect the proper bus endpoints using the stored bus id for subs/slacks when appropriate.
       5. Run the power flow.
       6. Assign geodata to the network.
     
@@ -41,7 +39,7 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
     slack_mv_map = {}       # For slack nodes: mapping slack id -> MV bus id (the one behind the HV ext_grid)
     geodata = {}            # To store geodata: pandapower bus index -> (x, y)
     
-    # 1. Create buses for each LBUS: MV bus, add load, and store geodata.
+    # 1. Process LBUS: Bus and additional data.
     for bus_id, bus in LBUS.items():
         # Create the bus at its voltage level (assumed MV)
         pp_bus = pp.create_bus(net, vn_kv=bus.voltage_level/1000, name=f"Bus {bus_id}")
@@ -52,7 +50,7 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
         # Store geodata from LBUS
         geodata[pp_bus] = (bus.x_coord, bus.y_coord)
     
-    # 2. Process SUBS: For each substation, if built (gamma > 0.8), create an LV bus.
+    # 2. Process SUBS: For each substation, if built (gamma > 0.8), create a MV/LV combo.
     for sub_id, sub in SUBS.items():
         # Check if built via gamma parameter (if not, skip modifying the bus)
         if not hasattr(model, 'gamma') or model.gamma[sub_id].value < 0.8:
@@ -69,7 +67,7 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
         # Connect MV and LV buses with an ideal transformer (adjust std_type as needed)
         create_ideal_transformer(net, mv_bus, lv_bus, hv_kv=15, lv_kv=0.4, sn_mva=10, name=f"MV/LV Transformer {sub_id}")
     
-    # 3. Process SLACK: For each slack, if active (beta > 0.8), create an HV bus and its MV bus.
+    # 3. Process SLACK: For each slack, if active (beta > 0.8), create HV/MV combo.
     for slack_id, slack in SLACK.items():
         if not hasattr(model, 'beta') or model.beta[slack_id].value < 0.8:
             continue  # not active

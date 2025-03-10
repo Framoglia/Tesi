@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
+def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
     x_max = 0
     y_max = 0
     x_min = 99
@@ -189,7 +189,9 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     plt.title('Bus Locations')
     plt.legend()
     plt.grid(True)
-    plt.show()
+    a, b, c, d = lin
+    name=f"optimal_topology_{a}_{b}_{c}_{d}.png"
+    plt.savefig(name)
 
 
 
@@ -199,13 +201,13 @@ BASE_VOLTAGE_HV = 70000 #V
 BASE_VOLTAGE_MV = 15000 #V
 BASE_VOLTAGE_LV = 400 #V
 
-BASE_Z_HV = BASE_VOLTAGE_HV**2/BASE_POWER #Ohm  4.9e6
-BASE_Z_MV = BASE_VOLTAGE_MV**2/BASE_POWER #Ohm  225e3
-BASE_Z_LV = BASE_VOLTAGE_LV**2/BASE_POWER #Ohm  160
+BASE_Z_HV = BASE_VOLTAGE_HV**2/BASE_POWER #Ohm  4.9e6   4.9e3
+BASE_Z_MV = BASE_VOLTAGE_MV**2/BASE_POWER #Ohm  225e3   225
+BASE_Z_LV = BASE_VOLTAGE_LV**2/BASE_POWER #Ohm  160     0.16
 
-BASE_I_HV = BASE_POWER/BASE_VOLTAGE_HV #Amps    0.0143
-BASE_I_MV = BASE_POWER/BASE_VOLTAGE_MV #Amps    0.0667
-BASE_I_LV = BASE_POWER/BASE_VOLTAGE_LV #Amps    2.5000
+BASE_I_HV = BASE_POWER/BASE_VOLTAGE_HV #Amps    0.0143  14.3
+BASE_I_MV = BASE_POWER/BASE_VOLTAGE_MV #Amps    0.0667  66.7
+BASE_I_LV = BASE_POWER/BASE_VOLTAGE_LV #Amps    2.5000  2500
 
 def fetch_base_z_from_line(DATA, l):
     LBUS,SUBS,SLACK,LINES,LINES_OPT,N_PERIODS = DATA
@@ -271,8 +273,8 @@ def is_line_to_LV_load(DATA, l):
 
 def obtain_coef(n):
     # Compute coefficients for n-sided polygon
-    coefficients = [(round(math.cos(k * 2 * math.pi / n), 5), 
-                     round(math.sin(k * 2 * math.pi / n), 5)) 
+    coefficients = [(math.cos(k * 2 * math.pi / n), 
+                     math.sin(k * 2 * math.pi / n)) 
                     for k in range(n)]
     
     # Compute the correct scale factor
@@ -284,7 +286,7 @@ def obtain_coef(n):
 coefficients, scale_factor = obtain_coef(10)
 #print(coefficients)
 
-def log_interval_length(b, n, i, base=10, epsilon=0.1, a=0):
+def log_interval_length(b, n, i, base=2.72, epsilon=0.1, a=0):
     """
     Computes the length of the i-th interval when dividing the range [a, b] logarithmically into n intervals.
     

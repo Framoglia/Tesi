@@ -18,10 +18,13 @@ def linearization_possibilities():
     """
 
     lin_test = {}
-    n_blocks = [5,10,15]
-    lin_test[2] = [2,10,1,8]
-    lin_test[3] = [2,10,1,16]
-    lin_test[4] = [2,10,1,32]
-    lin_test[5] = [2,10,0,None]
+    lin_test[0] = [2,10,1,16] #70, 104, 106, 129
+    lin_test[1] = [2,15,1,16] #75, 99, 101 
+    """lin_test[2] = [1,10,1,16] #un botto
+    lin_test[3] = [1,15,1,16] #prob un botto"""
+    lin_test[4] = [0,10,1,16] #105, 137, 133
+
+
     return lin_test
+
 

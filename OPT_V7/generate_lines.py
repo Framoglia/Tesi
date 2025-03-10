@@ -119,9 +119,11 @@ def generate_lines(BUS):
 
     sorted_lines_mv_sub = sorted(lines_temp_mv_sub)
     for bus1, bus2 in sorted_lines_mv_sub:
-        lines.append((line_id, bus2, bus1))
+        lines.append((line_id, bus1, bus2))
         line_id += 1
 
+
+    print(lines)
     return lines
 
         

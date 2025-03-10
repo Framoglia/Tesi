@@ -20,12 +20,26 @@ keyes = list(LBUS.keys())
 N_PERIODS = len(LBUS[keyes[1]].load_kW)
 
 lin_poss = linearization_possibilities()
+
+esperiments = {}
 for i, lin in lin_poss.items():
     model = optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin)  
-    
-    #export_optimal_values(model)
+
+    export_optimal_values(model, lin)
 
     net, pp_bus_map, results = export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT)
     #debug_pandapower_net(net)
-    plot_comparisons(net, results, model, pp_bus_map)
+    #custom_load_plot(net)         TODO: Implement this
+    easy_plot(net, lin)
+    esperiment = plot_comparisons(net, results, model, pp_bus_map, lin)
+    print(precision(esperiment))
+
+
+
+
+    
+
+    
+
+
 

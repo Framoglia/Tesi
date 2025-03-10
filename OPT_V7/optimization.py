@@ -131,21 +131,6 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
 
     def apparent_power_subs_hv(m,p,s):
         return m.subs_hv_S[p,s]**2 >= m.subs_hv_P[p,s]**2 + m.subs_hv_Q[p,s]**2
-    
-    def apparent_power_subs_hv_rule_1(m,p,s):
-        return m.subs_hv_S[p,s] >= m.subs_hv_P[p,s]
-    
-    def apparent_power_subs_hv_rule_2(m,p,s):
-        return m.subs_hv_S[p,s] >= m.subs_hv_Q[p,s]
-    
-    def apparent_power_subs_hv_rule_3(m,p,s):
-        return m.subs_hv_S[p,s] >= - m.subs_hv_Q[p,s]
-    
-    def apparent_power_subs_hv_rule_4(m,p,s):
-        return m.subs_hv_S[p,s] >= (m.subs_hv_Q[p,s] + m.subs_hv_P[p,s])/1.4142
-    
-    def apparent_power_subs_hv_rule_5(m,p,s):
-        return m.subs_hv_S[p,s] >= (-m.subs_hv_Q[p,s] + m.subs_hv_P[p,s])/1.4142
 
     def active_power_subs_mv_rule(m,p,s):    
         return 0 == -(sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
@@ -188,28 +173,13 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
         return m.voltage_squared[p,s] - 1 >= (MIN_VOLTAGE**2 - 1) * (1-m.beta[s])
     
     def active_power_subs_mv_lv_rule(m,p,s):    #Ha senso mettere per ogni linea???
-        return m.subs_mv_P[p,s] == (sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s and is_line_from_LV_load(DATA, l)) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s and is_line_to_LV_load(DATA,l)))
+        return m.subs_mv_P[p,s] == -(sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s and is_line_from_LV_load(DATA, l)) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s and is_line_to_LV_load(DATA,l)))
 
     def reactive_power_subs_mv_lv_rule(m,p,s):
-        return m.subs_mv_Q[p,s] == (sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s and is_line_from_LV_load(DATA, l)) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s and is_line_to_LV_load(DATA, l)))
+        return m.subs_mv_Q[p,s] == -(sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s and is_line_from_LV_load(DATA, l)) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s and is_line_to_LV_load(DATA, l)))
 
     def apparent_power_subs_mv(m,p,s):
         return m.subs_mv_S[p,s]**2 >= m.subs_mv_P[p,s]**2 + m.subs_mv_Q[p,s]**2
-    
-    def apparent_power_subs_mv_rule_1(m,p,s):
-        return m.subs_mv_S[p,s] >= m.subs_mv_P[p,s]
-    
-    def apparent_power_subs_mv_rule_2(m,p,s):
-        return m.subs_mv_S[p,s] >= m.subs_mv_Q[p,s]
-    
-    def apparent_power_subs_mv_rule_3(m,p,s):
-        return m.subs_mv_S[p,s] >= - m.subs_mv_Q[p,s]
-    
-    def apparent_power_subs_mv_rule_4(m,p,s):
-        return m.subs_mv_S[p,s] >= (m.subs_mv_Q[p,s] + m.subs_mv_P[p,s])/1.4142
-    
-    def apparent_power_subs_mv_rule_5(m,p,s):
-        return m.subs_mv_S[p,s] >= (-m.subs_mv_Q[p,s] + m.subs_mv_P[p,s])/1.4142
     
     def subs_mv_capacity_rule(m,p,s):
         return m.subs_mv_S[p,s] <= m.subs_mv_capacity[s]
@@ -308,7 +278,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
     model.conductors_cost = Constraint(rule=conductors_cost)
     model.substation_cost = Constraint(rule=substation_cost)
     model.loss_cost = Constraint(model.periods, rule=loss_cost)
-    model.budget_balance = Constraint(rule=budget_balance)
+    #model.budget_balance = Constraint(rule=budget_balance)
     
     model.active_power_cstr = Constraint(model.periods, model.lines, rule=active_power_rule)
     model.reactive_power_cstr = Constraint(model.periods, model.lines, rule=reactive_power_rule)
@@ -397,23 +367,25 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin):
     model.objective_rule = Objective(rule=objective_rule, sense=minimize)
 
     # Solve the model
+    
     solver = SolverFactory('gurobi')
-    solver.options['MIPGap'] = 0.0005
+
+    solver.options['MIPGap'] = 0.001
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 0
-    solver.options['ScaleFlag'] = 1  # Enable scaling
-    solver.options['TimeLimit'] = 300
-    solver.options['Heuristics'] = 0.7
+    solver.options['ScaleFlag'] = 2  # Enable scaling
+    solver.options['TimeLimit'] = 3000
+    solver.options['Heuristics'] = 0.1
 
     results = solver.solve(model, tee=True)
-    
-    # Check the solver status
+
     """if results.solver.status == SolverStatus.ok:
         print("Solver found an optimal solution.")
         plot_opt(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS)
     else:
         print("Solver did not find an optimal solution.")"""
 
-    plot_opt(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS)
+    plot_opt(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, lin)
+    
 
     return model

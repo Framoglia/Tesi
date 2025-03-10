@@ -126,7 +126,8 @@ def test_plot(LBUS, SUBS, SLACK, LINES):
     plt.grid(True)
     plt.show()
 
-def export_optimal_values(model, filename="optimal_solution.csv"):
+def export_optimal_values(model, lin):
+    filename = f"optimal_values_{lin[0]}_{lin[1]}_{lin[2]}_{lin[3]}.csv"
     data = []
     max_indices = 0  # Track max index depth
 
@@ -187,7 +188,7 @@ def debug_pandapower_net(net, filename="network_debug.txt"):
 # net = pp.networks.case_ieee30()  # Load an example network
 # debug_pandapower_net(net)
 
-def plot_comparisons(net, results, model, pp_bus_map):
+def plot_comparisons(net, results, model, pp_bus_map, lin):
     """
     Plots voltage magnitude, line current, and power loss comparisons between 
     the optimization model and power flow results.
@@ -198,6 +199,8 @@ def plot_comparisons(net, results, model, pp_bus_map):
         model      : The optimization model containing voltage values.
         pp_bus_map : Mapping from model bus IDs to pandapower bus indices.
     """
+
+
     def normalize(value, min_val, max_val):
         return (value - min_val) / (max_val - min_val) if max_val > min_val else 0.5  # Avoid division by zero
     
@@ -256,48 +259,97 @@ def plot_comparisons(net, results, model, pp_bus_map):
         norm_opt_losses = [normalize(v, min_p, max_p) for v in opt_losses]
         norm_pf_losses = [normalize(v, min_p, max_p) for v in pf_losses]
 
-        # Create plots
-        fig = go.Figure()
-        
-        # Voltage comparison
-        fig.add_trace(go.Scatter(
-            x=norm_opt_voltages, y=norm_pf_voltages, mode='markers+text',
-            text=bus_labels, textposition="top center",
-            marker=dict(size=10, color='blue'),
-            name='Normalized Bus Voltages'
-        ))
-        
-        # Current comparison
-        fig.add_trace(go.Scatter(
-            x=norm_opt_currents, y=norm_pf_currents, mode='markers+text',
-            text=line_labels, textposition="top center",
-            marker=dict(size=10, color='red'),
-            name='Normalized Line Currents'
-        ))
-        
-        # Power loss comparison
-        fig.add_trace(go.Scatter(
-            x=norm_opt_losses, y=norm_pf_losses, mode='markers+text',
-            text=line_labels, textposition="top center",
-            marker=dict(size=10, color='green'),
-            name='Normalized Power Losses'
-        ))
+        # Create vectors for opt and pf values
+        opt_values = norm_opt_voltages + norm_opt_currents + norm_opt_losses
+        pf_values = norm_pf_voltages + norm_pf_currents + norm_pf_losses
 
-        # Add Unity Line (y = x)
-        fig.add_trace(go.Scatter(
-            x=[0, 1], y=[0, 1], mode='lines',
-            line=dict(color='black', dash='dash'),
-            name='Unity Line'
-        ))
+        esperiment = (opt_values, pf_values)
 
-        fig.update_layout(
-            title=f"Comparison at Timestep {t+1}",
-            xaxis_title="Optimization (Normalized)",
-            yaxis_title="Power Flow (Normalized)",
-            template="plotly_white"
-        )
+        max_dei_norm = max(max(norm_opt_voltages), max(norm_pf_voltages), max(norm_opt_currents), max(norm_pf_currents), max(norm_opt_losses))
 
-        fig.show()
+        # Create figure and axis
+        fig, ax = plt.subplots(figsize=(8, 6))
 
-    return
+        # Plot Voltage Comparison
+        ax.scatter(norm_opt_voltages, norm_pf_voltages, color='blue', label='Normalized Bus Voltages')
+        for i, label in enumerate(bus_labels):
+            ax.text(norm_opt_voltages[i], norm_pf_voltages[i], label, fontsize=9, ha='right', color='blue')
+
+        # Plot Current Comparison
+        ax.scatter(norm_opt_currents, norm_pf_currents, color='red', label='Normalized Line Currents')
+        for i, label in enumerate(line_labels):
+            ax.text(norm_opt_currents[i], norm_pf_currents[i], label, fontsize=9, ha='right', color='red')
+
+        # Plot Power Loss Comparison
+        ax.scatter(norm_opt_losses, norm_pf_losses, color='green', label='Normalized Power Losses')
+
+        # Unity Line (y = x)
+        ax.plot([0, max_dei_norm], [0, max_dei_norm], linestyle='dashed', color='black', label='Unity Line')
+
+        # Labels and Title
+        ax.set_title(f"Comparison at Timestep {t+1}")
+        ax.set_xlabel("Optimization (Normalized)")
+        ax.set_ylabel("Power Flow (Normalized)")
+        ax.legend()
+        ax.grid(True, linestyle='--', alpha=0.6)
+
+        # Save the figure
+        name = f"comparison_{lin[0]}_{lin[1]}_{lin[2]}_{lin[3]}_t{t+1}.png"
+        plt.savefig(name, dpi=300, bbox_inches='tight')  # High-quality save
+
+
+    return esperiment
+
+
+import pandapower as pp
+import pandapower.networks as pn
+from pandapower.plotting.plotly import simple_plotly, pf_res_plotly
+import numpy as np
+from sklearn.linear_model import LinearRegression
+def plot_comparisons_with_fit(esperiment):
+    for esperiment in esperiment.values():
+        opt_values, pf_values = esperiment
+
+        # Fit the linear regression model
+        model = LinearRegression()
+        model.fit(opt_values, pf_values)
+
+        # Get the slope and intercept
+        slope = model.coef_[0][0]
+        intercept = model.intercept_[0]
+
+        # Generate points for the fitted line
+        x_fit = np.linspace(0, 1, 100).reshape(0, 1)
+        y_fit = model.predict(x_fit)
+
+        # Plot the fitted line
+        plt.plot(x_fit, y_fit, color='purple', label=f'Ex {esperiment.lin[0]}_{esperiment.lin[1]}_{esperiment.lin[2]}_{esperiment.lin[3]}_ (slope={slope:.2f})')
+
+        # Add the slope to the plot
+        plt.text(0.05, 0.95, f'Slope: {slope:.2f}', fontsize=12, verticalalignment='top', color='purple')
+
+    # Show the plot
+    plt.show()
+
+
+def precision(esperiment):
+    x,y = esperiment
+    return (sum(i for i in x) - sum(i for i in y)) / sum(i for i in y) * 100
+    
+
+
+
+
+def easy_plot(net, lin):
+    file_name = f"easy_plot_{lin[0]}_{lin[1]}_{lin[2]}_{lin[3]}.html"
+    # Run power flow before plotting results
+    pp.runpp(net)
+    
+    # Generate simple plot
+    fig_simple = simple_plotly(net)
+    fig_simple.write_html(file_name+'_simple')
+    
+    # Generate power flow results plot
+    fig_pf = pf_res_plotly(net)
+    fig_pf.write_html(file_name+'_pf')
 

@@ -1,17 +1,14 @@
-import math
+from debug import plot_comparisons_with_fit
+x = [0.1,0.2,0.3,0.4,0.5], [0.1,0.2,0.3,0.4,0.5], [0.1,0.24,0.3,0.4,0.5], [0.1,0.2,0.3,0.4,0.5]
+y = [0.1,0.2,0.3,0.4,0.5], [0.11,0.21,0.31,0.41,0.51], [0.12,0.23,0.33,0.43,0.55], [0.1,0.2,0.3,0.4,0.5]
+esperiments = {}
+for i in range(len(x)):
+    esperiment = (x,y)
+    esperiments[i] = {
+        "esperiment": esperiment,
+        "lin": None
+    }
 
-def obtain_coef(n):
-    # Compute coefficients for n-sided polygon
-    coefficients = [(round(math.cos(k * 2 * math.pi / n), 5), 
-                     round(math.sin(k * 2 * math.pi / n), 5)) 
-                    for k in range(n)]
+
     
-    # Compute the correct scale factor
-    scale_factor = 1 / math.cos(math.pi / n)
-
-    return coefficients, scale_factor
-
-# Example usage
-print(obtain_coef(4))  # Should give a square
-print(obtain_coef(6))  # Should give a hexagon
-print(obtain_coef(16)) # Should give a hexadecagon
+plot_comparisons_with_fit(esperiments)
