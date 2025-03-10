@@ -14,11 +14,11 @@ Bus ID, Position, Size, Type, District, Voltage, Active Power, Reactive Power
 18, (130;92), , LV_load, B, 400, 1.2, 1
 19, (81;115), , LV_load, B, 400, 1.8, 2
 20, (103;114), , LV_load, B, 400, 2.2, 3
-21, (10;60), , MV_load, A, 15000, 10, 10
+21, (10;70), , MV_load, A, 15000, 10, 10
 22, (20;80), , MV_load, A, 15000, 11, 9
 23, (40;80), , MV_load, A, 15000, 12, 11
 24, (90;120), , MV_load, B, 15000, 10, 6
-25, (120;130), , MV_load, B, 15000, 12, 10
+25, (120;120), , MV_load, B, 15000, 12, 10
 26, (120;100), , MV_load, B, 15000, 13, 12
 
 
