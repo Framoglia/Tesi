@@ -125,7 +125,7 @@ def load_bus(city, N_PERIODS_MAX, folder_path=r"C:\Users\mogli\OneDrive\Desktop\
                     load_kW.append(float(row["Active Power"]))
                     load_kVAR.append(float(row["Reactive Power"]))
                 else:
-                    random.seed(37)
+                    random.seed(52)
                     load_kW = [random.uniform(0.8*float(row["Active Power"]), 1.2*float(row["Active Power"])) for _ in range(N_PERIODS)]
                     load_kVAR = [random.uniform(0.8*float(row["Reactive Power"]), 1.2*float(row["Reactive Power"])) for _ in range(N_PERIODS)]
                 

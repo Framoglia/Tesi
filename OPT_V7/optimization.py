@@ -373,7 +373,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting):
     solver.options['MIPGap'] = 0.001
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 2
-    solver.options['ScaleFlag'] = 0  # Enable scaling
+    solver.options['ScaleFlag'] = 2  # Enable scaling
     solver.options['TimeLimit'] = 3000
     solver.options['Heuristics'] = 0.1
 

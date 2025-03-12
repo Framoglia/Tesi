@@ -43,6 +43,9 @@ def move_files_to_folder(folder_name='organized_files'):
     # Find all .png and .csv files in the current directory
     png_files = glob.glob('*.png')
     csv_files = glob.glob('*.csv')
+    txt_files = glob.glob('*.txt')
+    log_files = glob.glob('*.log')
+    lp_files = glob.glob('*.lp')
     
     # Move .png files to the new folder
     for file in png_files:
@@ -51,8 +54,20 @@ def move_files_to_folder(folder_name='organized_files'):
     # Move .csv files to the new folder
     for file in csv_files:
         shutil.move(file, os.path.join(folder_name, file))
+
+    # Move .txt files to the new folder
+    for file in txt_files:
+        shutil.move(file, os.path.join(folder_name, file))
+
+    # Move .log files to the new folder
+    for file in log_files:
+        shutil.move(file, os.path.join(folder_name, file))
+
+    # Move .lp files to the new folder
+    for file in lp_files:
+        shutil.move(file, os.path.join(folder_name, file))
     
-    print(f"Moved {len(png_files)} .png files and {len(csv_files)} .csv files to '{folder_name}'.")
+    print(f"Moved files to '{folder_name}'.")
 
 # Call the function at the end of your script
 

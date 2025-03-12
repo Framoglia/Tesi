@@ -3,7 +3,7 @@ import pandas as pd
 from pandapower.plotting.plotly import simple_plotly
 from pandapower.plotting.plotly import pf_res_plotly
 import plotly.graph_objects as go
-
+import re
 
 
 def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
@@ -50,7 +50,6 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
             p_mw = model.P_bus[t, bus_id].value * BASE_POWER * 1e-6  # Convert W to MW
             q_mvar = model.Q_bus[t, bus_id].value * BASE_POWER * 1e-6 # Convert VAR to MVAR
             pp.create_load(net, bus=pp_bus, p_mw=p_mw, q_mvar=q_mvar, name=f"Load {bus_id} T{t}")
-            print(f"Power = {model.P_bus[t, bus_id].value} p.u., Base power = {BASE_POWER} W and P_mw = {p_mw}")
 
         # Store geodata from LBUS
         geodata[pp_bus] = (bus.x_coord, bus.y_coord)
@@ -204,9 +203,6 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
     # 7. Run power flow simulation for each timestep.
     results = {}
 
-    # Identify load elements in the network
-    load_indices = net.load.index
-
     for t in model.periods:  # Iterate over time periods
         # Deactivate all loads first
         net.load['in_service'] = False
@@ -214,7 +210,7 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
         # Iterate over each load in the network
         for _, load in net.load.iterrows():
             # Check if the load name includes the current timestep "T{t}"
-            if f"T{t}" in load['name']:
+            if re.search(rf'\bT{t}\b', load['name']): 
                 net.load.loc[net.load.name == load['name'], 'in_service'] = True  # Activate load for current timestep
 
             

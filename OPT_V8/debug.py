@@ -199,14 +199,12 @@ def plot_comparisons(net, results, model, pp_bus_map, setting):
         model      : The optimization model containing voltage values.
         pp_bus_map : Mapping from model bus IDs to pandapower bus indices.
     """
-
-
-    def normalize(value, min_val, max_val):
-        return (value - min_val) / (max_val - min_val) if max_val > min_val else 0.5  # Avoid division by zero
     
     for t, res in results.items():
         if res == "Power flow did not converge":
             continue
+
+        debug_pandapower_net(res, f"powerflow_results_t{t}.txt")
 
         # Prepare voltage data
         opt_voltages, pf_voltages, bus_labels = [], [], []
@@ -240,7 +238,125 @@ def plot_comparisons(net, results, model, pp_bus_map, setting):
             opt_currents.append(math.sqrt(model.current_squared[t, line_id].value))
             
             # Get per-unit power loss
-            pf_loss = res["line"].loc[pp_line, 'pl_mw'] * 10**6 / BASE_POWER
+            pf_loss = res["line"].loc[pp_line, 'pl_mw'] * 1e6 / BASE_POWER
+            opt_loss = model.losses[t, line_id].value
+            pf_losses.append(pf_loss)
+            opt_losses.append(opt_loss)
+            line_labels.append(str(line_id))
+
+        # Create vectors for opt and pf values
+        opt_values = (opt_voltages, opt_currents, opt_losses)
+        pf_values = (pf_voltages, pf_currents, pf_losses)
+
+        esperiment = (opt_values, pf_values)
+
+        max_volt = max(max(opt_voltages), max(pf_voltages))
+        max_curr = max(max(opt_currents), max(pf_currents))
+        max_loss = max(max(opt_losses), max(pf_losses))
+
+        min_volt = min(min(opt_voltages), min(pf_voltages))
+        min_curr = min(min(opt_currents), min(pf_currents))
+        min_loss = min(min(opt_losses), min(pf_losses))
+        
+        # Create figure and subplots
+        fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+        
+        # Voltage Comparison
+        ax = axes[0]
+        ax.scatter(opt_voltages, pf_voltages, color='blue', label='Normalized Bus Voltages')
+        for i, label in enumerate(bus_labels):
+            ax.text(opt_voltages[i], pf_voltages[i], label, fontsize=9, ha='right', color='blue')
+        ax.plot([min_volt, max_volt], [min_volt, max_volt], linestyle='dashed', color='black', label='Unity Line')
+        ax.set_title(f"Voltage Comparison at Timestep {t}")
+        ax.set_xlabel("Optimization (Normalized)")
+        ax.set_ylabel("Power Flow (Normalized)")
+        ax.legend()
+        ax.grid(True, linestyle='--', alpha=0.6)
+        
+        # Current Comparison
+        ax = axes[1]
+        ax.scatter(opt_currents, pf_currents, color='red', label='Normalized Line Currents')
+        for i, label in enumerate(line_labels):
+            ax.text(opt_currents[i], pf_currents[i], label, fontsize=9, ha='right', color='red')
+        ax.plot([min_curr, max_curr], [min_curr, max_curr], linestyle='dashed', color='black', label='Unity Line')
+        ax.set_title(f"Current Comparison at Timestep {t}")
+        ax.set_xlabel("Optimization (Normalized)")
+        ax.set_ylabel("Power Flow (Normalized)")
+        ax.legend()
+        ax.grid(True, linestyle='--', alpha=0.6)
+        
+        # Power Loss Comparison
+        ax = axes[2]
+        ax.scatter(opt_losses, pf_losses, color='green', label='Normalized Power Losses')
+        ax.plot([min_loss, max_loss], [min_loss, max_loss], linestyle='dashed', color='black', label='Unity Line')
+        ax.set_title(f"Power Loss Comparison at Timestep {t}")
+        ax.set_xlabel("Optimization (Normalized)")
+        ax.set_ylabel("Power Flow (Normalized)")
+        ax.legend()
+        ax.grid(True, linestyle='--', alpha=0.6)
+        
+        # Adjust layout and save the figure
+        plt.tight_layout()
+        name = f"comparison_{setting[0]}_{setting[1]}_{setting[2]}_{setting[3]}_t{t}.png"
+        plt.savefig(name, dpi=300, bbox_inches='tight')
+
+    return esperiment
+
+def plot_comparisons_normalized(net, results, model, pp_bus_map, setting):
+    """
+    Plots voltage magnitude, line current, and power loss comparisons between 
+    the optimization model and power flow results.
+    
+    Parameters:
+        net        : The pandapower network model.
+        results    : Dictionary containing power flow results for each timestep.
+        model      : The optimization model containing voltage values.
+        pp_bus_map : Mapping from model bus IDs to pandapower bus indices.
+    """
+
+
+    def normalize(value, min_val, max_val):
+        return (value - min_val) / (max_val - min_val) if max_val > min_val else 0.5  # Avoid division by zero
+    
+    for t, res in results.items():
+        if res == "Power flow did not converge":
+            continue
+
+        debug_pandapower_net(res, f"powerflow_results_t{t}.txt")
+
+        # Prepare voltage data
+        opt_voltages, pf_voltages, bus_labels = [], [], []
+        for bus_id in model.B:
+            if bus_id not in pp_bus_map:
+                continue
+            pp_bus = pp_bus_map[bus_id]
+            try:
+                pf_voltage = res["bus"].loc[pp_bus, 'vm_pu']
+            except KeyError:
+                continue
+            opt_voltages.append(math.sqrt(model.voltage_squared[t, bus_id].value))
+            pf_voltages.append(pf_voltage)
+            bus_labels.append(str(bus_id))
+        
+        # Prepare current & loss data
+        opt_currents, pf_currents = [], []
+        opt_losses, pf_losses = [], []
+        line_labels = []
+        
+        for line_id in model.lines:
+            pp_line = net.line[net.line.name == f"Line {line_id}"].index
+            if pp_line.empty:
+                continue
+            pp_line = pp_line[0]
+            
+            # Get per-unit current
+            pf_current = res["line"].loc[pp_line, 'i_ka'] * 1000 * math.sqrt(3) # Convert kA to A
+            base_current = BASE_I_MV if net.bus.loc[net.line.loc[pp_line, 'from_bus'], 'vn_kv'] == 15 else BASE_I_LV
+            pf_currents.append(pf_current / base_current)
+            opt_currents.append(math.sqrt(model.current_squared[t, line_id].value))
+            
+            # Get per-unit power loss
+            pf_loss = res["line"].loc[pp_line, 'pl_mw'] * 1e6 / BASE_POWER
             opt_loss = model.losses[t, line_id].value
             pf_losses.append(pf_loss)
             opt_losses.append(opt_loss)
@@ -299,7 +415,6 @@ def plot_comparisons(net, results, model, pp_bus_map, setting):
 
 
     return esperiment
-
 
 import pandapower as pp
 import pandapower.networks as pn
@@ -373,6 +488,88 @@ def table_result(settings, folder_name):
 
     # Optionally, you can save the table to a CSV or Excel file
     df.to_csv(f"{folder_name}.csv", index=False)  # Save as CSV
+
+def table_result_2(settings, folder_name):
+    # Initialize a list to store the table data
+    table_data = []
+
+    for setting, (pf_vs_opt, logg) in settings.items():
+        # Detect if pf_vs_opt is a list of tuples (for multiple comparisons)
+        is_list_of_tuples = isinstance(pf_vs_opt, list) and all(isinstance(i, tuple) for i in pf_vs_opt)
+
+        if is_list_of_tuples:
+            fig, axes = plt.subplots(1, 3, figsize=(18, 6))  # Create subplots for separate comparisons
+            comparisons = ["Voltage", "Current", "Power Loss"]
+            colors = ["blue", "red", "green"]
+
+            for idx, ((opt_values, pf_values), title, color) in enumerate(zip(pf_vs_opt, comparisons, colors)):
+                ax = axes[idx]
+                opt_values = np.array(opt_values).reshape(-1, 1)
+                pf_values = np.array(pf_values).reshape(-1, 1)
+
+                # Fit linear regression model
+                model = LinearRegression()
+                model.fit(opt_values, pf_values)
+                slope = model.coef_[0][0]
+
+                # Generate fit line
+                x_fit = np.linspace(opt_values.min(), opt_values.max(), 100).reshape(-1, 1)
+                y_fit = model.predict(x_fit)
+
+                # Scatter plot and regression line
+                ax.scatter(opt_values, pf_values, alpha=0.6, color=color)
+                ax.plot(x_fit, y_fit, linestyle="--", label=f"Fit {setting} (slope={slope:.2f})", color=color)
+                ax.plot([opt_values.min(), opt_values.max()], [opt_values.min(), opt_values.max()], linestyle="dashed", color="black", label="Unity Line")
+
+                # Labels and grid
+                ax.set_xlabel("Optimization (Normalized)")
+                ax.set_ylabel("Power Flow (Normalized)")
+                ax.set_title(f"{title} Comparison at Timestep {setting}")
+                ax.legend()
+                ax.grid(True, linestyle="--", alpha=0.6)
+
+        else:  # Single tuple case
+            plt.figure(figsize=(8, 6))
+            opt_values, pf_values = pf_vs_opt
+            opt_values = np.array(opt_values).reshape(-1, 1)
+            pf_values = np.array(pf_values).reshape(-1, 1)
+
+            # Fit linear regression model
+            model = LinearRegression()
+            model.fit(opt_values, pf_values)
+            slope = model.coef_[0][0]
+
+            # Generate fit line
+            x_fit = np.linspace(opt_values.min(), opt_values.max(), 100).reshape(-1, 1)
+            y_fit = model.predict(x_fit)
+
+            # Scatter plot and regression line
+            plt.scatter(opt_values, pf_values, alpha=0.6)
+            plt.plot(x_fit, y_fit, linestyle="--", label=f"Fit {setting} (slope={slope:.2f})")
+            plt.plot([opt_values.min(), opt_values.max()], [opt_values.min(), opt_values.max()], linestyle="dashed", color="black", label="Unity Line")
+
+            plt.xlabel("Optimization (Normalized)")
+            plt.ylabel("Power Flow (Normalized)")
+            plt.title(f"Comparison at Timestep {setting}")
+            plt.legend()
+            plt.grid(True, linestyle="--", alpha=0.6)
+
+        # Save Figure
+        plt.tight_layout()
+        plt.savefig(f"Scatter_{folder_name}.png", dpi=300, bbox_inches='tight')  # High-quality save
+
+        
+        # Extract execution data
+        execution_time = logg["execution_time"]
+        gap = logg["gap"]
+
+        # Append to table data
+        table_data.append([setting, execution_time, gap])
+
+    # Save Table as CSV
+    df = pd.DataFrame(table_data, columns=["Setting", "Execution Time", "Gap"])
+    df.to_csv(f"{folder_name}.csv", index=False)  # Save as CSV
+    return df
 
 def precision(esperiment):
     x,y = esperiment

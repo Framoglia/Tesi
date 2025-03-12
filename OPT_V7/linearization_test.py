@@ -24,9 +24,7 @@ def load_setting():
     """
 
     lin_test = {}
-    lin_test[1] = [2,15,2,8] 
-    lin_test[2] = [2,15,2,16] 
-    lin_test[3] = [2,15,0,0]
+    lin_test[1] = [2,15,2,8]
     
 
     string = 'Brussels_test_'

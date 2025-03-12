@@ -276,8 +276,8 @@ def obtain_coef(n):
     angle_offset = math.pi / 2  # 90 degrees in radians
 
     # Compute coefficients for n-sided polygon with the first vertex on the positive y-axis
-    coefficients = [(math.cos((k * 2 * math.pi / n) + angle_offset), 
-                     math.sin((k * 2 * math.pi / n) + angle_offset)) 
+    coefficients = [(round(math.cos((k * 2 * math.pi / n) + angle_offset), 6),  
+                    round(math.sin((k * 2 * math.pi / n) + angle_offset), 6))  
                     for k in range(n)]
     
     # Compute the correct scale factor

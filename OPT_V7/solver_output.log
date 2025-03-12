@@ -1,0 +1,80 @@
+Solver command line: []
+
+Warning: row 361 (name "c_u_x1670_") contains 1 small (<= 1e-13) coefficient(s), ignored
+Warning: row 363 (name "c_u_x1673_") contains 2 small (<= 1e-13) coefficient(s), ignored
+Warning: row 365 (name "c_u_x1675_") contains 3 small (<= 1e-13) coefficient(s), ignored
+Warning: row 367 (name "c_u_x1677_") contains 4 small (<= 1e-13) coefficient(s), ignored
+Warning: row 369 (name "c_u_x1679_") contains 5 small (<= 1e-13) coefficient(s), ignored
+Warning: row 371 (name "c_u_x1682_") contains 6 small (<= 1e-13) coefficient(s), ignored
+Warning: row 373 (name "c_u_x1684_") contains 7 small (<= 1e-13) coefficient(s), ignored
+Warning: row 375 (name "c_u_x1686_") contains 8 small (<= 1e-13) coefficient(s), ignored
+Warning: row 377 (name "c_u_x1688_") contains 9 small (<= 1e-13) coefficient(s), ignored
+Warning: row 379 (name "c_u_x1691_") contains 10 small (<= 1e-13) coefficient(s), ignored
+skipping further warning of this kind
+Warning: row 381 (name "c_u_x1693_") contains 11 small (<= 1e-13) coefficient(s), ignored
+Warning: lp file contains 24 small (<= 1e-13) coefficient(s), ignored
+Read LP format model from file C:\Users\mogli\AppData\Local\Temp\tmpvfvo2cao.pyomo.lp
+Reading time = 0.01 seconds
+x1: 3952 rows, 3655 columns, 15010 nonzeros
+Set parameter MIPGap to value 0.001
+Set parameter FeasibilityTol to value 0.001
+Set parameter NumericFocus to value 2
+Set parameter ScaleFlag to value 2
+Set parameter TimeLimit to value 3000
+Set parameter Heuristics to value 0.1
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 11+.0 (22631.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-13620H, instruction set [SSE2|AVX|AVX2]
+Thread count: 10 physical cores, 16 logical processors, using up to 16 threads
+
+Optimize a model with 3952 rows, 3655 columns and 15010 nonzeros
+Model fingerprint: 0xe2b3aa0a
+Variable types: 3289 continuous, 366 integer (366 binary)
+Coefficient statistics:
+  Matrix range     [7e-08, 3e+05]
+  Objective range  [3e-02, 9e+08]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e-03, 1e+03]
+Warning: Model contains large matrix coefficient range
+Presolve removed 2128 rows and 290 columns
+Presolve time: 0.01s
+Presolved: 1824 rows, 3365 columns, 11454 nonzeros
+Variable types: 3039 continuous, 326 integer (326 binary)
+
+Root relaxation: objective 2.132361e+03, 1851 iterations, 0.02 seconds (0.03 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 2132.36073    0   68          - 2132.36073      -     -    0s
+     0     0 2133.36941    0   75          - 2133.36941      -     -    0s
+     0     0 2133.52437    0   76          - 2133.52437      -     -    0s
+     0     0 2137.59810    0   78          - 2137.59810      -     -    0s
+     0     0 2140.76417    0   85          - 2140.76417      -     -    0s
+     0     2 2140.76417    0   85          - 2140.76417      -     -    0s
+*  669   647              82    3252.6859174 2146.53778  34.0%  38.9    1s
+*  790   567              83    3180.5755233 2146.53778  32.5%  33.8    1s
+H 1346   725                    3086.1827196 2149.08805  30.4%  46.6    2s
+H 1350   722                    3083.0495326 2149.08805  30.3%  46.6    2s
+H 1356   609                    3013.6755060 2149.08805  28.7%  46.4    2s
+* 1634   630              84    2813.9963527 2149.08805  23.6%  45.2    3s
+  1834   541 2800.12116   26   38 2813.99635 2169.17311  22.9%  51.7    5s
+* 2138   580              54    2784.3805756 2197.72148  21.1%  54.1    5s
+ 11705  3244 2754.39075   33   53 2784.38058 2691.08954  3.35%  19.8   10s
+ 34335 10996 2739.98227   37   46 2784.38058 2734.94742  1.78%  23.4   15s
+*39404  1247              76    2741.6451281 2738.63336  0.11%  23.6   15s
+
+Cutting planes:
+  Cover: 3
+  Implied bound: 2
+  MIR: 25
+
+Explored 39719 nodes (1133394 simplex iterations) in 15.83 seconds (19.21 work units)
+Thread count was 16 (of 16 available processors)
+
+Solution count 9: 2741.65 2741.65 2784.38 ... 3252.69
+
+Optimal solution found (tolerance 1.00e-03)
+Warning: max integrality violation (1.3323e-04) exceeds tolerance
+Best objective 2.741645128056e+03, best bound 2.738948286661e+03, gap 0.0984%
+

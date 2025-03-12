@@ -39,7 +39,7 @@ for i, setting in setting_list.items():
     pf_vs_opt = plot_comparisons(net, results, model, pp_bus_map, setting)
     settings[tuple(setting)] = pf_vs_opt, logg
 
-table_result(settings, folder_name)
+table_result_2(settings, folder_name)
 
 move_files_to_folder(folder_name)
     

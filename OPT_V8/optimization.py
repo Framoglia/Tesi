@@ -166,12 +166,22 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
     def voltage_rule_1(m,p,l):
         i = LINES[l].from_bus
         j = LINES[l].to_bus
-        return m.voltage_squared[p,j] - m.voltage_squared[p,i] <= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + m.current_squared_k[p,l,c] * ((LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) / (fetch_base_z_from_line(DATA, l) / LINES[l].length  * 100)**2) for c in m.conductors) + M * (1-m.line_act_plus[l]-m.line_act_minus[l])
+
+        base_z = fetch_base_z_from_line(DATA, l)
+        length = LINES[l].length
+        scaling_factor = length / base_z / 100
+
+        return (m.voltage_squared[p,j] - m.voltage_squared[p,i]) / scaling_factor  <= sum(-2 * (LINES_OPT[c].r_per_km * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * m.reactive_power_k[p,l,c]) + m.current_squared_k[p,l,c] * ((LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) * scaling_factor) for c in m.conductors) + M * (1-m.line_act_plus[l]-m.line_act_minus[l])
 
     def voltage_rule_2(m,p,l):
         i = LINES[l].from_bus
         j = LINES[l].to_bus
-        return m.voltage_squared[p,j] - m.voltage_squared[p,i] >= sum(-2 * (LINES_OPT[c].r_per_km * LINES[l].length  / 100 * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * LINES[l].length  / 100 * m.reactive_power_k[p,l,c]) / fetch_base_z_from_line(DATA, l) + m.current_squared_k[p,l,c] * ((LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) / (fetch_base_z_from_line(DATA, l) / LINES[l].length  * 100)**2) for c in m.conductors) - M * (1-m.line_act_plus[l]-m.line_act_minus[l])
+
+        base_z = fetch_base_z_from_line(DATA, l)
+        length = LINES[l].length
+        scaling_factor = length / base_z / 100
+
+        return (m.voltage_squared[p,j] - m.voltage_squared[p,i]) / scaling_factor  >= sum(-2 * (LINES_OPT[c].r_per_km * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * m.reactive_power_k[p,l,c]) + m.current_squared_k[p,l,c] * ((LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) * scaling_factor) for c in m.conductors) - M * (1-m.line_act_plus[l]-m.line_act_minus[l])
 
     def complex_power_rule(m,p,l):
         return  m.current_squared[p,l] >= sum(m.SPWB[l,db] * (m.active_power_discr[p,l,db] + m.reactive_power_discr[p,l,db]) for db in model.NPWB)
@@ -435,6 +445,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
     # Solve the model
     
     solver = SolverFactory('gurobi')
+    model.write("model.lp", io_options={"symbolic_solver_labels": True})
 
     solver.options['MIPGap'] = 0.0001
     solver.options['FeasibilityTol'] = 0.001
@@ -443,10 +454,20 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
     solver.options['TimeLimit'] = 3000
     solver.options['Heuristics'] = 0.1
 
-    results = solver.solve(model, tee=True,  logfile='solver_output.log')
+    results = solver.solve(model, tee=True, logfile="solver_report.log")
+
+    # Combine solver log & solution summary in one file
+    with open("optimization_report.txt", "w") as f:
+        f.write("=== SOLVER LOG ===\n")
+        with open("solver_report.log", "r") as log:
+            f.write(log.read())  # Append solver output
+
+        f.write("\n=== SOLUTION SUMMARY ===\n")
+        results.write(ostream=f)  # Append results summary
+        model.display(ostream=f)  # Append model variables and constraints
 
     # Example usage:
-    execution_time, solver_status, gap, best_objective, best_bound, warnings = parse_solver_log('solver_output.log')
+    execution_time, solver_status, gap, best_objective, best_bound, warnings = parse_solver_log('solver_report.log')
     logg = {
         'execution_time': execution_time,
         'solver_status': solver_status,

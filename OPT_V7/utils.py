@@ -289,7 +289,7 @@ def obtain_coef(n):
 coefficients, scale_factor = obtain_coef(10)
 #print(coefficients)
 
-def log_interval_length(b, n, i, base=2.72, epsilon=0.1, a=0):
+def log_interval_length(b, n, i, base=10, epsilon=0.01, a=0):
     """
     Computes the length of the i-th interval when dividing the range [a, b] logarithmically into n intervals.
     

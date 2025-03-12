@@ -7,7 +7,7 @@ from debug import *
 cities = ["Buenos Aires", "Los Angeles", "Singapore", "Vancouver"]      #For this cities the opt is infeasible
 cities = ["Miami", "Guayaquil"]                                         #Weird result both on objective value and topology
 cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"]  #This seem to work fine
-cities = "Brussels"
+cities = "Mycampus"
 
 N_PERIODS_MAX = 1
 
