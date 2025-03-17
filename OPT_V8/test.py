@@ -1,16 +1,54 @@
-import math
-def obtain_coef(n):
-    # Adjust the angle to rotate the first vertex to the positive y-axis
-    angle_offset = math.pi / 2  # 90 degrees in radians
+import numpy as np
 
-    # Compute coefficients for n-sided polygon with the first vertex on the positive y-axis
-    coefficients = [(round(math.cos((k * 2 * math.pi / n) + angle_offset), 6),  
-                    round(math.sin((k * 2 * math.pi / n) + angle_offset), 6))  
-                    for k in range(n)]
-            
-    # Compute the correct scale factor
-    scale_factor = 1 / math.cos(math.pi / n)
+def log_interval_length(b, n, i, base=2.72, epsilon=0.0001, a=0):
+    """
+    Computes the length of the i-th interval when dividing the range [a, b] logarithmically into n intervals.
+    
+    The division follows a logarithmic scale, meaning each interval grows exponentially.
+    The interval index `i` starts from 1 (not 0), and the function returns the size of the i-th interval.
 
-    return coefficients, scale_factor
+    Parameters:
+    - a (float): The start of the range (must be > 0 for logarithmic scaling).
+    - b (float): The end of the range (must be > a).
+    - n (int): The total number of intervals.
+    - i (int): The interval index (1-based, meaning it ranges from 1 to n).
+    - base (float, optional): The logarithm base (default is 10). Use `np.e` for natural logarithm.
 
-print(obtain_coef(16))
+    Returns:
+    - float: The length of the i-th interval.
+
+    Raises:
+    - ValueError: If `i` is not in the range [1, n].
+
+    Example Usage:
+    ```python
+    a, b, n = 1, 1000, 5
+    for i in range(1, n + 1):
+        print(f"Interval {i}: Length = {log_interval_length(a, b, n, i)}")
+    ```
+    """
+    if i < 1 or i > n:
+        raise ValueError("Index i must be in range 1 to n")
+    
+    a = a + epsilon
+    b = b + epsilon
+
+    log_a = np.log(a) / np.log(base)  # Log-scale start
+    log_b = np.log(b) / np.log(base)  # Log-scale end
+    
+    delta_L = (log_b - log_a) / n  # Logarithmic step size
+    
+    x_start = base ** (log_a + (i - 1) * delta_L)  # Start of interval i
+    x_end = base ** (log_a + i * delta_L)  # End of interval i
+    
+    return x_end - x_start  # Interval length
+
+# Test the function with example values
+
+
+voltage_level = 'LV'
+b = 0.2226 if voltage_level == 'LV' else 8.343
+n = 15
+
+for i in range(1, n + 1):
+    print(f"Interval {i}: Length = {log_interval_length(b, n, i)}")

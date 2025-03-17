@@ -9,7 +9,7 @@ cities = ["Miami", "Guayaquil"]                                         #Weird r
 cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"]  #This seem to work fine
 cities = "Mycampus"
 
-N_PERIODS_MAX = 12
+N_PERIODS_MAX = 7
 
 LINES_OPT = load_conductors_csv()
 LBUS, SUBS, SLACK, irradiation = load_bus(cities, N_PERIODS_MAX)

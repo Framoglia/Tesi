@@ -184,7 +184,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
         return (m.voltage_squared[p,j] - m.voltage_squared[p,i]) / scaling_factor  >= sum(-2 * (LINES_OPT[c].r_per_km * m.active_power_k[p,l,c] + LINES_OPT[c].xl_per_km * m.reactive_power_k[p,l,c]) + m.current_squared_k[p,l,c] * ((LINES_OPT[c].r_per_km **2 + LINES_OPT[c].xl_per_km **2) * scaling_factor) for c in m.conductors) - M * (1-m.line_act_plus[l]-m.line_act_minus[l])
 
     def complex_power_rule(m,p,l):
-        return  m.current_squared[p,l] >= sum(m.SPWB[l,db] * (m.active_power_discr[p,l,db] + m.reactive_power_discr[p,l,db]) for db in model.NPWB)
+        return  m.current_squared[p,l] >= sum(m.SPWB[l,db] * (m.active_power_discr[p,l,db] + m.reactive_power_discr[p,l,db]) for db in m.NPWB)
     
     def conic_complex_power_rule(m,p,l):
         return  m.voltage_squared[p,LINES[l].from_bus] * m.current_squared[p,l] >= m.active_power[p,l]**2 + m.reactive_power[p,l]**2
@@ -247,22 +247,22 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
         return sum(m.line_act_minus[l] for l in m.lines if LINES[l].from_bus==s) + sum(m.line_act_plus[l] for l in m.lines if LINES[l].to_bus==s) >= 1
     
     def active_power_scomposition_rule(m,p,l):
-        return m.active_power[p,l] == model.active_power_plus[p,l] - model.active_power_minus[p,l]
+        return m.active_power[p,l] == m.active_power_plus[p,l] - m.active_power_minus[p,l]
     
     def reactive_power_scomposition_rule(m,p,l):
-        return m.reactive_power[p,l] == model.reactive_power_plus[p,l] - model.reactive_power_minus[p,l]
+        return m.reactive_power[p,l] == m.reactive_power_plus[p,l] - m.reactive_power_minus[p,l]
     
     def active_power_discr_rule(m,p,l):
-        return model.active_power_plus[p,l] + model.active_power_minus[p,l] == sum(m.active_power_discr[p,l,d] for d in model.NPWB)
+        return m.active_power_plus[p,l] + m.active_power_minus[p,l] == sum(m.active_power_discr[p,l,d] for d in m.NPWB)
     
     def reactive_power_discr_rule(m,p,l):
-        return model.reactive_power_plus[p,l] + model.reactive_power_minus[p,l] == sum(m.reactive_power_discr[p,l,d] for d in model.NPWB)
+        return m.reactive_power_plus[p,l] + m.reactive_power_minus[p,l] == sum(m.reactive_power_discr[p,l,d] for d in m.NPWB)
     
     def active_power_discr_limit_rule(m,p,l,d):
-        return m.active_power_discr[p,l,d] <= model.LPWB[l,d]
+        return m.active_power_discr[p,l,d] <= m.LPWB[l,d]
     
     def reactive_power_discr_limit_rule(m,p,l,d):
-        return m.reactive_power_discr[p,l,d] <= model.LPWB[l,d]
+        return m.reactive_power_discr[p,l,d] <= m.LPWB[l,d]
     
     def voltage_lim_1_rule(m,p,b):
         return m.voltage_squared[p,b] >= MIN_VOLTAGE**2
@@ -301,31 +301,31 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
         return constraints
 
     def losses_rule(m,p,l):
-        return m.losses[p,l] == sum(m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors)
+        return m.losses[p,l] * 100 == sum(m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  for c in m.conductors)
     
     def bus_active_power_balance_rule(m,p,b):
-        return model.P_bus[p,b] == model.P_load[p,b] - model.P_sun[p,b]
+        return m.P_bus[p,b] == m.P_load[p,b] - m.P_sun[p,b]
     
     def energy_cost_rule(m,p):
         return m.C_electricity[p] == sum(m.P_bus[p,b] for b in m.buses) * BASE_POWER / 1000 * ENERGY_COST * DELTA_T
     
     def bus_reactive_power_balance_rule(m,p,b):
-        return model.Q_bus[p,b] == model.Q_load[p,b] - model.Q_sun[p,b]
+        return m.Q_bus[p,b] == m.Q_load[p,b] - m.Q_sun[p,b]
     
     def sun_power_rule_1(m,p,b):                                                  #Questa da rivedere con i veri limiti??
-        return model.S_sun[p,b] == model.P_sun[p,b]
+        return m.S_sun[p,b] == m.P_sun[p,b]
     
     def sun_power_rule_2(m,p,b):
-        return model.P_sun[p,b] >= - model.Q_sun[p,b]
+        return m.P_sun[p,b] >= - m.Q_sun[p,b]
     
     def sun_power_rule_3(m,p,b):
-        return model.P_sun[p,b] >= model.Q_sun[p,b]
+        return m.P_sun[p,b] >= m.Q_sun[p,b]
     
     def inv_limit_rule(m,p,b):
-        return model.S_inv[b] >= model.S_sun[p,b]
+        return m.S_inv[b] >= m.S_sun[p,b]
     
     def pv_production_rule(m,p,b):
-        return model.S_sun[p,b] <= model.PV_surf[b] * model.Irr[p] * 0.25
+        return m.S_sun[p,b] * BASE_POWER <= m.PV_surf[b] * m.Irr[p] * 0.2
     
     def inverter_cost_rule(m):                                                              #TODO: aggiungere i costi all' objective rule
         return m.C_inv == sum(m.S_inv[b] * BASE_POWER * UNIT_COST_INV for b in m.buses)
