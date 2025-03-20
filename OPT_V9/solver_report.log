@@ -1,0 +1,81 @@
+Solver command line: []
+
+Read LP format model from file C:\Users\mogli\AppData\Local\Temp\tmpxo_vcpd5.pyomo.lp
+Reading time = 0.00 seconds
+x1: 4178 rows, 3781 columns, 15548 nonzeros
+Set parameter MIPGap to value 0.001
+Set parameter Presolve to value 2
+Set parameter FeasibilityTol to value 0.001
+Set parameter NumericFocus to value 2
+Set parameter ScaleFlag to value 2
+Set parameter TimeLimit to value 3600
+Set parameter Heuristics to value 0.3
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 11+.0 (22631.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-13620H, instruction set [SSE2|AVX|AVX2]
+Thread count: 10 physical cores, 16 logical processors, using up to 16 threads
+
+Optimize a model with 4178 rows, 3781 columns and 15548 nonzeros
+Model fingerprint: 0xd448f6ff
+Variable types: 3400 continuous, 381 integer (381 binary)
+Coefficient statistics:
+  Matrix range     [1e-04, 1e+06]
+  Objective range  [3e-02, 9e+08]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [4e-04, 1e+03]
+Presolve removed 2306 rows and 416 columns
+Presolve time: 0.01s
+Presolved: 1872 rows, 3365 columns, 11534 nonzeros
+Variable types: 3039 continuous, 326 integer (326 binary)
+Root relaxation presolve removed 6 rows and 2 columns
+Root relaxation presolved: 1866 rows, 3363 columns, 11522 nonzeros
+
+Extra simplex iterations after uncrush: 116
+
+Root relaxation: objective 6.406553e+04, 2141 iterations, 0.04 seconds (0.05 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 64065.5265    0   52          - 64065.5265      -     -    0s
+     0     0 64071.8622    0   61          - 64071.8622      -     -    0s
+     0     0 64075.0732    0   60          - 64075.0732      -     -    0s
+     0     0 64076.0859    0   60          - 64076.0859      -     -    0s
+     0     0 64076.0859    0   62          - 64076.0859      -     -    0s
+H    0     0                    1.555310e+16 64076.0859   100%     -    0s
+     0     2 64076.0859    0   62 1.5553e+16 64076.0859   100%     -    0s
+H   75    92                    5.317853e+15 64086.6420   100%  25.9    0s
+H  159   162                    9.834019e+14 65266.3607   100%  78.8    1s
+H  273   271                    1.772339e+14 65266.3607   100%   130    1s
+H  275   271                    3.327862e+10 65266.3607   100%   129    1s
+H  278   271                    2.732099e+10 65266.3607   100%   128    1s
+H  289   271                    84841.030201 65266.3607  23.1%   124    1s
+H  354   327                    84814.650302 65266.3607  23.0%   113    1s
+H  393   365                    83713.342939 65266.3607  22.0%   106    1s
+H  399   365                    83712.957176 65266.3607  22.0%   105    1s
+*  421   380              39    83209.127938 65266.3607  21.6%   102    2s
+H  695   557                    80851.868039 65266.3607  19.3%  75.1    3s
+H  727   547                    77480.513074 65266.3607  15.8%  73.3    4s
+H  951   538                    77359.254925 70457.3270  8.92%  75.8    4s
+*  953   538              30    77357.750361 70457.3270  8.92%  75.7    4s
+  1292   539 76571.1215   23   52 77357.7504 71151.5806  8.02%  73.5    5s
+* 2808   259              34    76921.021632 75796.7096  1.46%   112    8s
+
+Cutting planes:
+  Learned: 11
+  Cover: 3
+  Implied bound: 29
+  MIR: 36
+  Flow cover: 6
+  Inf proof: 1
+  RLT: 5
+
+Explored 3740 nodes (379474 simplex iterations) in 9.10 seconds (13.66 work units)
+Thread count was 16 (of 16 available processors)
+
+Solution count 10: 76921 76921 77357.8 ... 84841
+
+Optimal solution found (tolerance 1.00e-03)
+Warning: max integrality violation (5.4176e-05) exceeds tolerance
+Best objective 7.692102163186e+04, best bound 7.692102163186e+04, gap 0.0000%
+

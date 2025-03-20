@@ -29,6 +29,9 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
     model.C_inv = Var(within=NonNegativeReals)
     model.C_PV = Var(within=NonNegativeReals)
     model.C_electricity = Var(model.periods, within=Reals)
+    model.subs_hv_inst_cost = Var(within=NonNegativeReals)
+    model.subs_mv_inst_cost = Var(within=NonNegativeReals)
+    model.PV_inst_cost = Var(within=NonNegativeReals)
 
     model.line_opt = Var(model.lines, model.conductors, within=Binary)  # Conductor chosen when line is active 
     model.line_act_plus = Var(model.lines, within=Binary)                    # Is the line activated ?
@@ -71,16 +74,37 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
     model.PV_surf = Var(model.buses, within=NonNegativeReals)
     model.pi = Var(model.buses, within=Binary)
 
-
-    model.subs_hv_inst_cost = Var(within=NonNegativeReals)
-    model.subs_mv_inst_cost = Var(within=NonNegativeReals)
-    model.PV_inst_cost = Var(within=NonNegativeReals)
-
     model.P_bus = Var(model.periods, model.buses, within=Reals) #Power injected in the bus
     model.Q_bus = Var(model.periods, model.buses, within=Reals)
 
     model.Irr = Param(model.periods, mutable=True)  
-    
+
+    # Model parameters representing initial investment status:
+
+    model.initial_line_act = Param(model.lines, mutable=True)
+    model.initial_line_opt = Param(model.lines, model.conductors, mutable=True)
+    model.initial_beta = Param(model.subs_hv, mutable=True)
+    model.initial_gamma = Param(model.subs_mv, mutable=True)
+    model.initial_pi = Param(model.buses, mutable=True)
+    model.initial_capacity_hv = Param(model.subs_hv, mutable=True)
+    model.initial_capacity_mv = Param(model.subs_mv, mutable=True)
+    model.initial_capacity_inv = Param(model.buses, mutable=True)
+    model.initial_PV_surf = Param(model.buses, mutable=True)
+
+    for l in model.lines:
+        model.initial_line_act[l] = 0
+        for c in model.conductors:
+            model.initial_line_opt[l,c] = 0
+    for s in model.subs_hv:
+        model.initial_beta[s] = 0
+        model.initial_capacity_hv[s] = 0
+    for s in model.subs_mv:
+        model.initial_gamma[s] = 0
+        model.initial_capacity_mv[s] = 0
+    for b in model.buses:
+        model.initial_capacity_inv[b] = 0
+        model.initial_PV_surf[b] = 0
+        model.initial_pi[b] = 0
 
     if lin_type != 0:
         model.NPWB = RangeSet(NPWB)
@@ -128,10 +152,10 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
     #Constraints
 
     def conductors_cost(m):
-        return m.C_cond == sum(m.line_opt[l, c] * LINES_OPT[c].cost_keur_per_km * LINES[l].length  / 100 for l in m.lines for c in m.conductors) * 1000 #eur
+        return m.C_cond == sum( (m.line_opt[l, c] - m.initial_line_opt[l,c] )* LINES_OPT[c].cost_keur_per_km * LINES[l].length  / 100 for l in m.lines for c in m.conductors) * 1000 #eur
 
     def substation_cost(m):
-        return m.C_subs == sum(UNIT_COST_SUBS_HV * m.subs_hv_capacity[s] * BASE_POWER for s in m.subs_hv) + sum(UNIT_COST_SUBS_MV * m.subs_mv_capacity[s] * BASE_POWER for s in m.subs_mv)
+        return m.C_subs == sum(UNIT_COST_SUBS_HV * (m.subs_hv_capacity[s]-m.initial_capacity_hv[s]) * BASE_POWER for s in m.subs_hv) + sum(UNIT_COST_SUBS_MV * (m.subs_mv_capacity[s]-m.initial_capacity_mv[s]) * BASE_POWER for s in m.subs_mv)
 
     def loss_cost(m,p):
         return m.C_losses[p] == sum(LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 * m.current_squared_k[p,l,c] for l in m.lines for c in m.conductors) * BASE_POWER / 1000 * UNIT_COST_LOSSES * DELTA_T
@@ -337,10 +361,10 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
         return m.S_sun[p,b] * BASE_POWER <= m.PV_surf[b] * m.Irr[p] * 0.2
     
     def inverter_cost_rule(m):                                                              #TODO: aggiungere i costi all' objective rule
-        return m.C_inv == sum(m.S_inv[b] * BASE_POWER * UNIT_COST_INV for b in m.buses)
+        return m.C_inv == sum((m.S_inv[b] - m.initial_capacity_inv[b]) * BASE_POWER * UNIT_COST_INV for b in m.buses)
     
     def PV_cost_rule(m):
-        return m.C_PV == sum(m.PV_surf[b] * UNIT_COST_PV for b in m.buses)
+        return m.C_PV == sum((m.PV_surf[b] - m.initial_PV_surf[b]) * UNIT_COST_PV for b in m.buses)
     
     def PV_surf_limit(m,b):
         return m.PV_surf[b] <= LBUS[b].surface
@@ -349,14 +373,30 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
         return m.pi[b] * 1000 >= m.PV_surf[b]
 
     def PV_inv_cost_rule(m):
-        return model.PV_inst_cost == sum(m.pi[b] * INST_COST_PV for b in m.buses)
+        return model.PV_inst_cost == sum((m.pi[b] - m.initial_pi[b]) * INST_COST_PV for b in m.buses)
     
     def hv_subs_inv_cost_rule(m):
-        return model.subs_hv_inst_cost == sum(m.beta[s] * INST_COST_HV_SUB for s in model.subs_hv)
+        return model.subs_hv_inst_cost == sum((m.beta[s] - m.initial_beta[s]) * INST_COST_HV_SUB for s in model.subs_hv)
     
     def mv_subs_inv_cost_rule(m):
-        return model.subs_mv_inst_cost == sum(m.gamma[s] * INST_COST_MV_SUB for s in model.subs_mv)
+        return model.subs_mv_inst_cost == sum((m.gamma[s] - m.initial_gamma[s]) * INST_COST_MV_SUB for s in model.subs_mv)
     
+    def PV_increasing_rule(m,b):
+        return model.PV_surf[b] >= model.initial_PV_surf[b]
+    
+    def inv_increasing_rule(m,b):
+        return model.S_inv[b] >= model.initial_capacity_inv[b]
+    
+    def hv_increasing_rule(m,s):
+        return model.subs_hv_capacity[s] >= model.initial_capacity_hv[s]
+    
+    def mv_increasing_rule(m,s):
+        return model.subs_mv_capacity[s] >= model.initial_capacity_mv[s]
+    
+    model.PV_incr_cstr = Constraint(model.buses, rule=PV_increasing_rule)
+    model.inv_incr_cstr = Constraint(model.buses, rule=inv_increasing_rule)
+    model.hv_incr_cstr = Constraint(model.subs_hv, rule=hv_increasing_rule)
+    model.mv_incr_cstr = Constraint(model.subs_mv, rule=mv_increasing_rule)
 
     model.conductors_cost = Constraint(rule=conductors_cost)
     model.substation_cost = Constraint(rule=substation_cost)

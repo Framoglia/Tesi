@@ -7,13 +7,14 @@ import dill
 cities = ["Buenos Aires", "Los Angeles", "Singapore", "Vancouver"]      #For this cities the opt is infeasible
 cities = ["Miami", "Guayaquil"]                                         #Weird result both on objective value and topology
 cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"]  #This seem to work fine
-cities = "Copenhagen"
+cities = "Mycampus"
 
-START_DATE = (6,7,5)  #Day, Month, Hour
-N_PERIODS_MAX = 12
+START_DATE = (6,7,12)  #Day, Month, Hour
+N_PERIODS_MAX = 1
 
 LINES_OPT = load_conductors_csv()
 LBUS, SUBS, SLACK, irradiation = load_bus(cities, N_PERIODS_MAX, START_DATE)
+print(SUBS)
 LINES = load_lines(SUBS | LBUS | SLACK)
 
 #test_plot(LBUS, SUBS, SLACK, LINES)
@@ -21,7 +22,7 @@ LINES = load_lines(SUBS | LBUS | SLACK)
 keyes = list(LBUS.keys())
 N_PERIODS = len(LBUS[keyes[1]].load_kW)
 
-folder_name= "Copenhagen_half_day"
+folder_name= "My_campus_w_initial_zero"
 
 model, logg = optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation) 
 

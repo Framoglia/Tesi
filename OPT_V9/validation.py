@@ -88,6 +88,7 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
         # Add ext_grid at HV bus
         pp.create_ext_grid(net, bus=hv_bus, vm_pu=1.0, name=f"ExtGrid {slack_id}")
     
+    print(pp_bus_map)
     # 4. Create lines.
     # For each line, check if built (line_act_plus or line_act_minus > 0.8) and then determine the proper endpoints.
     for line_id, line in LINES.items():
