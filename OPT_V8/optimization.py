@@ -28,7 +28,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
     model.C_losses = Var(model.periods, within=NonNegativeReals)  
     model.C_inv = Var(within=NonNegativeReals)
     model.C_PV = Var(within=NonNegativeReals)
-    model.C_electricity = Var(model.periods, within=NonNegativeReals)
+    model.C_electricity = Var(model.periods, within=Reals)
 
     model.line_opt = Var(model.lines, model.conductors, within=Binary)  # Conductor chosen when line is active 
     model.line_act_plus = Var(model.lines, within=Binary)                    # Is the line activated ?
@@ -69,6 +69,12 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
     model.S_sun = Var(model.periods, model.buses, within=NonNegativeReals)
     model.S_inv = Var(model.buses, within=NonNegativeReals)
     model.PV_surf = Var(model.buses, within=NonNegativeReals)
+    model.pi = Var(model.buses, within=Binary)
+
+
+    model.subs_hv_inst_cost = Var(within=NonNegativeReals)
+    model.subs_mv_inst_cost = Var(within=NonNegativeReals)
+    model.PV_inst_cost = Var(within=NonNegativeReals)
 
     model.P_bus = Var(model.periods, model.buses, within=Reals) #Power injected in the bus
     model.Q_bus = Var(model.periods, model.buses, within=Reals)
@@ -131,7 +137,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
         return m.C_losses[p] == sum(LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 * m.current_squared_k[p,l,c] for l in m.lines for c in m.conductors) * BASE_POWER / 1000 * UNIT_COST_LOSSES * DELTA_T
 
     def budget_balance(m):
-        return (1+DISCOUNT_RATE)**INV_HORIZON_DSO * (m.C_cond + m.C_subs) + INV_HORIZON_DSO * ALPHA * sum(m.C_losses[p] for p in m.periods) <= INV_HORIZON_DSO * ALPHA * sum(m.p_imp[p,b] for b in m.buses for p in m.periods) * BASE_POWER / 1000 * ENERGY_COST * DELTA_T
+        return (1+DISCOUNT_RATE)**INV_HORIZON_DSO * (m.C_cond + m.C_subs) + INV_HORIZON_DSO * ALPHA * sum(m.C_losses[p] for p in m.periods) <= INV_HORIZON_DSO * ALPHA * sum(m.p_imp[p,b] for b in m.buses for p in m.periods) * BASE_POWER / 1000 * ENERGY_COST_IMP * DELTA_T
 
     def active_power_rule(m,p,l):
         return m.active_power[p,l] == sum(m.active_power_k[p,l,c] for c in m.conductors)
@@ -306,8 +312,11 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
     def bus_active_power_balance_rule(m,p,b):
         return m.P_bus[p,b] == m.P_load[p,b] - m.P_sun[p,b]
     
-    def energy_cost_rule(m,p):
-        return m.C_electricity[p] == sum(m.P_bus[p,b] for b in m.buses) * BASE_POWER / 1000 * ENERGY_COST * DELTA_T
+    def energy_imp_cost_rule(m,p):
+        return m.C_electricity[p] >= sum(m.P_bus[p,b] for b in m.buses) * BASE_POWER / 1000 * ENERGY_COST_IMP * DELTA_T
+    
+    def energy_exp_cost_rule(m,p):
+        return m.C_electricity[p] >= sum(m.P_bus[p,b] for b in m.buses) * BASE_POWER / 1000 * ENERGY_COST_EXP * DELTA_T
     
     def bus_reactive_power_balance_rule(m,p,b):
         return m.Q_bus[p,b] == m.Q_load[p,b] - m.Q_sun[p,b]
@@ -335,6 +344,18 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
     
     def PV_surf_limit(m,b):
         return m.PV_surf[b] <= LBUS[b].surface
+    
+    def PV_investment_rule(m,b):
+        return m.pi[b] * 1000 >= m.PV_surf[b]
+
+    def PV_inv_cost_rule(m):
+        return model.PV_inst_cost == sum(m.pi[b] * INST_COST_PV for b in m.buses)
+    
+    def hv_subs_inv_cost_rule(m):
+        return model.subs_hv_inst_cost == sum(m.beta[s] * INST_COST_HV_SUB for s in model.subs_hv)
+    
+    def mv_subs_inv_cost_rule(m):
+        return model.subs_mv_inst_cost == sum(m.gamma[s] * INST_COST_MV_SUB for s in model.subs_mv)
     
 
     model.conductors_cost = Constraint(rule=conductors_cost)
@@ -414,7 +435,8 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
     model.PV_cost_cstr = Constraint(rule=PV_cost_rule)
     model.PV_surf_limit_cstr = Constraint(model.buses, rule=PV_surf_limit)
 
-    model.energy_cost_cstr = Constraint(model.periods, rule=energy_cost_rule)
+    model.energy_imp_cost_cstr = Constraint(model.periods, rule=energy_imp_cost_rule)
+    model.energy_exp_cost_cstr = Constraint(model.periods, rule=energy_exp_cost_rule)
 
 
     if lin_type != 0:
@@ -437,8 +459,15 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
 
     model.losses_calc_cstr = Constraint(model.periods, model.lines, rule=losses_rule)
 
+    model.pv_inst_cstr = Constraint(model.buses, rule=PV_investment_rule)
+
+    model.investment_cost_cstr = ConstraintList()
+    model.investment_cost_cstr.add(PV_inv_cost_rule(model))
+    model.investment_cost_cstr.add(hv_subs_inv_cost_rule(model))
+    model.investment_cost_cstr.add(mv_subs_inv_cost_rule(model))
+
     def objective_rule(m):
-        return 1/INV_HORIZON_DSO * (m.C_subs + m.C_cond + m.C_inv + m.C_PV) + ALPHA * sum(m.C_electricity[p] + m.C_losses[p] + OMEGA * m.phi[p] for p in m.periods)
+        return 1/INV_HORIZON_DSO * (m.C_subs + m.C_cond + m.C_inv + m.C_PV + m.PV_inst_cost + m.subs_hv_inst_cost + m.subs_mv_inst_cost) + ALPHA * sum(m.C_electricity[p] + m.C_losses[p] + OMEGA * m.phi[p] for p in m.periods)
 
     model.objective_rule = Objective(rule=objective_rule, sense=minimize)
 
@@ -447,12 +476,13 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradi
     solver = SolverFactory('gurobi')
     model.write("model.lp", io_options={"symbolic_solver_labels": True})
 
-    solver.options['MIPGap'] = 0.0001
+    solver.options['MIPGap'] = 0.001
+    solver.options['Presolve'] = 2
     solver.options['FeasibilityTol'] = 0.001
     solver.options['NumericFocus'] = 2
     solver.options['ScaleFlag'] = 2  # Enable scaling
-    solver.options['TimeLimit'] = 3000
-    solver.options['Heuristics'] = 0.1
+    solver.options['TimeLimit'] = 3600
+    solver.options['Heuristics'] = 0.3
 
     results = solver.solve(model, tee=True, logfile="solver_report.log")
 

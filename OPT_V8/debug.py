@@ -1,6 +1,7 @@
 import pandapower as pp
 import pandas as pd
 from pyomo.core import Var
+from pyomo.environ import Param
 import math
 import plotly.graph_objects as go
 from utils import *
@@ -126,41 +127,129 @@ def test_plot(LBUS, SUBS, SLACK, LINES):
     plt.grid(True)
     plt.show()
 
-def export_optimal_values(model, setting):
-    filename = f"optimal_values_{setting[0]}_{setting[1]}_{setting[2]}_{setting[3]}.csv"
-    data = []
-    max_indices = 0  # Track max index depth
 
-    # Loop through all variables in the model
-    for var_name in model.component_objects(Var, active=True):
-        var_object = getattr(model, var_name.local_name)
+import pandas as pd
+from pyomo.environ import Var, Param
+
+import pandas as pd
+from pyomo.environ import Var, Param
+
+def export_optimal_values(model, setting, blacklist=[]):
+    """
+    Export optimal solution values for variables and parameters not in the blacklist.
+    
+    For each component (Var/Param) not in the blacklist, this function:
+      - Extracts the underlying Pyomo sets (and their names) over which it is indexed.
+      - Builds a global ordering of these sets.
+      - Creates rows where each row starts with the component name, then contains
+        the index values in the order of the global set list (using nan if not defined),
+        and ends with the variable/parameter value.
+      - Exports the result as a CSV file whose header includes the set names.
+    
+    Parameters:
+      model     : The Pyomo model
+      setting   : A tuple or list of strings to uniquely identify the CSV filename.
+      blacklist : A list of component names (as strings) to ignore.
+    """
+    
+    filename = f"optimal_values_{setting[0]}_{setting[1]}_{setting[2]}_{setting[3]}.csv"
+    rows = []           # List of rows to write out.
+    global_sets = []    # Global ordered list of all set names used.
+    comp_set_map = {}   # Mapping: component name -> ordered list of set names used for its indexing.
+
+    # Collect both Var and Param components (not in the blacklist)
+    components = list(model.component_objects(Var, active=True)) + list(model.component_objects(Param, active=True))
+    
+    # FIRST PASS: Determine the sets over which each component is defined
+    for comp in components:
+        comp_name = comp.local_name
+        if comp_name in blacklist:
+            continue
         
-        for index in var_object:
-            value = var_object[index].value
+        # If the component is indexed, try to extract its index set tuple.
+        if comp.is_indexed():
+            try:
+                # For multi-indexed components, index_set() returns a product with an attribute 'set_tuple'
+                idx_tuple = comp.index_set().subsets(expand_all_set_operators=False)
+            except AttributeError:
+                # If not a product, treat as a one-element tuple.
+                idx_tuple = (comp.index_set(),)
+            idx_names = []
+            for s in idx_tuple:
+                try:
+                    set_name = s.local_name  # Use the set's local name if available.
+                except AttributeError:
+                    set_name = str(s)
+                idx_names.append(set_name)
+                if set_name not in global_sets:
+                    global_sets.append(set_name)
+        else:
+            idx_names = []
             
-            # Ensure index is always a tuple
-            index_tuple = index if isinstance(index, tuple) else (index,)
-            max_indices = max(max_indices, len(index_tuple))
-            
-            data.append([var_name.local_name] + list(index_tuple) + [value])
+        comp_set_map[comp_name] = idx_names
     
-    # Ensure all rows have the same number of columns
-    for row in data:
-        while len(row) < (2 + max_indices):
-            row.insert(1, "")  # Insert empty string for missing index values
+    # SECOND PASS: Build the rows for each component using the global ordering of sets.
+    # Process Var components
+    for comp in model.component_objects(Var, active=True):
+        comp_name = comp.local_name
+        if comp_name in blacklist:
+            continue
+        
+        idx_names = comp_set_map.get(comp_name, [])
+        if comp.is_indexed():
+            for index in comp:
+                value = comp[index].value
+                # Ensure index is a tuple
+                index_tuple = index if isinstance(index, tuple) else (index,)
+                # Build row: start with name, then one entry per global set, then the value.
+                row = [comp_name]
+                for set_name in global_sets:
+                    if set_name in idx_names:
+                        pos = idx_names.index(set_name)
+                        # Use the index value if available; else fill with nan.
+                        row.append(index_tuple[pos] if pos < len(index_tuple) else float('nan'))
+                    else:
+                        row.append(float('nan'))
+                row.append(value)
+                rows.append(row)
+        else:
+            # Scalar variable: no indices; fill with nans for set columns.
+            value = comp.value
+            row = [comp_name] + [float('nan')] * len(global_sets) + [value]
+            rows.append(row)
     
-    # Create column headers dynamically
-    index_columns = [f"Index{i+1}" for i in range(max_indices)]
-    columns = ["Variable"] + index_columns + ["Value"]
+    # Process Param components (similar to Var components)
+    for comp in model.component_objects(Param, active=True):
+        comp_name = comp.local_name
+        if comp_name in blacklist:
+            continue
+        
+        idx_names = comp_set_map.get(comp_name, [])
+        if comp.is_indexed():
+            for index in comp:
+                value = comp[index].value
+                index_tuple = index if isinstance(index, tuple) else (index,)
+                row = [comp_name]
+                for set_name in global_sets:
+                    if set_name in idx_names:
+                        pos = idx_names.index(set_name)
+                        row.append(index_tuple[pos] if pos < len(index_tuple) else float('nan'))
+                    else:
+                        row.append(float('nan'))
+                row.append(value)
+                rows.append(row)
+        else:
+            value = comp.value
+            row = [comp_name] + [float('nan')] * len(global_sets) + [value]
+            rows.append(row)
+    
+    # Build header: first column is 'Name', then one column for each global set, then 'Value'.
+    header = ["Name"] + global_sets + ["Value"]
     
     # Create DataFrame and export to CSV
-    df = pd.DataFrame(data, columns=columns)
+    df = pd.DataFrame(rows, columns=header)
     df.to_csv(filename, index=False)
-    
     print(f"Optimal solution exported to {filename}")
-
-# Example usage (assuming the model is solved)
-# export_optimal_values(model)
 
 
 def debug_pandapower_net(net, filename="network_debug.txt"):
@@ -587,4 +676,372 @@ def easy_plot(net, setting):
     # Generate power flow results plot
     fig_pf = pf_res_plotly(net)
     fig_pf.write_html(file_name+'_pf')
+
+import plotly.graph_objects as go
+import plotly.io as pio
+pio.renderers.default = "notebook"
+
+def plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, setting):
+    """
+    Creates an interactive Plotly figure of the optimized distribution network.
+    
+    Parameters:
+      model      : The solved optimization model. It must contain:
+                     - model.periods: an iterable of timesteps.
+                     - For each load bus: model.P_bus[t, bus_id].value, model.Q_bus[t, bus_id].value.
+                     - Investment decisions per bus: model.PV_surf[bus_id].value and model.S_inv[bus_id].value.
+                     - For substations: model.gamma[sub_id].value (built if >=0.8).
+                     - For slack buses: model.beta[slack_id].value (active if >=0.8).
+                     - For each line: model.line_act_plus[line_id].value or model.line_act_minus[line_id].value (built if > 0.8)
+                     - For each line: model.line_opt[line_id, cond].value for each conductor type.
+      LBUS       : Dict of load bus objects with attributes: voltage_level, x_coord, y_coord.
+      SUBS       : Dict of substation objects with attributes: voltage_level, x_coord, y_coord.
+      SLACK      : Dict of slack bus objects with attributes: voltage_level, x_coord, y_coord.
+      LINES      : Dict of line objects with attributes: from_bus, to_bus, length.
+      LINES_OPT  : Dict of conductor objects (keyed by conductor type) with attributes: r_per_km, xl_per_km, imax_kA.
+    
+    Returns:
+      fig        : A Plotly figure with a timestep slider and update buttons to toggle visibility of not built lines
+                   and not built substations/slack.
+    """
+    # ====== Configuration ======
+    # Bus marker properties by type:
+    bus_type_info = {
+        "LBUS":  {"color": "blue",   "symbol": "circle",   "name": "Load Bus"},
+        "SUBS":  {"color": "red",    "symbol": "square",   "name": "Substation"},
+        "SLACK": {"color": "green",  "symbol": "diamond",  "name": "Slack"}
+    }
+    # Not-built assets use grey color.
+    not_built_color = "grey"
+    
+    # Investment markers (offset relative to bus)
+    pv_symbol  = "star"     # symbol for PV panel
+    inv_symbol = "x"        # symbol for inverter
+    pv_offset  = (5, 5)  # offset in (x,y)
+    inv_offset = (2.5, 2.5)
+    
+    # Conductor colors: map conductor type (the key from LINES_OPT) to a color. TODO: this should be automated starting from LINESOPT
+    conductor_colors = {
+        "Poppy": "#90E0EF",
+        "Oxlip": "00B4D8",
+        "Daisy": "0077B6",
+        "Tulip": "03045E"
+    }
+    
+    # ====== Build Bus Traces ======
+    # -- Load Buses (LBUS) trace: positions remain fixed, but hover text (load) will update per timestep.
+    lbus_ids = []    # Keep track of bus id order
+    lbus_x = []
+    lbus_y = []
+    # Initialize hover text using the first timestep.
+    t0 = next(iter(model.periods))
+    lbus_text = []
+    for bus_id, bus in LBUS.items():
+        lbus_ids.append(bus_id)
+        lbus_x.append(bus.x_coord)
+        lbus_y.append(bus.y_coord)
+        P0 = model.P_bus[t0, bus_id].value # convert W to MW (if needed)
+        Q0 = model.Q_bus[t0, bus_id].value # convert VAR to MVAR
+        lbus_text.append(f"Bus {bus_id}<br>Load: {P0:.3f} MW, {Q0:.3f} MVAR")
+    
+    lbus_trace = go.Scatter(
+        x=lbus_x, y=lbus_y,
+        mode="markers",
+        marker=dict(
+            color=bus_type_info["LBUS"]["color"],
+            symbol=bus_type_info["LBUS"]["symbol"],
+            size=10
+        ),
+        text=lbus_text,
+        hoverinfo="text",
+        name=bus_type_info["LBUS"]["name"]
+    )
+    
+    # -- Substations (SUBS): Split into built and not-built.
+    subs_built_x, subs_built_y, subs_built_text = [], [], []
+    subs_not_built_x, subs_not_built_y, subs_not_built_text = [], [], []
+    for sub_id, sub in SUBS.items():
+        if hasattr(model, "gamma") and model.gamma[sub_id].value >= 0.8:
+            subs_built_x.append(sub.x_coord)
+            subs_built_y.append(sub.y_coord)
+            subs_built_text.append(f"Substation {sub_id} (Built)")
+        else:
+            subs_not_built_x.append(sub.x_coord)
+            subs_not_built_y.append(sub.y_coord)
+            subs_not_built_text.append(f"Substation {sub_id} (Not Built)")
+    
+    subs_built_trace = go.Scatter(
+        x=subs_built_x, y=subs_built_y,
+        mode="markers",
+        marker=dict(
+            color=bus_type_info["SUBS"]["color"],
+            symbol=bus_type_info["SUBS"]["symbol"],
+            size=12
+        ),
+        text=subs_built_text,
+        hoverinfo="text",
+        name="Substations (Built)"
+    )
+    subs_not_built_trace = go.Scatter(
+        x=subs_not_built_x, y=subs_not_built_y,
+        mode="markers",
+        marker=dict(
+            color=not_built_color,
+            symbol=bus_type_info["SUBS"]["symbol"],
+            size=12
+        ),
+        text=subs_not_built_text,
+        hoverinfo="text",
+        name="Substations (Not Built)"
+    )
+    
+    # -- Slack Buses (SLACK): Similarly, separate active and not active.
+    slack_built_x, slack_built_y, slack_built_text = [], [], []
+    slack_not_built_x, slack_not_built_y, slack_not_built_text = [], [], []
+    for slack_id, slack in SLACK.items():
+        if hasattr(model, "beta") and model.beta[slack_id].value >= 0.8:
+            slack_built_x.append(slack.x_coord)
+            slack_built_y.append(slack.y_coord)
+            slack_built_text.append(f"Slack {slack_id} (Active)")
+        else:
+            slack_not_built_x.append(slack.x_coord)
+            slack_not_built_y.append(slack.y_coord)
+            slack_not_built_text.append(f"Slack {slack_id} (Not Active)")
+    
+    slack_built_trace = go.Scatter(
+        x=slack_built_x, y=slack_built_y,
+        mode="markers",
+        marker=dict(
+            color=bus_type_info["SLACK"]["color"],
+            symbol=bus_type_info["SLACK"]["symbol"],
+            size=12
+        ),
+        text=slack_built_text,
+        hoverinfo="text",
+        name="Slack (Active)"
+    )
+    slack_not_built_trace = go.Scatter(
+        x=slack_not_built_x, y=slack_not_built_y,
+        mode="markers",
+        marker=dict(
+            color=not_built_color,
+            symbol=bus_type_info["SLACK"]["symbol"],
+            size=12
+        ),
+        text=slack_not_built_text,
+        hoverinfo="text",
+        name="Slack (Not Active)"
+    )
+    
+    # -- Investment markers (PV and Inverter) for load buses.
+    pv_x, pv_y, pv_text = [], [], []
+    inv_x, inv_y, inv_text = [], [], []
+    for bus_id, bus in LBUS.items():
+        if model.PV_surf[bus_id].value > 0.5:
+            pv_x.append(bus.x_coord + pv_offset[0])
+            pv_y.append(bus.y_coord + pv_offset[1])
+            pv_text.append(f"PV installed on Bus {bus_id}")
+        if model.S_inv[bus_id].value > 0.0005:
+            inv_x.append(bus.x_coord + inv_offset[0])
+            inv_y.append(bus.y_coord + inv_offset[1])
+            inv_text.append(f"Inverter installed on Bus {bus_id}")
+    
+    pv_trace = go.Scatter(
+        x=pv_x, y=pv_y,
+        mode="markers",
+        marker=dict(color="orange", symbol=pv_symbol, size=10),
+        text=pv_text,
+        hoverinfo="text",
+        name="PV Panels"
+    )
+    inv_trace = go.Scatter(
+        x=inv_x, y=inv_y,
+        mode="markers",
+        marker=dict(color="purple", symbol=inv_symbol, size=10),
+        text=inv_text,
+        hoverinfo="text",
+        name="Inverters"
+    )
+    
+    # ====== Build Line Traces ======
+
+    # First, create a mapping of bus id to coordinates.
+    bus_coords = {bus_id: (bus.x_coord, bus.y_coord) for bus_id, bus in LBUS.items()}
+    bus_coords.update({sub_id: (sub.x_coord, sub.y_coord) for sub_id, sub in SUBS.items()})
+    bus_coords.update({slack_id: (slack.x_coord, slack.y_coord) for slack_id, slack in SLACK.items()})
+
+    # Use a single dictionary to group lines by conductor type,
+    # using "not_built" as the key for not-built lines.
+    lines_by_conductor = {}
+
+    for line_id, line in LINES.items():
+        # Determine if built (line_act_plus or line_act_minus > 0.8)
+        built = False
+        if hasattr(model, "line_act_plus") and model.line_act_plus[line_id].value > 0.8:
+            built = True
+        if hasattr(model, "line_act_minus") and model.line_act_minus[line_id].value > 0.8:
+            built = True
+
+        # Identify the conductor type if built; otherwise, assign "not_built"
+        if built:
+            chosen_conductor = None
+            for cond in LINES_OPT.keys():
+                if model.line_opt[line_id, cond].value > 0.8:
+                    chosen_conductor = cond
+                    break
+            # If no conductor is identified, assign a default value.
+            if chosen_conductor is None:
+                chosen_conductor = "unknown"
+        else:
+            chosen_conductor = "not_built"
+
+        # Get the endpoints from bus_coords.
+        if line.from_bus in bus_coords and line.to_bus in bus_coords:
+            x0, y0 = bus_coords[line.from_bus]
+            x1, y1 = bus_coords[line.to_bus]
+
+            if chosen_conductor not in lines_by_conductor:
+                lines_by_conductor[chosen_conductor] = {"x": [], "y": [], "text": []}
+            
+            # Append coordinates; include None for breaks between segments.
+            lines_by_conductor[chosen_conductor]["x"].extend([x0, x1, None])
+            lines_by_conductor[chosen_conductor]["y"].extend([y0, y1, None])
+            # You could also accumulate hover text for each line.
+            lines_by_conductor[chosen_conductor]["text"].append(f"Line {line_id}<br>Length: {line.length}")
+
+    # Generate traces from the single dictionary.
+    line_traces = []
+    for conductor, data in lines_by_conductor.items():
+        if conductor == "not_built":
+            color = "grey"
+            dash = "dash"
+            name = "Not Built"
+        else:
+            color = conductor_colors.get(conductor, "black")
+            dash = "solid"
+            name = f"Conductor {conductor}"
+        
+        trace = go.Scatter(
+            x=data["x"],
+            y=data["y"],
+            mode="lines",
+            line=dict(color=color, width=2, dash=dash),
+            hoverinfo="text",
+            text="<br>".join(data["text"]),
+            name=name
+        )
+        line_traces.append(trace)
+
+    
+    # ====== Assemble the Figure ======
+    # Data order: load buses, substations, slack, investment markers, built lines, not built lines.
+    data = [
+        lbus_trace,
+        subs_built_trace,
+        subs_not_built_trace,
+        slack_built_trace,
+        slack_not_built_trace,
+        pv_trace,
+        inv_trace
+    ] + line_traces
+
+    fig = go.Figure(data=data)
+    
+    # ====== Build Frames for Timestep Slider (Load values update) ======
+    frames = []
+    # Iterate through each timestep in the model.
+    for t in model.periods:
+        new_lbus_text = []  # For bus hover text (trace index 0)
+        new_pv_text   = []  # For PV hover text (trace index 5)
+        new_inv_text  = []  # For inverter hover text (trace index 6)
+        
+        # Loop over the bus IDs in the same order as used for the bus trace.
+        for bus_id in lbus_ids:
+            # --- Bus text ---
+            P_val = model.P_bus[t, bus_id].value
+            Q_val = model.Q_bus[t, bus_id].value 
+            bus_hover = f"Bus {bus_id}<br>Load: {P_val:.3f} MW, {Q_val:.3f} MVAR (Timestep {t})"
+            new_lbus_text.append(bus_hover)
+            
+            # --- Inverter text ---
+            # Only update if the inverter is installed (using a threshold; adjust as needed).
+            if model.S_inv[bus_id].value > 0.0005:
+                inv_cap = model.S_inv[bus_id].value
+                inv_usage = model.S_sun[t, bus_id].value / inv_cap if inv_cap != 0 else 0
+                inv_hover = (f"Inverter on Bus {bus_id}<br>Capacity: {inv_cap:.3f} MVAR<br>"
+                            f"Usage: {inv_usage*100:.0f} %")
+            else:
+                inv_hover = ""  # No inverter installed.
+            new_inv_text.append(inv_hover)
+            
+            # --- PV text ---
+            # Only update if PV is installed (using a threshold; adjust as needed).
+            if model.PV_surf[bus_id].value > 0.5:
+                pv_cap = model.PV_surf[bus_id].value * 1e-3 * 0.2 
+                installed_fraction = model.PV_surf[bus_id].value / LBUS[bus_id].surface if LBUS[bus_id].surface != 0 else 0
+                pv_usage = model.S_sun[t, bus_id].value
+                pv_hover = (f"PV on Bus {bus_id}<br>Capacity: {pv_cap:.3f} MWp<br>"
+                            f"Installed Fraction: {(installed_fraction*100):.0f} %<br>"
+                            f"Production: {pv_usage:.3f} MW")
+            else:
+                pv_hover = ""  # No PV installed.
+            new_pv_text.append(pv_hover)
+        
+        
+        # Create a frame for the timestep.
+        # The frame's data list is ordered by the traces in the figure.
+        # Here we update:
+        #   - trace index 0 (bus hover text),
+        #   - trace index 5 (PV hover text),
+        #   - trace index 6 (inverter hover text).
+        # For traces that remain static, we simply use an empty dict.
+        frame = go.Frame(
+            data=[
+                {"text": new_lbus_text},  # Update for bus trace (index 0)
+                {},  # subs_built_trace (index 1): static (or add dynamic content as needed)
+                {},  # subs_not_built_trace (index 2)
+                {},  # slack_built_trace (index 3)
+                {},  # slack_not_built_trace (index 4)
+                {"text": new_pv_text},   # Update for PV trace (index 5)
+                {"text": new_inv_text}   # Update for inverter trace (index 6)
+                # No need to update the line traces if their hover text is static.
+            ],
+            name=str(t)
+        )
+        frames.append(frame)
+
+    fig.frames = frames
+
+    
+    # ====== Add Slider for Timesteps ======
+    slider = dict(
+        steps=[dict(
+            method="animate",
+            args=[[str(t)], 
+                  dict(mode="immediate",
+                       frame=dict(duration=500, redraw=True),
+                       transition=dict(duration=300))],
+            label=str(t)
+        ) for t in model.periods],
+        active=0,
+        transition=dict(duration=300),
+        currentvalue=dict(prefix="Timestep: ", visible=True, xanchor="center"),
+        x=0, y=0, len=1.0
+    )
+    
+    # ====== Update Figure Layout ======
+    fig.update_layout(
+        title="Optimized Distribution Network Solution",
+        xaxis_title="X Coordinate",
+        yaxis_title="Y Coordinate",
+        sliders=[slider],
+        hovermode="closest"
+    )
+
+    filename = f"Results_{setting[0]}_{setting[1]}_{setting[2]}_{setting[3]}.html"
+    fig.write_html(filename)
+
+    return fig
+
+
 

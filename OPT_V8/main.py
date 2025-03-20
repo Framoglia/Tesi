@@ -3,13 +3,14 @@ from linearization_test import load_setting, move_files_to_folder
 from optimization import *
 from validation import *
 from debug import *
+import dill
 
 cities = ["Buenos Aires", "Los Angeles", "Singapore", "Vancouver"]      #For this cities the opt is infeasible
 cities = ["Miami", "Guayaquil"]                                         #Weird result both on objective value and topology
 cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"]  #This seem to work fine
 cities = "Mycampus"
 
-N_PERIODS_MAX = 7
+N_PERIODS_MAX = 6
 
 LINES_OPT = load_conductors_csv()
 LBUS, SUBS, SLACK, irradiation = load_bus(cities, N_PERIODS_MAX)
@@ -26,20 +27,38 @@ setting_list, folder_name = load_setting()
 settings = {}
 for i, setting in setting_list.items():
 
-    model, logg = optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradiation)  
+    model, logg = optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, setting, irradiation) 
+
+    data = {
+        "model": model,
+        "LBUS": LBUS,
+        "SUBS": SUBS,
+        "SLACK": SLACK,
+        "LINES": LINES,
+        "LINES_OPT": LINES_OPT,
+        "N_PERIODS": N_PERIODS,
+        "setting": setting,
+        "irradiation": irradiation        
+    }
+
+    with open("model.pkl", "wb") as f:
+        dill.dump(data, f)
 
     export_optimal_values(model, setting)
+
+    fig = plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, setting)
+    fig.write_html("my_interactive_plot.html")
 
     net, pp_bus_map, results = export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT)
 
     debug_pandapower_net(net)
-    #custom_load_plot(net)         TODO: Implement this
     #easy_plot(net, setting)
 
     pf_vs_opt = plot_comparisons(net, results, model, pp_bus_map, setting)
     settings[tuple(setting)] = pf_vs_opt, logg
 
-table_result_2(settings, folder_name)
+if len(settings.keys()) > 1:
+    table_result_2(settings, folder_name)
 
 move_files_to_folder(folder_name)
     

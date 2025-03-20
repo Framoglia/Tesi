@@ -28,7 +28,7 @@ def load_setting():
     
     
 
-    string = 'Brussels_test_'
+    string = 'Irradiation_fixed_800_w_exp_'
     folder_name = string + datetime.now().strftime("%d%m-%H%M")
 
     return lin_test, folder_name
@@ -46,6 +46,7 @@ def move_files_to_folder(folder_name='organized_files'):
     txt_files = glob.glob('*.txt')
     log_files = glob.glob('*.log')
     lp_files = glob.glob('*.lp')
+    pkl_files = glob.glob('*.pkl')
     
     # Move .png files to the new folder
     for file in png_files:
@@ -65,6 +66,10 @@ def move_files_to_folder(folder_name='organized_files'):
 
     # Move .lp files to the new folder
     for file in lp_files:
+        shutil.move(file, os.path.join(folder_name, file))
+
+    # Move .pkl files to the new folder
+    for file in pkl_files:
         shutil.move(file, os.path.join(folder_name, file))
     
     print(f"Moved files to '{folder_name}'.")
