@@ -139,9 +139,13 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
             """
             
             # Get default bus indices from the mapping
-            from_default = pp_bus_map[line.from_bus]
-            to_default   = pp_bus_map[line.to_bus]
-            
+            try:
+                from_default = pp_bus_map[line.from_bus]
+                to_default   = pp_bus_map[line.to_bus]
+            except:
+                print("VALIDATION ERROR, LINE CONNECTING NOT BUILT BUS")
+                return False, False
+                
             # If neither terminal is in SUBS, return defaults.
             if (line.from_bus not in SUBS) and (line.to_bus not in SUBS):
                 return from_default, to_default
@@ -187,6 +191,8 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
     
         
         from_pp_bus, to_pp_bus = get_line_connection(line, net)
+        if from_pp_bus == False:
+            continue
 
 
         pp.create_line_from_parameters(net, from_pp_bus, to_pp_bus, length_km=line.length/100,

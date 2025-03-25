@@ -592,7 +592,10 @@ def plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
                      - For slack buses: model.beta[slack_id].value (active if >=0.8).
                      - For each line: model.line_act_plus[line_id].value or model.line_act_minus[line_id].value (built if > 0.8)
                      - For each line: model.line_opt[line_id, cond].value for each conductor type.
-      LBUS       : Dict of load bus objects with attributes: voltage_level, x_coord, y_coord.
+                     - For each line (per timestep): model.active_power[t, line_id].value,
+                       model.reactive_power[t, line_id].value, model.losses[t, line_id].value,
+                       and model.fictitious_power[t, line_id].value.
+      LBUS       : Dict of load bus objects with attributes: voltage_level, x_coord, y_coord, and surface.
       SUBS       : Dict of substation objects with attributes: voltage_level, x_coord, y_coord.
       SLACK      : Dict of slack bus objects with attributes: voltage_level, x_coord, y_coord.
       LINES      : Dict of line objects with attributes: from_bus, to_bus, length.
@@ -602,60 +605,54 @@ def plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
       fig        : A Plotly figure with a timestep slider and update buttons to toggle visibility of not built lines
                    and not built substations/slack.
     """
+    import plotly.graph_objects as go
+
     # ====== Configuration ======
-    # Bus marker properties by type:
     bus_type_info = {
         "LBUS":  {"color": "blue",   "symbol": "circle",   "name": "Load Bus"},
         "SUBS":  {"color": "red",    "symbol": "square",   "name": "Substation"},
         "SLACK": {"color": "green",  "symbol": "diamond",  "name": "Slack"}
     }
-    # Not-built assets use grey color.
     not_built_color = "grey"
     
     # Investment markers (offset relative to bus)
-    pv_symbol  = "star"     # symbol for PV panel
-    inv_symbol = "x"        # symbol for inverter
-    pv_offset  = (5, 5)  # offset in (x,y)
+    pv_symbol  = "star"
+    inv_symbol = "x"
+    pv_offset  = (5, 5)
     inv_offset = (2.5, 2.5)
     
-    # Conductor colors: map conductor type (the key from LINES_OPT) to a color. TODO: this should be automated starting from LINESOPT
+    # Conductor colors
     conductor_colors = {
         "Poppy": "#90E0EF",
-        "Oxlip": "00B4D8",
-        "Daisy": "0077B6",
-        "Tulip": "03045E"
+        "Oxlip": "#00B4D8",
+        "Daisy": "#0077B6",
+        "Tulip": "#03045E"
     }
     
-    # ====== Build Bus Traces ======
-    # -- Load Buses (LBUS) trace: positions remain fixed, but hover text (load) will update per timestep.
-    lbus_ids = []    # Keep track of bus id order
-    lbus_x = []
-    lbus_y = []
-    # Initialize hover text using the first timestep.
+    # ====== Build Bus, Substation, Slack & Investment Traces ======
+    # -- Load Buses (LBUS)
+    lbus_ids, lbus_x, lbus_y, lbus_text = [], [], [], []
     t0 = next(iter(model.periods))
-    lbus_text = []
     for bus_id, bus in LBUS.items():
         lbus_ids.append(bus_id)
         lbus_x.append(bus.x_coord)
         lbus_y.append(bus.y_coord)
-        P0 = model.P_bus[t0, bus_id].value # convert W to MW (if needed)
-        Q0 = model.Q_bus[t0, bus_id].value # convert VAR to MVAR
+        P0 = model.P_bus[t0, bus_id].value
+        Q0 = model.Q_bus[t0, bus_id].value
         lbus_text.append(f"Bus {bus_id}<br>Load: {P0:.3f} MW, {Q0:.3f} MVAR")
     
     lbus_trace = go.Scatter(
         x=lbus_x, y=lbus_y,
         mode="markers",
-        marker=dict(
-            color=bus_type_info["LBUS"]["color"],
-            symbol=bus_type_info["LBUS"]["symbol"],
-            size=10
-        ),
+        marker=dict(color=bus_type_info["LBUS"]["color"],
+                    symbol=bus_type_info["LBUS"]["symbol"],
+                    size=10),
         text=lbus_text,
         hoverinfo="text",
         name=bus_type_info["LBUS"]["name"]
     )
     
-    # -- Substations (SUBS): Split into built and not-built.
+    # -- Substations (SUBS)
     subs_built_x, subs_built_y, subs_built_text = [], [], []
     subs_not_built_x, subs_not_built_y, subs_not_built_text = [], [], []
     for sub_id, sub in SUBS.items():
@@ -671,11 +668,9 @@ def plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
     subs_built_trace = go.Scatter(
         x=subs_built_x, y=subs_built_y,
         mode="markers",
-        marker=dict(
-            color=bus_type_info["SUBS"]["color"],
-            symbol=bus_type_info["SUBS"]["symbol"],
-            size=12
-        ),
+        marker=dict(color=bus_type_info["SUBS"]["color"],
+                    symbol=bus_type_info["SUBS"]["symbol"],
+                    size=12),
         text=subs_built_text,
         hoverinfo="text",
         name="Substations (Built)"
@@ -683,17 +678,15 @@ def plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
     subs_not_built_trace = go.Scatter(
         x=subs_not_built_x, y=subs_not_built_y,
         mode="markers",
-        marker=dict(
-            color=not_built_color,
-            symbol=bus_type_info["SUBS"]["symbol"],
-            size=12
-        ),
+        marker=dict(color=not_built_color,
+                    symbol=bus_type_info["SUBS"]["symbol"],
+                    size=12),
         text=subs_not_built_text,
         hoverinfo="text",
         name="Substations (Not Built)"
     )
     
-    # -- Slack Buses (SLACK): Similarly, separate active and not active.
+    # -- Slack Buses (SLACK)
     slack_built_x, slack_built_y, slack_built_text = [], [], []
     slack_not_built_x, slack_not_built_y, slack_not_built_text = [], [], []
     for slack_id, slack in SLACK.items():
@@ -709,11 +702,9 @@ def plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
     slack_built_trace = go.Scatter(
         x=slack_built_x, y=slack_built_y,
         mode="markers",
-        marker=dict(
-            color=bus_type_info["SLACK"]["color"],
-            symbol=bus_type_info["SLACK"]["symbol"],
-            size=12
-        ),
+        marker=dict(color=bus_type_info["SLACK"]["color"],
+                    symbol=bus_type_info["SLACK"]["symbol"],
+                    size=12),
         text=slack_built_text,
         hoverinfo="text",
         name="Slack (Active)"
@@ -721,17 +712,15 @@ def plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
     slack_not_built_trace = go.Scatter(
         x=slack_not_built_x, y=slack_not_built_y,
         mode="markers",
-        marker=dict(
-            color=not_built_color,
-            symbol=bus_type_info["SLACK"]["symbol"],
-            size=12
-        ),
+        marker=dict(color=not_built_color,
+                    symbol=bus_type_info["SLACK"]["symbol"],
+                    size=12),
         text=slack_not_built_text,
         hoverinfo="text",
         name="Slack (Not Active)"
     )
     
-    # -- Investment markers (PV and Inverter) for load buses.
+    # -- Investment markers (PV and Inverter)
     pv_x, pv_y, pv_text = [], [], []
     inv_x, inv_y, inv_text = [], [], []
     for bus_id, bus in LBUS.items():
@@ -761,78 +750,107 @@ def plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
         name="Inverters"
     )
     
-    # ====== Build Line Traces ======
-
-    # First, create a mapping of bus id to coordinates.
+    # ====== Build Line Traces (Geometry and Midpoint Markers) ======
+    # First, build a mapping of bus id to coordinates.
     bus_coords = {bus_id: (bus.x_coord, bus.y_coord) for bus_id, bus in LBUS.items()}
     bus_coords.update({sub_id: (sub.x_coord, sub.y_coord) for sub_id, sub in SUBS.items()})
     bus_coords.update({slack_id: (slack.x_coord, slack.y_coord) for slack_id, slack in SLACK.items()})
-
-    # Use a single dictionary to group lines by conductor type,
-    # using "not_built" as the key for not-built lines.
-    lines_by_conductor = {}
-
+    
+    # For each line, compute:
+    #   - The endpoints (for drawing the line)
+    #   - The midpoint (for the hover marker)
+    # Group lines by conductor (or "not_built")
+    lines_geom_by_conductor = {}   # For geometry (no hover text)
+    midpoints_by_conductor = {}      # For midpoints (with hover text)
+    conductor_order = []
+    
+    # Use t0 for initial hover text on lines.
     for line_id, line in LINES.items():
-        # Determine if built (line_act_plus or line_act_minus > 0.8)
         built = False
         if hasattr(model, "line_act_plus") and model.line_act_plus[line_id].value > 0.8:
             built = True
         if hasattr(model, "line_act_minus") and model.line_act_minus[line_id].value > 0.8:
             built = True
 
-        # Identify the conductor type if built; otherwise, assign "not_built"
         if built:
             chosen_conductor = None
             for cond in LINES_OPT.keys():
                 if model.line_opt[line_id, cond].value > 0.8:
                     chosen_conductor = cond
                     break
-            # If no conductor is identified, assign a default value.
             if chosen_conductor is None:
                 chosen_conductor = "unknown"
         else:
             chosen_conductor = "not_built"
-
-        # Get the endpoints from bus_coords.
+        
         if line.from_bus in bus_coords and line.to_bus in bus_coords:
             x0, y0 = bus_coords[line.from_bus]
             x1, y1 = bus_coords[line.to_bus]
-
-            if chosen_conductor not in lines_by_conductor:
-                lines_by_conductor[chosen_conductor] = {"x": [], "y": [], "text": []}
+            # Compute midpoint
+            xm, ym = (x0 + x1) / 2, (y0 + y1) / 2
             
-            # Append coordinates; include None for breaks between segments.
-            lines_by_conductor[chosen_conductor]["x"].extend([x0, x1, None])
-            lines_by_conductor[chosen_conductor]["y"].extend([y0, y1, None])
-            # You could also accumulate hover text for each line.
-            lines_by_conductor[chosen_conductor]["text"].append(f"Line {line_id}<br>Length: {line.length}")
-
-    # Generate traces from the single dictionary.
+            # Prepare initial hover text using t0
+            act_p = model.active_power[t0, line_id].value if hasattr(model, "active_power") else 0
+            react_p = model.reactive_power[t0, line_id].value if hasattr(model, "reactive_power") else 0
+            losses = model.losses[t0, line_id].value if hasattr(model, "losses") else 0
+            fict_p = model.fictitious_power[t0, line_id].value if hasattr(model, "fictitious_power") else 0
+            
+            line_hover = (f"Line {line_id}<br>Length: {line.length}<br>"
+                          f"Active Power: {act_p:.3f} MW<br>"
+                          f"Reactive Power: {react_p:.3f} MVAR<br>"
+                          f"Losses: {losses:.3f}<br>"
+                          f"Fictitious Power: {fict_p:.3f}")
+            
+            # Append endpoints for geometry (we add a break with None)
+            if chosen_conductor not in lines_geom_by_conductor:
+                lines_geom_by_conductor[chosen_conductor] = {"x": [], "y": []}
+                midpoints_by_conductor[chosen_conductor] = {"x": [], "y": [], "text": []}
+                conductor_order.append(chosen_conductor)
+            lines_geom_by_conductor[chosen_conductor]["x"].extend([x0, x1, None])
+            lines_geom_by_conductor[chosen_conductor]["y"].extend([y0, y1, None])
+            # For midpoints, add one marker per line.
+            midpoints_by_conductor[chosen_conductor]["x"].append(xm)
+            midpoints_by_conductor[chosen_conductor]["y"].append(ym)
+            midpoints_by_conductor[chosen_conductor]["text"].append(line_hover)
+    
+    # Now create two traces per conductor group:
+    # (a) The geometry trace (static) and (b) The midpoint marker trace (with hover info).
     line_traces = []
-    for conductor, data in lines_by_conductor.items():
-        if conductor == "not_built":
+    midpoint_trace_indices = []  # To track the order for frame updates.
+    for cond in conductor_order:
+        # Geometry trace: drawn as lines.
+        if cond == "not_built":
             color = "grey"
             dash = "dash"
             name = "Not Built"
         else:
-            color = conductor_colors.get(conductor, "black")
+            color = conductor_colors.get(cond, "black")
             dash = "solid"
-            name = f"Conductor {conductor}"
-        
-        trace = go.Scatter(
-            x=data["x"],
-            y=data["y"],
+            name = f"Conductor {cond}"
+        geom_trace = go.Scatter(
+            x=lines_geom_by_conductor[cond]["x"],
+            y=lines_geom_by_conductor[cond]["y"],
             mode="lines",
             line=dict(color=color, width=2, dash=dash),
-            hoverinfo="text",
-            text="<br>".join(data["text"]),
+            hoverinfo="none",
             name=name
         )
-        line_traces.append(trace)
-
+        # Midpoint marker trace: points with hover text.
+        midpoint_trace = go.Scatter(
+            x=midpoints_by_conductor[cond]["x"],
+            y=midpoints_by_conductor[cond]["y"],
+            mode="markers",
+            marker=dict(color=color, size=8, symbol="circle"),
+            text=midpoints_by_conductor[cond]["text"],
+            hoverinfo="text",
+            name=name + " (Info)"
+        )
+        line_traces.append(geom_trace)
+        line_traces.append(midpoint_trace)
+        midpoint_trace_indices.append(midpoint_trace)  # save reference for updating frames
     
     # ====== Assemble the Figure ======
-    # Data order: load buses, substations, slack, investment markers, built lines, not built lines.
+    # Data order: buses, substations, slack, investments, then line traces (geometry and midpoints).
     data = [
         lbus_trace,
         subs_built_trace,
@@ -845,72 +863,108 @@ def plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
 
     fig = go.Figure(data=data)
     
-    # ====== Build Frames for Timestep Slider (Load values update) ======
+    # ====== Build Frames for Timestep Slider ======
     frames = []
-    # Iterate through each timestep in the model.
     for t in model.periods:
-        new_lbus_text = []  # For bus hover text (trace index 0)
-        new_pv_text   = []  # For PV hover text (trace index 5)
-        new_inv_text  = []  # For inverter hover text (trace index 6)
+        new_lbus_text = []  # Updated bus hover text
+        new_pv_text   = []  # Updated PV hover text
+        new_inv_text  = []  # Updated inverter hover text
         
-        # Loop over the bus IDs in the same order as used for the bus trace.
+        # Update bus, PV, inverter texts.
         for bus_id in lbus_ids:
-            # --- Bus text ---
             P_val = model.P_bus[t, bus_id].value
             Q_val = model.Q_bus[t, bus_id].value 
             bus_hover = f"Bus {bus_id}<br>Load: {P_val:.3f} MW, {Q_val:.3f} MVAR (Timestep {t})"
             new_lbus_text.append(bus_hover)
             
-            # --- Inverter text ---
-            # Only update if the inverter is installed (using a threshold; adjust as needed).
             if model.S_inv[bus_id].value > 0.0005:
                 inv_cap = model.S_inv[bus_id].value
                 inv_usage = model.S_sun[t, bus_id].value / inv_cap if inv_cap != 0 else 0
                 inv_hover = (f"Inverter on Bus {bus_id}<br>Capacity: {inv_cap:.3f} MVAR<br>"
-                            f"Usage: {inv_usage*100:.0f} %")
+                             f"Usage: {inv_usage*100:.0f} %")
             else:
-                inv_hover = ""  # No inverter installed.
+                inv_hover = ""
             new_inv_text.append(inv_hover)
             
-            # --- PV text ---
-            # Only update if PV is installed (using a threshold; adjust as needed).
             if model.PV_surf[bus_id].value > 0.5:
                 pv_cap = model.PV_surf[bus_id].value * 1e-3 * 0.2 
                 installed_fraction = model.PV_surf[bus_id].value / LBUS[bus_id].surface if LBUS[bus_id].surface != 0 else 0
                 pv_usage = model.S_sun[t, bus_id].value
                 pv_hover = (f"PV on Bus {bus_id}<br>Capacity: {pv_cap:.3f} MWp<br>"
-                            f"Installed Fraction: {(installed_fraction*100):.0f} %<br>"
+                            f"Installed Fraction: {installed_fraction*100:.0f} %<br>"
                             f"Production: {pv_usage:.3f} MW")
             else:
-                pv_hover = ""  # No PV installed.
+                pv_hover = ""
             new_pv_text.append(pv_hover)
         
+        # --- Update line midpoint hover texts dynamically ---
+        # For each conductor group, rebuild the hover text for each line.
+        new_midpoint_texts = []  # Order corresponds to the midpoint marker traces in our figure.
+        for cond in conductor_order:
+            texts = []
+            # Retrieve the list of lines (midpoints) for this group.
+            # We need to loop over each line in LINES that belongs to this group.
+            for line_id, line in LINES.items():
+                built = False
+                if hasattr(model, "line_act_plus") and model.line_act_plus[line_id].value > 0.8:
+                    built = True
+                if hasattr(model, "line_act_minus") and model.line_act_minus[line_id].value > 0.8:
+                    built = True
+
+                if built:
+                    chosen_conductor = None
+                    for cond_key in LINES_OPT.keys():
+                        if model.line_opt[line_id, cond_key].value > 0.8:
+                            chosen_conductor = cond_key
+                            break
+                    if chosen_conductor is None:
+                        chosen_conductor = "unknown"
+                else:
+                    chosen_conductor = "not_built"
+                
+                if chosen_conductor == cond:
+                    act_p = model.active_power[t, line_id].value if hasattr(model, "active_power") else 0
+                    react_p = model.reactive_power[t, line_id].value if hasattr(model, "reactive_power") else 0
+                    losses = model.losses[t, line_id].value if hasattr(model, "losses") else 0
+                    fict_p = model.fictitious_power[t, line_id].value if hasattr(model, "fictitious_power") else 0
+                    
+                    line_hover = (f"Line {line_id}<br>Length: {line.length}<br>"
+                                  f"Active Power: {act_p:.3f} MW<br>"
+                                  f"Reactive Power: {react_p:.3f} MVAR<br>"
+                                  f"Losses: {losses:.3f}<br>"
+                                  f"Fictitious Power: {fict_p:.3f}")
+                    texts.append(line_hover)
+            # Join all hover texts for this conductor group (each marker corresponds to one line).
+            new_midpoint_texts.append(texts)
         
-        # Create a frame for the timestep.
-        # The frame's data list is ordered by the traces in the figure.
-        # Here we update:
-        #   - trace index 0 (bus hover text),
-        #   - trace index 5 (PV hover text),
-        #   - trace index 6 (inverter hover text).
-        # For traces that remain static, we simply use an empty dict.
+        # Build frame update list:
+        # The first 7 traces are for buses, substations, slack, PV, and inverters.
+        frame_updates = [
+            {"text": new_lbus_text},  # index 0: lbus
+            {},  # index 1: subs_built (static)
+            {},  # index 2: subs_not_built (static)
+            {},  # index 3: slack_built (static)
+            {},  # index 4: slack_not_built (static)
+            {"text": new_pv_text},   # index 5: pv
+            {"text": new_inv_text}   # index 6: inverters
+        ]
+        # Now, for each conductor group we have two traces (geometry and midpoint). Geometry traces (even indices) remain unchanged.
+        # For the midpoint marker traces (odd indices in each group), update the text.
+        # Our line_traces order starts at index 7.
+        for i, texts in enumerate(new_midpoint_texts):
+            # For each conductor group, the geometry trace is at even index and the midpoint marker is at the next index.
+            # So we add an empty update for the geometry trace, then update the midpoint marker trace.
+            frame_updates.append({})  # Geometry trace update: nothing changes.
+            frame_updates.append({"text": texts})  # Midpoint marker trace update.
+        
         frame = go.Frame(
-            data=[
-                {"text": new_lbus_text},  # Update for bus trace (index 0)
-                {},  # subs_built_trace (index 1): static (or add dynamic content as needed)
-                {},  # subs_not_built_trace (index 2)
-                {},  # slack_built_trace (index 3)
-                {},  # slack_not_built_trace (index 4)
-                {"text": new_pv_text},   # Update for PV trace (index 5)
-                {"text": new_inv_text}   # Update for inverter trace (index 6)
-                # No need to update the line traces if their hover text is static.
-            ],
+            data=frame_updates,
             name=str(t)
         )
         frames.append(frame)
-
+    
     fig.frames = frames
 
-    
     # ====== Add Slider for Timesteps ======
     slider = dict(
         steps=[dict(
@@ -927,7 +981,6 @@ def plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
         x=0, y=0, len=1.0
     )
     
-    # ====== Update Figure Layout ======
     fig.update_layout(
         title="Optimized Distribution Network Solution",
         xaxis_title="X Coordinate",
@@ -936,7 +989,7 @@ def plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
         hovermode="closest"
     )
 
-    filename = f"Results.html"
+    filename = "Results.html"
     fig.write_html(filename)
 
     return fig

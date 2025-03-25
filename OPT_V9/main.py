@@ -9,12 +9,12 @@ cities = ["Miami", "Guayaquil"]                                         #Weird r
 cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"]  #This seem to work fine
 cities = "Mycampus"
 
-START_DATE = (6,7,12)  #Day, Month, Hour
-N_PERIODS_MAX = 1
+START_DATE = (6,7,0)  #Day, Month, Hour
+N_PERIODS_MAX = 24
 
 LINES_OPT = load_conductors_csv()
 LBUS, SUBS, SLACK, irradiation = load_bus(cities, N_PERIODS_MAX, START_DATE)
-print(SUBS)
+#print(SUBS)
 LINES = load_lines(SUBS | LBUS | SLACK)
 
 #test_plot(LBUS, SUBS, SLACK, LINES)
@@ -22,7 +22,7 @@ LINES = load_lines(SUBS | LBUS | SLACK)
 keyes = list(LBUS.keys())
 N_PERIODS = len(LBUS[keyes[1]].load_kW)
 
-folder_name= "My_campus_w_initial_zero"
+folder_name= "My_campus_w_initial_sub_3_active"
 
 model, logg = optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation) 
 

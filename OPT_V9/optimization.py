@@ -32,6 +32,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
     model.subs_hv_inst_cost = Var(within=NonNegativeReals)
     model.subs_mv_inst_cost = Var(within=NonNegativeReals)
     model.PV_inst_cost = Var(within=NonNegativeReals)
+    model.unserved_fictitious_power_cost = Var(within=NonNegativeReals)
 
     model.line_opt = Var(model.lines, model.conductors, within=Binary)  # Conductor chosen when line is active 
     model.line_act_plus = Var(model.lines, within=Binary)                    # Is the line activated ?
@@ -41,6 +42,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
     model.subs_hv_S = Var(model.periods, model.subs_hv, within=NonNegativeReals)
     model.subs_hv_P = Var(model.periods, model.subs_hv, within=Reals)
     model.subs_hv_Q = Var(model.periods, model.subs_hv, within=Reals)
+    model.subs_hv_F = Var(model.periods, model.subs_hv, within=Reals)
     model.beta = Var(model.subs_hv, within=Binary)
 
     model.subs_mv_capacity = Var(model.subs_mv, within=NonNegativeReals)
@@ -61,13 +63,17 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
     model.reactive_power_k = Var(model.periods, model.lines, model.conductors, within=Reals)
     model.reactive_power = Var(model.periods, model.lines, within=Reals)
 
+    model.fictitious_power_k = Var( model.periods,model.lines, model.conductors, within=Reals)
+    model.fictitious_power = Var(model.periods, model.lines, within=Reals)
+    model.unserved_fictitious_power = Var(model.periods, model.buses, within=NonNegativeReals)
+
     model.voltage_squared = Var(model.periods, model.subs_hv | model.B, within=NonNegativeReals)
 
     model.P_load = Param(model.periods, model.buses, mutable=True)
     model.Q_load = Param(model.periods, model.buses, mutable=True)
 
     model.P_sun = Var(model.periods, model.buses, within=NonNegativeReals)
-    model.Q_sun = Var(model.periods, model.buses, within=NegativeReals)
+    model.Q_sun = Var(model.periods, model.buses, within=NonNegativeReals)
 
     model.S_sun = Var(model.periods, model.buses, within=NonNegativeReals)
     model.S_inv = Var(model.buses, within=NonNegativeReals)
@@ -95,16 +101,20 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
         model.initial_line_act[l] = 0
         for c in model.conductors:
             model.initial_line_opt[l,c] = 0
+
     for s in model.subs_hv:
         model.initial_beta[s] = 0
         model.initial_capacity_hv[s] = 0
+
     for s in model.subs_mv:
         model.initial_gamma[s] = 0
         model.initial_capacity_mv[s] = 0
+
     for b in model.buses:
         model.initial_capacity_inv[b] = 0
         model.initial_PV_surf[b] = 0
         model.initial_pi[b] = 0
+
 
     if lin_type != 0:
         model.NPWB = RangeSet(NPWB)
@@ -171,12 +181,21 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
 
     def curent_squared_rule(m,p,l):
         return m.current_squared[p,l] == sum(m.current_squared_k[p,l,c] for c in m.conductors)
+    
+    def ficticious_power_rule(m,p,l):
+        return m.fictitious_power[p,l] == sum(m.fictitious_power_k[p,l,c] for c in m.conductors)
 
     def active_power_subs_hv_rule(m,p,s):    #Ha senso mettere per ogni linea???
         return m.subs_hv_P[p,s] == -(sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
 
     def reactive_power_subs_hv_rule(m,p,s):
         return m.subs_hv_Q[p,s] == -(sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
+    
+    def fictitious_power_subs_hv_rule(m,p,s):
+        return m.subs_hv_F[p,s] == -(sum(m.fictitious_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.fictitious_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
+    
+    def beta_switch_fict_rule(m,s):
+        return m.beta[s] >= sum(m.subs_hv_F[p,s] for p in model.periods) / N_PERIODS / len(LBUS.keys())
 
     def apparent_power_subs_hv(m,p,s):
         return m.subs_hv_S[p,s]**2 >= m.subs_hv_P[p,s]**2 + m.subs_hv_Q[p,s]**2
@@ -187,12 +206,18 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
     def reactive_power_subs_mv_rule(m,p,s):
         return 0 == -(sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
 
+    def fictitious_power_subs_mv_rule(m,p,s):
+        return 0 == -(sum(m.fictitious_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].to_bus==s) - sum(m.fictitious_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==s))
+    
     def active_power_lbus_rule(m,p,b):
         return m.P_bus[p,b]  == (sum(m.active_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].r_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==b) - sum(m.active_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==b))
 
     def reactive_power_lbus_rule(m,p,b):
         return m.Q_bus[p,b]  == (sum(m.reactive_power_k[p,l,c] - m.current_squared_k[p,l,c] * LINES_OPT[c].xl_per_km / fetch_base_z_from_line(DATA, l) * LINES[l].length  / 100 for c in m.conductors for l in m.lines if LINES[l].to_bus==b) - sum(m.reactive_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==b))
 
+    def fictitious_power_lbus_rule(m,p,b):
+        return 1 - m.unserved_fictitious_power[p,b]  == (sum(m.fictitious_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].to_bus==b) - sum(m.fictitious_power_k[p,l,c] for c in m.conductors for l in m.lines if LINES[l].from_bus==b))
+    
     def voltage_rule_1(m,p,l):
         i = LINES[l].from_bus
         j = LINES[l].to_bus
@@ -263,6 +288,15 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
 
     def line_activation_rule(m,l):
         return m.line_act_plus[l] + m.line_act_minus[l] == sum(m.line_opt[l,c] for c in m.conductors)
+    
+    def fictitious_power_activation_rule_lower(m, p, l, c):
+        return m.fictitious_power_k[p, l, c] >= -m.line_opt[l, c] * len(LBUS.keys())
+    
+    def fictitious_power_activation_rule(m, p, l, c):
+        return m.fictitious_power_k[p, l, c] <= m.line_opt[l, c] * len(LBUS.keys())
+    
+    def fictitious_power_cost_rule(m):
+        return m.unserved_fictitious_power_cost == sum(m.unserved_fictitious_power[p,b] for p in model.periods for b in model.buses)
 
     def topology_rule(m):
         return sum(m.line_act_plus[l] + m.line_act_minus[l] for l in m.lines) == len(LBUS.keys()) + sum(m.gamma[s] for s in m.subs_mv)
@@ -406,18 +440,23 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
     model.active_power_cstr = Constraint(model.periods, model.lines, rule=active_power_rule)
     model.reactive_power_cstr = Constraint(model.periods, model.lines, rule=reactive_power_rule)
     model.curent_squared_cstr = Constraint(model.periods, model.lines, rule=curent_squared_rule)
+    model.fictitious_power_cstr = Constraint(model.periods, model.lines, rule=ficticious_power_rule)
     
     model.active_power_subs_hv_cstr = Constraint(model.periods, model.subs_hv, rule=active_power_subs_hv_rule)
     model.reactive_power_subs_hv_cstr = Constraint(model.periods, model.subs_hv, rule=reactive_power_subs_hv_rule)
+    model.fictitious_power_subs_hv_cstr = Constraint(model.periods, model.subs_hv, rule=fictitious_power_subs_hv_rule)
 
     model.active_power_subs_mv_cstr = Constraint(model.periods, model.subs_mv, rule=active_power_subs_mv_rule)
     model.reactive_power_subs_mv_cstr = Constraint(model.periods, model.subs_mv, rule=reactive_power_subs_mv_rule)
+    model.fictitious_power_subs_mv_cstr = Constraint(model.periods, model.subs_mv, rule=fictitious_power_subs_mv_rule)
 
     model.active_power_subs_mv_lv_cstr = Constraint(model.periods, model.subs_mv, rule=active_power_subs_mv_lv_rule)
-    model.reactive_power_subs_m_lvv_cstr = Constraint(model.periods, model.subs_mv, rule=reactive_power_subs_mv_lv_rule)
+    model.reactive_power_subs_mv_lv_cstr = Constraint(model.periods, model.subs_mv, rule=reactive_power_subs_mv_lv_rule)
     
     model.active_power_lbus_cstr = Constraint(model.periods, model.buses, rule=active_power_lbus_rule)
     model.reactive_power_lbus_cstr = Constraint(model.periods, model.buses, rule=reactive_power_lbus_rule)
+    model.fictitious_power_lbus_cstr = Constraint(model.periods, model.buses, rule=fictitious_power_lbus_rule)
+
     
     model.voltage_cstr_1 = Constraint(model.periods, model.lines, rule=voltage_rule_1)
     model.voltage_cstr_2 = Constraint(model.periods, model.lines, rule=voltage_rule_2)
@@ -457,7 +496,11 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
     model.current_slack_cstr_2 = Constraint(model.periods, model.lines, model.conductors, rule=current_slack_rule_2)
     
     model.line_activation_cstr = Constraint(model.lines, rule=line_activation_rule)
-    
+    model.fictitious_power_activation_lower_cstr = Constraint(model.periods, model.lines, model.conductors, rule=fictitious_power_activation_rule_lower)
+    model.fictitious_power_activation_cstr = Constraint(model.periods, model.lines, model.conductors, rule=fictitious_power_activation_rule)
+    model.fictitious_power_cost_cstr = Constraint(rule=fictitious_power_cost_rule)
+    model.beta_switch_fict_cstr = Constraint(model.subs_hv , rule=beta_switch_fict_rule)
+
     model.topology_cstr = Constraint(rule=topology_rule)
     model.total_overloads_cstr = Constraint(model.periods, rule=total_overloads_rule)
 
@@ -507,7 +550,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
     model.investment_cost_cstr.add(mv_subs_inv_cost_rule(model))
 
     def objective_rule(m):
-        return 1/INV_HORIZON_DSO * (m.C_subs + m.C_cond + m.C_inv + m.C_PV + m.PV_inst_cost + m.subs_hv_inst_cost + m.subs_mv_inst_cost) + ALPHA * sum(m.C_electricity[p] + m.C_losses[p] + OMEGA * m.phi[p] for p in m.periods)
+        return 1/INV_HORIZON_DSO * (m.C_subs + m.C_cond + m.C_inv + m.C_PV + m.PV_inst_cost + m.subs_hv_inst_cost + m.subs_mv_inst_cost) + ALPHA * sum(m.C_electricity[p] + m.C_losses[p] + OMEGA * m.phi[p] for p in m.periods) + OMEGA * m.unserved_fictitious_power_cost
 
     model.objective_rule = Objective(rule=objective_rule, sense=minimize)
 
@@ -516,13 +559,14 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, se
     solver = SolverFactory('gurobi')
     model.write("model.lp", io_options={"symbolic_solver_labels": True})
 
-    solver.options['MIPGap'] = 0.001
+    solver.options['MIPGap'] = 0.00001
     solver.options['Presolve'] = 2
     solver.options['FeasibilityTol'] = 0.001
-    solver.options['NumericFocus'] = 2
+    solver.options['NumericFocus'] = 3
     solver.options['ScaleFlag'] = 2  # Enable scaling
     solver.options['TimeLimit'] = 3600
     solver.options['Heuristics'] = 0.3
+    solver.options['IntegralityFocus'] = 1
 
     results = solver.solve(model, tee=True, logfile="solver_report.log")
 

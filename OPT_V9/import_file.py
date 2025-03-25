@@ -2,7 +2,7 @@ import random
 import csv
 from dataclasses import dataclass
 import pandas as pd
-from extract_building import extract
+from extract_building import extract, get_index_from_date
 from generate_lines import generate_lines
 
 @dataclass
@@ -98,7 +98,7 @@ def load_bus(city, N_PERIODS_MAX, START_DATE, folder_path=r"C:\Users\mogli\OneDr
                     b_type=row["Type"],
                     voltage_level=float(row["Voltage"]),
                     district=row["District"],
-                    max_capacity=300000000000,  # You can define this as needed
+                    max_capacity=10000000,  # You can define this as needed
                     x_coord=x,
                     y_coord=y
                 )
@@ -111,7 +111,7 @@ def load_bus(city, N_PERIODS_MAX, START_DATE, folder_path=r"C:\Users\mogli\OneDr
                     b_type=row["Type"],
                     voltage_level=float(row["Voltage"]),
                     district=row["District"],
-                    max_capacity=100000000000,  # You can define this as needed
+                    max_capacity=1000000,  # You can define this as needed
                     x_coord=x,
                     y_coord=y
                 )
@@ -143,7 +143,7 @@ def load_bus(city, N_PERIODS_MAX, START_DATE, folder_path=r"C:\Users\mogli\OneDr
                 buses_dict[bus_id] = bus
 
         
-        def extract_column_g(csv_filename=r"C:\Users\mogli\OneDrive\Desktop\Tesi\Campus data\MyCampus\Irradiation.csv"):
+        def extract_column_g(start_index, csv_filename=r"C:\Users\mogli\OneDrive\Desktop\Tesi\Campus data\MyCampus\Irradiation.csv"):
             column_g = []
             with open(csv_filename, newline='') as csvfile:
                 reader = csv.reader(csvfile)
@@ -158,13 +158,17 @@ def load_bus(city, N_PERIODS_MAX, START_DATE, folder_path=r"C:\Users\mogli\OneDr
                 
                 # Extract values from column G
                 for index, row in enumerate(reader):
+                    if index < start_index:
+                        continue  # Skip rows until reaching start_index
+
                     if len(column_g)  >= N_PERIODS:
                         break
                     column_g.append(float(row[g_index]))
             
             return column_g
         
-        irradiation = extract_column_g()
+        start_index = get_index_from_date(START_DATE)
+        irradiation = extract_column_g(start_index)
 
 
         return buses_dict, substations_dict, slack_dict, irradiation
@@ -189,7 +193,7 @@ def load_bus(city, N_PERIODS_MAX, START_DATE, folder_path=r"C:\Users\mogli\OneDr
                     b_type='HV_sub',
                     voltage_level=building.voltage_rms,  # Assuming 'Voltage RMS' field is there
                     district=None,
-                    max_capacity=10000000000,  # Set as None, or find the relevant data field
+                    max_capacity=10000000,  # Set as None, or find the relevant data field
                     x_coord=building.position[0],  # Using Position as (x, y)
                     y_coord=building.position[1]
                 )
@@ -243,7 +247,7 @@ def load_bus(city, N_PERIODS_MAX, START_DATE, folder_path=r"C:\Users\mogli\OneDr
                     b_type='MV_sub',
                     voltage_level=15000,  # Use the same voltage level as the building
                     district=district,
-                    max_capacity=10000000000,  # Default capacity
+                    max_capacity=1000000,  # Default capacity
                     x_coord=random_x,
                     y_coord=random_y
                 )
