@@ -1,0 +1,105 @@
+Solver command line: []
+
+Read LP format model from file C:\Users\mogli\AppData\Local\Temp\tmptir3fbn5.pyomo.lp
+Reading time = 0.82 seconds
+x1: 105539 rows, 83897 columns, 374113 nonzeros
+Set parameter MIPGap to value 0.001
+Set parameter Presolve to value 2
+Set parameter FeasibilityTol to value 0.001
+Set parameter NumericFocus to value 3
+Set parameter ScaleFlag to value 2
+Set parameter TimeLimit to value 7200
+Set parameter Heuristics to value 0.3
+Set parameter IntegralityFocus to value 1
+Set parameter MIPFocus to value 1
+Set parameter RINS to value 75
+Set parameter MIQCPMethod to value 1
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 11+.0 (26100.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-13620H, instruction set [SSE2|AVX|AVX2]
+Thread count: 10 physical cores, 16 logical processors, using up to 16 threads
+
+Optimize a model with 105539 rows, 83897 columns and 374113 nonzeros
+Model fingerprint: 0x24a92583
+Model has 56 SOS constraints
+Variable types: 83711 continuous, 186 integer (186 binary)
+Coefficient statistics:
+  Matrix range     [1e-04, 2e+06]
+  Objective range  [3e-02, 1e+05]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [8e-04, 1e+03]
+Presolve removed 62480 rows and 14089 columns
+Presolve time: 2.66s
+Presolved: 43059 rows, 69808 columns, 259492 nonzeros
+Variable types: 69648 continuous, 160 integer (160 binary)
+Root relaxation presolve removed 280 rows and 434 columns
+Root relaxation presolved: 42779 rows, 69374 columns, 258267 nonzeros
+
+Deterministic concurrent LP optimizer: primal and dual simplex
+Showing primal log only...
+
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+  165828   -7.2411858e+08   6.876681e+03   4.673331e+10      5s
+  197476   -3.6862694e+08   5.151043e+03   3.610086e+09     10s
+  209018   -3.4125520e+07   2.303822e+04   0.000000e+00     15s
+  215282   -3.3625577e+07   7.866488e+03   0.000000e+00     20s
+  221474   -2.9397597e+04   6.710656e+03   0.000000e+00     25s
+  225938   -9.2347079e+03   1.686918e+03   0.000000e+00     30s
+  230186    1.0733752e+04   1.645585e+04   0.000000e+00     35s
+  234146    1.4540589e+04   3.944986e+02   0.000000e+00     40s
+Concurrent spin time: 1.42s
+
+Solved with dual simplex
+Warning: 1 variables dropped from basis
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   56800    3.2989060e+04   7.411737e+00   0.000000e+00     45s
+   57021    3.2989628e+04   0.000000e+00   0.000000e+00     45s
+Extra simplex iterations after uncrush: 159
+
+Root relaxation: objective 3.298963e+04, 57021 iterations, 42.06 seconds (18.58 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 32989.6282    0   22          - 32989.6282      -     -   46s
+H    0     0                    4.551738e+13 32989.6282   100%     -  194s
+H    0     0                    35379.962141 32989.6282  6.76%     -  236s
+     0     2 32989.6358    0   22 35379.9621 32989.6358  6.76%     -  238s
+     1     4 33134.2620    1   28 35379.9621 32989.8550  6.76%  5874  247s
+     3     8 33178.2043    2   26 35379.9621 33135.0989  6.35%  2659  255s
+     7    16 33357.9832    3   31 35379.9621 33179.0991  6.22%  3613  274s
+    15    26 33412.1492    4   31 35379.9621 33318.9007  5.83%  3260  287s
+    25    36 33437.0561    5   29 35379.9621 33353.0920  5.73%  2686  318s
+    35    46 33521.1458    6   37 35379.9621 33353.0920  5.73%  3153  337s
+    45    55 33770.5531    6   25 35379.9621 33353.0920  5.73%  3000  350s
+    55    64 34105.4852    7   38 35379.9621 33353.0920  5.73%  2984  370s
+    66    76 34245.8530    7   16 35379.9621 33353.0920  5.73%  2745  378s
+    80    79 34473.7315    9   20 35379.9621 33353.0920  5.73%  2518  388s
+    93    79 infeasible   10      35379.9621 33353.0920  5.73%  2320  408s
+H   94    79                    34052.326616 33353.0920  2.05%  2296  408s
+   103    51     cutoff    9      34052.3266 33394.8374  1.93%  2200  422s
+   123    56 33409.3795    7   11 34052.3266 33407.6702  1.89%  2086  443s
+   138    62 33427.2105    9    7 34052.3266 33427.2105  1.84%  2097  451s
+   161    72 33428.5309   12    4 34052.3266 33428.5309  1.83%  1885  460s
+   187    90 33428.8267   16    8 34052.3266 33428.8267  1.83%  1720  472s
+*  194    90              19    33673.667213 33428.8386  0.73%  1664  472s
+   217    58 33437.1906   20    5 33673.6672 33429.5188  0.73%  1563  478s
+   258    24 infeasible   19      33673.6672 33429.5188  0.73%  1358  483s
+*  273    24              23    33442.773809 33432.4084  0.03%  1297  483s
+
+Explored 310 nodes (418491 simplex iterations) in 483.47 seconds (208.55 work units)
+Thread count was 16 (of 16 available processors)
+
+Solution count 5: 33442.8 33673.7 34052.3 ... 4.55174e+13
+
+Optimal solution found (tolerance 1.00e-03)
+Warning: max integrality violation (1.7573e-04) exceeds tolerance
+Warning: max SOS violation (8.9757e-05) exceeds tolerance
+Best objective 3.344277380933e+04, best bound 3.343240836841e+04, gap 0.0310%
+

@@ -1,0 +1,16 @@
+Bus ID, Position, Size, Type, District, Voltage, Active Power, Reactive Power
+0, (0;0), , HV_sub, , 70000, , 
+1, (100;0), , HV_sub, , 70000, , 
+2, (0;40), , MV_sub, A, 15000, , 
+3, (50;90), , MV_sub, A, 15000, , 
+4, (11;48), , LV_load, A, 400, 1.0, 1
+5, (25;38), , LV_load, A, 400, 1.5, 2
+6, (51;42), , LV_load, A, 400, 2.0, 3
+7, (0;64), , LV_load, A, 400, 2.5, 4
+8, (10;70), , MV_load, A, 15000, 10, 10
+9, (20;80), , MV_load, A, 15000, 11, 9
+10, (40;80), , MV_load, A, 15000, 12, 11
+
+
+
+

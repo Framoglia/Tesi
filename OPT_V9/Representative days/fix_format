@@ -1,0 +1,53 @@
+import pandas as pd
+from datetime import datetime, timedelta
+
+def fix_time_format(file_path, output_path):
+    # Load the CSV file without automatic date parsing
+    df = pd.read_csv(file_path, sep=",", dtype=str)  # Read as string to manually parse
+    
+    corrected_dates = []
+    
+    for index, row in df.iterrows():
+        date_str = row["Date"].strip()  # Remove any extra spaces
+        
+        # Extract date and time parts safely
+        parts = date_str.split()
+        if len(parts) != 2:
+            print(f"Skipping malformed row: {date_str}")
+            continue  # Skip rows with incorrect format
+        
+        date_part, time_part = parts
+        try:
+            month, day = map(int, date_part.split("/"))  # Extract day and month
+            hours, minutes, seconds = map(int, time_part.split(":"))
+            
+            # Validate month
+            if not (1 <= month <= 12):
+                print(f"Invalid month in row: {date_str}")
+                continue
+
+            # Assume the year is 2024 (or change if needed)
+            
+
+            hours = hours - 1
+
+            parsed_date = datetime(2024, month, day, hours, minutes, seconds)
+
+            corrected_date = f"{parsed_date.strftime('%m/%d')} {hours:02}:{minutes:02}:{seconds:02}"
+
+            corrected_dates.append(corrected_date)
+        
+        except ValueError as e:
+            print(f"Skipping row due to error: {date_str}, Error: {e}")
+            continue  # Skip problematic rows
+
+    # Replace the date column with corrected values
+    df["Date"] = corrected_dates
+    
+    # Save the fixed data
+    df.to_csv(output_path, index=False)
+    print(f"Fixed file saved to {output_path}")
+
+
+# Example usage
+fix_time_format("formatted_data.csv", "fixed_formatted_data.csv")

@@ -9,8 +9,8 @@ cities = ["Miami", "Guayaquil"]                                         #Weird r
 cities = ["Abu Dhabi", "Brussels", "Copenhagen", "Montreal", "Tucson"]  #This seem to work fine
 cities = "Mycampus"
 
-START_DATE = (6,7,0)  #Day, Month, Hour
-N_PERIODS_MAX = 24
+START_DATE = (1,1,0)  #Day, Month, Hour
+N_PERIODS_MAX = 4
 
 LINES_OPT = load_conductors_csv()
 LBUS, SUBS, SLACK, irradiation = load_bus(cities, N_PERIODS_MAX, START_DATE)
@@ -42,7 +42,7 @@ with open("model.pkl", "wb") as f:
 
 export_optimal_values(model)
 
-fig = plot_network_solution(model, LBUS, SUBS, SLACK, LINES, LINES_OPT)
+fig = plot_network_solution_2(model, LBUS, SUBS, SLACK, LINES, LINES_OPT)
 
 net, pp_bus_map, results = export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT)
 
