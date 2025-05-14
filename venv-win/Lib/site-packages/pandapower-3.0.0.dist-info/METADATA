@@ -1,0 +1,223 @@
+Metadata-Version: 2.2
+Name: pandapower
+Version: 3.0.0
+Summary: An easy to use open source tool for power system modeling, analysis and optimization with a high degree of automation.
+Author-email: Leon Thurner <leon.thurner@retoflow.de>, Alexander Scheidler <alexander.scheidler@iee.fraunhofer.de>
+Maintainer-email: pandapower Developers <info@pandapower.org>
+License: Copyright (c) 2016-2025 by University of Kassel and Fraunhofer Institute for Energy Economics
+        and Energy System Technology (IEE) Kassel and individual contributors (see AUTHORS file for details).
+        All rights reserved.
+        
+        Redistribution and use in source and binary forms, with or without modification, are permitted
+        provided that the following conditions are met:
+        
+        1. Redistributions of source code must retain the above copyright notice, this list of conditions
+        and the following disclaimer.
+        
+        2. Redistributions in binary form must reproduce the above copyright notice, this list of
+        conditions and the following disclaimer in the documentation and/or other materials provided
+        with the distribution.
+        
+        3. Neither the name of the copyright holder nor the names of its contributors may be used to
+        endorse or promote products derived from this software without specific prior written permission.
+        
+        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+        IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+        FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+        CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+        DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+        DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+        WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+        WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+        
+Project-URL: Homepage, https://www.pandapower.org
+Project-URL: Documentation, https://pandapower.readthedocs.io
+Project-URL: Source, https://www.github.com/e2nIEE/pandapower
+Project-URL: Repository, https://www.github.com/e2nIEE/pandapower.git
+Project-URL: Issues, https://www.github.com/e2nIEE/pandapower/issues
+Project-URL: Download, https://pypi.org/project/pandapower/#files
+Project-URL: Changelog, https://github.com/e2nIEE/pandapower/blob/develop/CHANGELOG.rst
+Keywords: power system,network,analysis,optimization,automation,grid,electricity,energy,engineering,simulation,pandapower
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Python: >=3.9
+Description-Content-Type: text/x-rst
+License-File: LICENSE
+License-File: AUTHORS
+License-File: CHANGELOG.rst
+License-File: CITATION.bib
+Requires-Dist: pandas>=1.0
+Requires-Dist: networkx>=2.5
+Requires-Dist: scipy<1.14
+Requires-Dist: numpy
+Requires-Dist: packaging
+Requires-Dist: tqdm
+Requires-Dist: deepdiff
+Requires-Dist: geojson
+Requires-Dist: lxml
+Requires-Dist: typing_extensions~=4.9
+Provides-Extra: docs
+Requires-Dist: numpydoc>=1.5.0; extra == "docs"
+Requires-Dist: matplotlib; extra == "docs"
+Requires-Dist: sphinx>=5.3.0; extra == "docs"
+Requires-Dist: sphinx_rtd_theme>=1.1.1; extra == "docs"
+Requires-Dist: sphinx-pyproject; extra == "docs"
+Provides-Extra: plotting
+Requires-Dist: plotly>=3.1.1; extra == "plotting"
+Requires-Dist: matplotlib; extra == "plotting"
+Requires-Dist: igraph; extra == "plotting"
+Requires-Dist: geopandas>=1.0; extra == "plotting"
+Provides-Extra: test
+Requires-Dist: pytest~=8.1; extra == "test"
+Requires-Dist: pytest-xdist; extra == "test"
+Requires-Dist: nbmake; extra == "test"
+Provides-Extra: performance
+Requires-Dist: ortools; extra == "performance"
+Requires-Dist: numba==0.60.0; extra == "performance"
+Requires-Dist: lightsim2grid==0.10.1; extra == "performance"
+Provides-Extra: fileio
+Requires-Dist: xlsxwriter; extra == "fileio"
+Requires-Dist: openpyxl; extra == "fileio"
+Requires-Dist: cryptography; extra == "fileio"
+Requires-Dist: geopandas>=1.0; extra == "fileio"
+Requires-Dist: psycopg2; extra == "fileio"
+Provides-Extra: converter
+Requires-Dist: matpowercaseframes; extra == "converter"
+Provides-Extra: pgm
+Requires-Dist: power-grid-model-io; extra == "pgm"
+Provides-Extra: control
+Requires-Dist: shapely; extra == "control"
+Provides-Extra: all
+Requires-Dist: numpydoc>=1.5.0; extra == "all"
+Requires-Dist: sphinx>=5.3.0; extra == "all"
+Requires-Dist: sphinx_rtd_theme>=1.1.1; extra == "all"
+Requires-Dist: sphinx-pyproject; extra == "all"
+Requires-Dist: plotly>=3.1.1; extra == "all"
+Requires-Dist: matplotlib; extra == "all"
+Requires-Dist: igraph; extra == "all"
+Requires-Dist: geopandas>=1.0; extra == "all"
+Requires-Dist: pytest~=8.1; extra == "all"
+Requires-Dist: pytest-xdist; extra == "all"
+Requires-Dist: nbmake; extra == "all"
+Requires-Dist: ortools; extra == "all"
+Requires-Dist: numba==0.60.0; extra == "all"
+Requires-Dist: lightsim2grid==0.10.1; extra == "all"
+Requires-Dist: xlsxwriter; extra == "all"
+Requires-Dist: openpyxl; extra == "all"
+Requires-Dist: cryptography; extra == "all"
+Requires-Dist: psycopg2; extra == "all"
+Requires-Dist: matpowercaseframes; extra == "all"
+Requires-Dist: power-grid-model-io; extra == "all"
+
+
+.. image:: https://www.pandapower.org/images/pp.svg
+   :target: https://www.pandapower.org
+   :alt: logo
+
+|
+
+.. image:: https://badge.fury.io/py/pandapower.svg
+   :target: https://pypi.python.org/pypi/pandapower
+   :alt: PyPI
+
+.. image:: https://img.shields.io/pypi/pyversions/pandapower.svg
+   :target: https://pypi.python.org/pypi/pandapower
+   :alt: versions
+
+.. image:: https://readthedocs.org/projects/pandapower/badge/
+   :target: http://pandapower.readthedocs.io/
+   :alt: docs
+
+.. image:: https://codecov.io/github/e2nIEE/pandapower/coverage.svg?branch=master
+   :target: https://app.codecov.io/github/e2nIEE/pandapower?branch=master
+   :alt: codecov
+
+.. image:: https://api.codacy.com/project/badge/Grade/e2ce960935fd4f96b4be4dff9a0c76e3
+   :target: https://app.codacy.com/gh/e2nIEE/pandapower?branch=master
+   :alt: codacy
+
+.. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
+   :target: https://github.com/e2nIEE/pandapower/blob/master/LICENSE
+   :alt: BSD
+
+.. image:: https://pepy.tech/badge/pandapower
+   :target: https://pepy.tech/project/pandapower
+   :alt: pepy
+
+.. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/e2nIEE/pandapower/master?filepath=tutorials
+   :alt: binder
+
+
+
+
+
+pandapower is an easy to use network calculation program aimed to automate the analysis and optimization of power
+systems. It uses the data analysis library `pandas <http://pandas.pydata.org>`_ and is compatible with the commonly
+used MATPOWER / PYPOWER case format. pandapower allows using different solvers including an improved Newton-Raphson
+power flow implementation, all `PYPOWER <https://pypi.python.org/pypi/PYPOWER>`_ solvers, the C++ library solvers for fast steady-state distribution power system analysis of `PowerGridModel <https://github.com/PowerGridModel/power-grid-model>`_, the Newton-Raphson power flow solvers in the C++ library `lightsim2grid <https://github.com/BDonnot/lightsim2grid/>`_, and the
+`PowerModels.jl <https://github.com/lanl-ansi/PowerModels.jl/>`_ library.
+
+More information about pandapower can be found on `www.pandapower.org <https://www.pandapower.org/>`_:
+
+About pandapower:
+
+- `Power System Modeling <https://www.pandapower.org/about/#modeling>`_
+- `Power System Analysis <https://www.pandapower.org/about/#analysis>`_
+- `Citing pandapower <https://www.pandapower.org/references/>`_
+
+Getting Started:
+
+- `Installation Notes <https://www.pandapower.org/start/>`_
+- `Minimal Example <https://www.pandapower.org/start/#intro>`_
+- `Interactive Tutorials <https://www.pandapower.org/start/#tutorials>`_
+- `Documentation <https://pandapower.readthedocs.io/>`_
+
+If you are interested in the latest pandapower developments, subscribe to our `mailing list <https://www.pandapower.org/contact/#list>`_!
+
+.. image:: https://simbench.de/wp-content/uploads/2019/01/logo.png
+   :target: https://www.simbench.net
+   :alt: SimBench_logo
+
+To get realistic load profile data and grid models across all voltage levels that are ready to
+be used in pandapower, have a look at the *SimBench* `project website <https://www.simbench.net>`_ or
+`on GitHub <https://github.com/e2nIEE/simbench>`_.
+
+.. image:: https://www.pandapipes.org/images/pp.svg
+   :target: https://www.pandapipes.org
+   :width: 270pt
+   :alt: pandapipes_logo
+
+If you want to model pipe networks (heat, gas or water) as well, we recommend
+pandapower's sibling project *pandapipes* (`website <https://www.pandapipes.org>`_, `GitHub repository <https://github.com/e2nIEE/pandapipes>`_).
+
+|
+
+pandapower is a joint development of the research group of the Department for Sustainable Electrical Energy Systems (e2n), University of Kassel and the Department for Distribution System
+Operation at the Fraunhofer Institute for Energy Economics and Energy System Technology (IEE), Kassel.
+
+.. image:: http://www.pandapower.org/images/contact/Logo_e2n.png
+    :target: https://www.uni-kassel.de/eecs/en/sections/energiemanagement-und-betrieb-elektrischer-netze/home
+    :width: 500
+
+|
+
+.. image:: https://www.pandapower.org/images/contact/Logo_Fraunhofer_IEE.png
+    :target: https://www.iee.fraunhofer.de/en.html
+    :width: 500
+
+|
+
+We welcome contributions to pandapower of any kind - if you want to contribute, please check out the `pandapower contribution guidelines <https://github.com/e2nIEE/pandapower/blob/develop/CONTRIBUTING.rst>`_.

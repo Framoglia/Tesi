@@ -1,0 +1,89 @@
+Solver command line: []
+
+Read LP format model from file C:\Users\mogli\AppData\Local\Temp\tmphmcphsi5.pyomo.lp
+Reading time = 0.15 seconds
+x1: 53398 rows, 41356 columns, 181892 nonzeros
+Set parameter TimeLimit to value 600
+Set parameter MIPGap to value 5e-05
+Set parameter NumericFocus to value 3
+Set parameter ScaleFlag to value 0
+Set parameter Threads to value 12
+Set parameter IntegralityFocus to value 1
+Set parameter MIPFocus to value 1
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 11+.0 (26100.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-13620H, instruction set [SSE2|AVX|AVX2]
+Thread count: 10 physical cores, 16 logical processors, using up to 12 threads
+
+Optimize a model with 53398 rows, 41356 columns and 181892 nonzeros
+Model fingerprint: 0xf81f8fb5
+Model has 26 SOS constraints
+Variable types: 41190 continuous, 166 integer (166 binary)
+Coefficient statistics:
+  Matrix range     [3e-04, 1e+06]
+  Objective range  [3e-02, 4e+05]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e-04, 1e+05]
+Presolve removed 30529 rows and 7168 columns
+Presolve time: 0.29s
+Presolved: 22869 rows, 34188 columns, 125047 nonzeros
+Variable types: 34025 continuous, 163 integer (163 binary)
+Deterministic concurrent LP optimizer: primal and dual simplex
+Showing primal log only...
+
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   82798    1.8677915e+05   1.627170e+03   1.209500e+09      5s
+   96366    1.5650977e+05   3.881903e+01   1.068964e+09     10s
+  104266    1.2662485e+05   3.385961e+00   1.750087e+11     15s
+Concurrent spin time: 0.08s
+
+Solved with dual simplex
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   38318    4.8346418e+01   0.000000e+00   0.000000e+00     16s
+
+Root relaxation: objective 4.834642e+01, 38318 iterations, 15.37 seconds (12.58 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0   48.34642    0   63          -   48.34642      -     -   16s
+H    0     0                    9.134850e+13   48.34642   100%     -   30s
+H    0     0                      66.0230774   48.34642  26.8%     -   73s
+     0     2   48.34642    0   63   66.02308   48.34642  26.8%     -   74s
+     1     4   48.53940    1   65   66.02308   48.34697  26.8%  1425   75s
+     7    16   48.87789    3   65   66.02308   48.87789  26.0%  1540   80s
+    27    40   49.36959    5   65   66.02308   49.36959  25.2%  1076   91s
+    51    64   51.64524    7   67   66.02308   49.38870  25.2%   906   95s
+H   91    98                      64.5996877   49.38870  23.5%   783  294s
+H   94    98                      64.1389150   49.38870  23.0%   784  294s
+H   98    98                      64.1387207   49.38870  23.0%   766  294s
+   103   118   52.48094   11   66   64.13872   49.38870  23.0%   766  295s
+   184   185   52.98842   15   65   64.13872   49.38870  23.0%   569  300s
+   272   263   57.36166   21   61   64.13872   49.38870  23.0%   540  305s
+   325   298   57.45654   24   62   64.13872   49.38870  23.0%   505  310s
+   421   378   58.05267   26   57   64.13872   49.38870  23.0%   487  318s
+   450   416   58.30251   29   54   64.13872   49.38870  23.0%   497  321s
+   497   443   58.59449   31   55   64.13872   49.38870  23.0%   485  433s
+   534   485   62.87061   32   53   64.13872   50.14372  21.8%   482  441s
+   598   506   53.82008    7   53   64.13872   50.14372  21.8%   466  556s
+   679   596   54.37788   10   58   64.13872   50.14372  21.8%   474  564s
+   744   656   55.44092   12   58   64.13872   50.14372  21.8%   465  569s
+   820   691   62.28331   19   52   64.13872   50.18911  21.7%   456  574s
+   870   739   53.05741    8   63   64.13872   50.55315  21.2%   461  580s
+   927   751   53.76891    9   61   64.13872   50.55315  21.2%   462  594s
+   939   782   54.07746   11   61   64.13872   50.55315  21.2%   468  600s
+
+Explored 985 nodes (503158 simplex iterations) in 600.14 seconds (635.40 work units)
+Thread count was 12 (of 16 available processors)
+
+Solution count 4: 64.1387 64.5997 66.0231 9.13485e+13 
+
+Time limit reached
+Best objective 6.413872073379e+01, best bound 5.055314519863e+01, gap 21.1816%
+

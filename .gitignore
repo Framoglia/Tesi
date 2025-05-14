@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.python-version
+venv*/           # Excludes ALL virtual env folders (venv-win, venv-linux, etc.)
+
+# VS Code
+.vscode/         # Except for settings.json (handled below)
+!.vscode/settings.json
+
+# Data/Results (Exclude large/auto-generated files)
+Campus data/     # If raw data shouldn't be versioned
+*.pdf            # Exclude PDF papers (or move to separate folder)
+*.pptx           # Exclude PowerPoint files
+
+# System
+.DS_Store
+Thumbs.db

@@ -1,0 +1,62 @@
+Solver command line: []
+
+Read LP format model from file C:\Users\mogli\AppData\Local\Temp\tmp32z5m5x0.pyomo.lp
+Reading time = 0.07 seconds
+x1: 39449 rows, 29252 columns, 129414 nonzeros
+Set parameter TimeLimit to value 3600
+Set parameter MIPGap to value 5e-05
+Set parameter NumericFocus to value 3
+Set parameter ScaleFlag to value 0
+Set parameter Threads to value 12
+Set parameter IntegralityFocus to value 1
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 11+.0 (26100.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-13620H, instruction set [SSE2|AVX|AVX2]
+Thread count: 10 physical cores, 16 logical processors, using up to 12 threads
+
+Optimize a model with 39449 rows, 29252 columns and 129414 nonzeros
+Model fingerprint: 0x24b6c0fc
+Model has 17 SOS constraints
+Variable types: 29122 continuous, 130 integer (130 binary)
+Coefficient statistics:
+  Matrix range     [3e-04, 1e+06]
+  Objective range  [3e-02, 4e+05]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [4e-04, 5e+05]
+Presolve removed 23829 rows and 6195 columns
+Presolve time: 0.15s
+Presolved: 15620 rows, 23057 columns, 81301 nonzeros
+Variable types: 22963 continuous, 94 integer (94 binary)
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   22639    9.4016883e+01   6.104396e+00   0.000000e+00      5s
+   24558    9.4518717e+01   0.000000e+00   0.000000e+00      5s
+
+Root relaxation: objective 9.451872e+01, 24558 iterations, 5.16 seconds (6.78 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0   94.51872    0   19          -   94.51872      -     -    5s
+H    0     0                    2535.5136470   94.51872  96.3%     -    6s
+H    0     0                    2248.7867035   94.51872  95.8%     -    6s
+H    0     0                    2172.8313219   94.51872  95.6%     -    7s
+     0     2   94.51872    0   21 2172.83132   94.51872  95.6%     -    7s
+    26    28   94.51956    5   27 2172.83132   94.51956  95.6%   473   10s
+*  106    89              10     867.0655746   94.51956  89.1%   533   13s
+H  123    86                     682.3041910   94.51956  86.1%   500   14s
+H  125    86                     626.4570120   94.51956  84.9%   505   14s
+*  126    86               9     415.6397542   94.51956  77.3%   513   14s
+   135    76     cutoff   12       415.63975   94.51956  77.3%   528   15s
+*  167    71              12      94.7342126   94.51956  0.23%   543   16s
+
+Explored 271 nodes (136420 simplex iterations) in 17.63 seconds (24.68 work units)
+Thread count was 12 (of 16 available processors)
+
+Solution count 8: 94.7342 415.64 626.457 ... 2535.51
+
+Optimal solution found (tolerance 5.00e-05)
+Best objective 9.473421256575e+01, best bound 9.473421256559e+01, gap 0.0000%
+

@@ -1,0 +1,52 @@
+Solver command line: []
+
+Read LP format model from file C:\Users\mogli\AppData\Local\Temp\tmpixvo985r.pyomo.lp
+Reading time = 0.07 seconds
+x1: 39449 rows, 29252 columns, 129414 nonzeros
+Set parameter TimeLimit to value 3600
+Set parameter MIPGap to value 5e-05
+Set parameter NumericFocus to value 3
+Set parameter ScaleFlag to value 0
+Set parameter Threads to value 12
+Set parameter IntegralityFocus to value 1
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 11+.0 (26100.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-13620H, instruction set [SSE2|AVX|AVX2]
+Thread count: 10 physical cores, 16 logical processors, using up to 12 threads
+
+Optimize a model with 39449 rows, 29252 columns and 129414 nonzeros
+Model fingerprint: 0xa7a55e83
+Model has 17 SOS constraints
+Variable types: 29122 continuous, 130 integer (130 binary)
+Coefficient statistics:
+  Matrix range     [3e-04, 1e+06]
+  Objective range  [3e-02, 4e+05]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e-03, 5e+05]
+Presolve removed 23817 rows and 6145 columns
+Presolve time: 0.17s
+Presolved: 15632 rows, 23107 columns, 80999 nonzeros
+Variable types: 23015 continuous, 92 integer (92 binary)
+
+Root relaxation: objective 2.171006e+02, 19226 iterations, 3.36 seconds (3.80 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0  217.10065    0   24          -  217.10065      -     -    4s
+     0     2  217.10065    0   24          -  217.10065      -     -    6s
+    11     8  217.10065    5   31          -  217.10065      -  1117   10s
+H   40    16                     277.9558879  217.95895  21.6%   868   11s
+
+Cutting planes:
+  Cover: 4
+  Implied bound: 58
+
+Explored 69 nodes (71743 simplex iterations) in 14.34 seconds (19.91 work units)
+Thread count was 12 (of 16 available processors)
+
+Solution count 1: 277.956 
+
+Optimal solution found (tolerance 5.00e-05)
+Best objective 2.779558879029e+02, best bound 2.779558879027e+02, gap 0.0000%
+

@@ -1,0 +1,48 @@
+Solver command line: []
+
+Read LP format model from file C:\Users\mogli\AppData\Local\Temp\tmp4p14b2d9.pyomo.lp
+Reading time = 0.06 seconds
+x1: 39449 rows, 29252 columns, 129414 nonzeros
+Set parameter TimeLimit to value 3600
+Set parameter MIPGap to value 5e-05
+Set parameter NumericFocus to value 3
+Set parameter ScaleFlag to value 0
+Set parameter Threads to value 12
+Set parameter IntegralityFocus to value 1
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 11+.0 (26100.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-13620H, instruction set [SSE2|AVX|AVX2]
+Thread count: 10 physical cores, 16 logical processors, using up to 12 threads
+
+Optimize a model with 39449 rows, 29252 columns and 129414 nonzeros
+Model fingerprint: 0x720d5402
+Model has 17 SOS constraints
+Variable types: 29122 continuous, 130 integer (130 binary)
+Coefficient statistics:
+  Matrix range     [3e-04, 1e+06]
+  Objective range  [3e-02, 4e+05]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e-04, 1e+05]
+Presolve removed 23553 rows and 6102 columns
+Presolve time: 0.17s
+Presolved: 15896 rows, 23150 columns, 81621 nonzeros
+Variable types: 23038 continuous, 112 integer (112 binary)
+
+Root relaxation: objective 1.005969e+04, 24245 iterations, 4.06 seconds (5.02 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 10059.6946    0   36          - 10059.6946      -     -    4s
+H    0     0                    15292.486454 10450.8051  31.7%     -    5s
+     0     2 10450.8051    0   36 15292.4865 10450.8051  31.7%     -    5s
+H   77     2                    15290.647729 15283.3744  0.05%   104    6s
+
+Explored 78 nodes (32323 simplex iterations) in 6.94 seconds (9.23 work units)
+Thread count was 12 (of 16 available processors)
+
+Solution count 2: 15290.6 15292.5 
+
+Optimal solution found (tolerance 5.00e-05)
+Best objective 1.529064772921e+04, best bound 1.528997742185e+04, gap 0.0044%
+
