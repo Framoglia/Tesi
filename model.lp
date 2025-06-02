@@ -305242,11 +305242,11 @@ c_u_fix_conductor_cstr(46_Oxlip)_:
 
 c_u_fix_conductor_cstr(46_Daisy)_:
 +1 line_opt(46_Daisy)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(46_Tulip)_:
 +1 line_opt(46_Tulip)
-<= 1
+<= 0
 
 c_u_fix_conductor_cstr(47_Poppy)_:
 +1 line_opt(47_Poppy)
@@ -305258,11 +305258,11 @@ c_u_fix_conductor_cstr(47_Oxlip)_:
 
 c_u_fix_conductor_cstr(47_Daisy)_:
 +1 line_opt(47_Daisy)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(47_Tulip)_:
 +1 line_opt(47_Tulip)
-<= 1
+<= 0
 
 c_u_fix_conductor_cstr(48_Poppy)_:
 +1 line_opt(48_Poppy)
@@ -305282,7 +305282,7 @@ c_u_fix_conductor_cstr(48_Tulip)_:
 
 c_u_fix_conductor_cstr(50_Poppy)_:
 +1 line_opt(50_Poppy)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(50_Oxlip)_:
 +1 line_opt(50_Oxlip)
@@ -305290,7 +305290,7 @@ c_u_fix_conductor_cstr(50_Oxlip)_:
 
 c_u_fix_conductor_cstr(50_Daisy)_:
 +1 line_opt(50_Daisy)
-<= 1
+<= 0
 
 c_u_fix_conductor_cstr(50_Tulip)_:
 +1 line_opt(50_Tulip)
@@ -305298,11 +305298,11 @@ c_u_fix_conductor_cstr(50_Tulip)_:
 
 c_u_fix_conductor_cstr(51_Poppy)_:
 +1 line_opt(51_Poppy)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(51_Oxlip)_:
 +1 line_opt(51_Oxlip)
-<= 1
+<= 0
 
 c_u_fix_conductor_cstr(51_Daisy)_:
 +1 line_opt(51_Daisy)
@@ -305346,7 +305346,7 @@ c_u_fix_conductor_cstr(53_Tulip)_:
 
 c_u_fix_conductor_cstr(55_Poppy)_:
 +1 line_opt(55_Poppy)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(55_Oxlip)_:
 +1 line_opt(55_Oxlip)
@@ -305354,7 +305354,7 @@ c_u_fix_conductor_cstr(55_Oxlip)_:
 
 c_u_fix_conductor_cstr(55_Daisy)_:
 +1 line_opt(55_Daisy)
-<= 1
+<= 0
 
 c_u_fix_conductor_cstr(55_Tulip)_:
 +1 line_opt(55_Tulip)
@@ -305370,11 +305370,11 @@ c_u_fix_conductor_cstr(56_Oxlip)_:
 
 c_u_fix_conductor_cstr(56_Daisy)_:
 +1 line_opt(56_Daisy)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(56_Tulip)_:
 +1 line_opt(56_Tulip)
-<= 1
+<= 0
 
 c_u_fix_conductor_cstr(59_Poppy)_:
 +1 line_opt(59_Poppy)
@@ -305386,11 +305386,11 @@ c_u_fix_conductor_cstr(59_Oxlip)_:
 
 c_u_fix_conductor_cstr(59_Daisy)_:
 +1 line_opt(59_Daisy)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(59_Tulip)_:
 +1 line_opt(59_Tulip)
-<= 1
+<= 0
 
 c_u_fix_conductor_cstr(60_Poppy)_:
 +1 line_opt(60_Poppy)
@@ -305426,7 +305426,7 @@ c_u_fix_conductor_cstr(61_Tulip)_:
 
 c_u_fix_conductor_cstr(62_Poppy)_:
 +1 line_opt(62_Poppy)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(62_Oxlip)_:
 +1 line_opt(62_Oxlip)
@@ -305434,7 +305434,7 @@ c_u_fix_conductor_cstr(62_Oxlip)_:
 
 c_u_fix_conductor_cstr(62_Daisy)_:
 +1 line_opt(62_Daisy)
-<= 1
+<= 0
 
 c_u_fix_conductor_cstr(62_Tulip)_:
 +1 line_opt(62_Tulip)
@@ -305450,15 +305450,15 @@ c_u_fix_conductor_cstr(63_Oxlip)_:
 
 c_u_fix_conductor_cstr(63_Daisy)_:
 +1 line_opt(63_Daisy)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(63_Tulip)_:
 +1 line_opt(63_Tulip)
-<= 1
+<= 0
 
 c_u_fix_conductor_cstr(64_Poppy)_:
 +1 line_opt(64_Poppy)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(64_Oxlip)_:
 +1 line_opt(64_Oxlip)
@@ -305466,7 +305466,7 @@ c_u_fix_conductor_cstr(64_Oxlip)_:
 
 c_u_fix_conductor_cstr(64_Daisy)_:
 +1 line_opt(64_Daisy)
-<= 1
+<= 0
 
 c_u_fix_conductor_cstr(64_Tulip)_:
 +1 line_opt(64_Tulip)
@@ -305494,7 +305494,7 @@ c_u_fix_conductor_cstr(68_Poppy)_:
 
 c_u_fix_conductor_cstr(68_Oxlip)_:
 +1 line_opt(68_Oxlip)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(68_Daisy)_:
 +1 line_opt(68_Daisy)
@@ -305502,7 +305502,7 @@ c_u_fix_conductor_cstr(68_Daisy)_:
 
 c_u_fix_conductor_cstr(68_Tulip)_:
 +1 line_opt(68_Tulip)
-<= 1
+<= 0
 
 c_u_fix_conductor_cstr(69_Poppy)_:
 +1 line_opt(69_Poppy)
@@ -305514,11 +305514,11 @@ c_u_fix_conductor_cstr(69_Oxlip)_:
 
 c_u_fix_conductor_cstr(69_Daisy)_:
 +1 line_opt(69_Daisy)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(69_Tulip)_:
 +1 line_opt(69_Tulip)
-<= 1
+<= 0
 
 c_u_fix_conductor_cstr(70_Poppy)_:
 +1 line_opt(70_Poppy)
@@ -305546,11 +305546,11 @@ c_u_fix_conductor_cstr(71_Oxlip)_:
 
 c_u_fix_conductor_cstr(71_Daisy)_:
 +1 line_opt(71_Daisy)
-<= 0
+<= 1
 
 c_u_fix_conductor_cstr(71_Tulip)_:
 +1 line_opt(71_Tulip)
-<= 1
+<= 0
 
 bounds
    -inf <= C_electricity(1) <= +inf
