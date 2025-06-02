@@ -1,0 +1,881 @@
+Pandapower Network Debug Info
+==================================================
+
+BUS:
+          name  vn_kv type  zone  in_service   geo
+0        Bus 8    0.4    b  None        True  None
+1        Bus 9    0.4    b  None        True  None
+2       Bus 10    0.4    b  None        True  None
+3       Bus 11    0.4    b  None        True  None
+4       Bus 16    0.4    b  None        True  None
+5       Bus 17    0.4    b  None        True  None
+6       Bus 18    0.4    b  None        True  None
+7       Bus 19    0.4    b  None        True  None
+8       Bus 20    0.4    b  None        True  None
+9       Bus 21   15.0    b  None        True  None
+10      Bus 22   15.0    b  None        True  None
+11      Bus 23   15.0    b  None        True  None
+12      Bus 24   15.0    b  None        True  None
+13      Bus 25   15.0    b  None        True  None
+14      Bus 26   15.0    b  None        True  None
+15    Sub MV 2   15.0    b  None        True  None
+16    Sub LV 2    0.4    b  None        True  None
+17    Sub MV 5   15.0    b  None        True  None
+18    Sub LV 5    0.4    b  None        True  None
+19  Slack HV 0   70.0    b  None        True  None
+20  Slack MV 0   15.0    b  None        True  None
+21  Slack HV 1   70.0    b  None        True  None
+22  Slack MV 1   15.0    b  None        True  None
+--------------------------------------------------
+
+LOAD:
+            name  bus      p_mw        q_mvar  const_z_percent  const_i_percent  sn_mva  scaling  in_service type
+0      Load 8 T1    0  0.001102  2.308423e-04              0.0              0.0     NaN      1.0        True  wye
+1      Load 8 T2    0  0.000804  2.195878e-04              0.0              0.0     NaN      1.0        True  wye
+2      Load 8 T3    0  0.000862  2.149747e-04              0.0              0.0     NaN      1.0        True  wye
+3      Load 8 T4    0  0.000807  1.966855e-04              0.0              0.0     NaN      1.0        True  wye
+4      Load 8 T5    0  0.000848  2.287367e-04              0.0              0.0     NaN      1.0        True  wye
+5      Load 8 T6    0  0.000892  1.824428e-04              0.0              0.0     NaN      1.0        True  wye
+6      Load 8 T7    0  0.001130  2.247483e-04              0.0              0.0     NaN      1.0        True  wye
+7      Load 8 T8    0  0.000994  1.915291e-04              0.0              0.0     NaN      1.0        True  wye
+8      Load 8 T9    0  0.001173  1.915596e-04              0.0              0.0     NaN      1.0        True  wye
+9     Load 8 T10    0  0.001018  2.288075e-04              0.0              0.0     NaN      1.0        True  wye
+10    Load 8 T11    0  0.001140  1.674771e-04              0.0              0.0     NaN      1.0        True  wye
+11    Load 8 T12    0  0.000897  1.816825e-04              0.0              0.0     NaN      1.0        True  wye
+12    Load 8 T13    0  0.001192  1.874734e-04              0.0              0.0     NaN      1.0        True  wye
+13    Load 8 T14    0  0.000859  1.853432e-04              0.0              0.0     NaN      1.0        True  wye
+14    Load 8 T15    0  0.000942  1.941986e-04              0.0              0.0     NaN      1.0        True  wye
+15    Load 8 T16    0  0.001149  2.216322e-04              0.0              0.0     NaN      1.0        True  wye
+16    Load 8 T17    0  0.000986  2.118352e-04              0.0              0.0     NaN      1.0        True  wye
+17    Load 8 T18    0  0.000892  2.156223e-04              0.0              0.0     NaN      1.0        True  wye
+18    Load 8 T19    0  0.000845  2.145230e-04              0.0              0.0     NaN      1.0        True  wye
+19    Load 8 T20    0  0.000970  1.906379e-04              0.0              0.0     NaN      1.0        True  wye
+20    Load 8 T21    0  0.000957  1.776169e-04              0.0              0.0     NaN      1.0        True  wye
+21    Load 8 T22    0  0.001007  1.827842e-04              0.0              0.0     NaN      1.0        True  wye
+22    Load 8 T23    0  0.001169  1.873325e-04              0.0              0.0     NaN      1.0        True  wye
+23    Load 8 T24    0  0.001035  2.122735e-04              0.0              0.0     NaN      1.0        True  wye
+24     Load 9 T1    1  0.001664  4.379313e-04              0.0              0.0     NaN      1.0        True  wye
+25     Load 9 T2    1  0.001438  4.474044e-04              0.0              0.0     NaN      1.0        True  wye
+26     Load 9 T3    1  0.001310  4.469552e-04              0.0              0.0     NaN      1.0        True  wye
+27     Load 9 T4    1  0.001406  4.516766e-04              0.0              0.0     NaN      1.0        True  wye
+28     Load 9 T5    1  0.001464  3.102489e-04              0.0              0.0     NaN      1.0        True  wye
+29     Load 9 T6    1  0.001462  3.929451e-04              0.0              0.0     NaN      1.0        True  wye
+30     Load 9 T7    1  0.001232  3.737781e-04              0.0              0.0     NaN      1.0        True  wye
+31     Load 9 T8    1  0.001470  3.065781e-04              0.0              0.0     NaN      1.0        True  wye
+32     Load 9 T9    1  0.001405  3.806733e-04              0.0              0.0     NaN      1.0        True  wye
+33    Load 9 T10    1  0.001671  3.679903e-04              0.0              0.0     NaN      1.0        True  wye
+34    Load 9 T11    1  0.001784  3.278100e-04              0.0              0.0     NaN      1.0        True  wye
+35    Load 9 T12    1  0.001219  4.149319e-04              0.0              0.0     NaN      1.0        True  wye
+36    Load 9 T13    1  0.001436  3.842025e-04              0.0              0.0     NaN      1.0        True  wye
+37    Load 9 T14    1  0.001252  3.773799e-04              0.0              0.0     NaN      1.0        True  wye
+38    Load 9 T15    1  0.001619  4.322455e-04              0.0              0.0     NaN      1.0        True  wye
+39    Load 9 T16    1  0.001258  3.586356e-04              0.0              0.0     NaN      1.0        True  wye
+40    Load 9 T17    1  0.001418  4.069836e-04              0.0              0.0     NaN      1.0        True  wye
+41    Load 9 T18    1  0.001354  3.299122e-04              0.0              0.0     NaN      1.0        True  wye
+42    Load 9 T19    1  0.001471  4.445350e-04              0.0              0.0     NaN      1.0        True  wye
+43    Load 9 T20    1  0.001549  3.584021e-04              0.0              0.0     NaN      1.0        True  wye
+44    Load 9 T21    1  0.001207  3.388465e-04              0.0              0.0     NaN      1.0        True  wye
+45    Load 9 T22    1  0.001451  3.273929e-04              0.0              0.0     NaN      1.0        True  wye
+46    Load 9 T23    1  0.001299  3.224255e-04              0.0              0.0     NaN      1.0        True  wye
+47    Load 9 T24    1  0.001353  3.937096e-04              0.0              0.0     NaN      1.0        True  wye
+48    Load 10 T1    2 -0.001572 -4.424961e-04              0.0              0.0     NaN      1.0        True  wye
+49    Load 10 T2    2 -0.001444 -4.516991e-04              0.0              0.0     NaN      1.0        True  wye
+50    Load 10 T3    2 -0.001315 -4.509570e-04              0.0              0.0     NaN      1.0        True  wye
+51    Load 10 T4    2 -0.001323 -4.557071e-04              0.0              0.0     NaN      1.0        True  wye
+52    Load 10 T5    2 -0.001470 -3.142904e-04              0.0              0.0     NaN      1.0        True  wye
+53    Load 10 T6    2 -0.001467 -3.971686e-04              0.0              0.0     NaN      1.0        True  wye
+54    Load 10 T7    2 -0.001236 -3.774347e-04              0.0              0.0     NaN      1.0        True  wye
+55    Load 10 T8    2 -0.001281 -3.101828e-04              0.0              0.0     NaN      1.0        True  wye
+56    Load 10 T9    2 -0.001411 -3.847411e-04              0.0              0.0     NaN      1.0        True  wye
+57   Load 10 T10    2 -0.001677 -3.726350e-04              0.0              0.0     NaN      1.0        True  wye
+58   Load 10 T11    2 -0.001655 -3.323134e-04              0.0              0.0     NaN      1.0        True  wye
+59   Load 10 T12    2 -0.001140 -4.184630e-04              0.0              0.0     NaN      1.0        True  wye
+60   Load 10 T13    2 -0.001442 -3.883487e-04              0.0              0.0     NaN      1.0        True  wye
+61   Load 10 T14    2 -0.001185 -3.809276e-04              0.0              0.0     NaN      1.0        True  wye
+62   Load 10 T15    2 -0.001625 -4.369181e-04              0.0              0.0     NaN      1.0        True  wye
+63   Load 10 T16    2 -0.001274 -3.624548e-04              0.0              0.0     NaN      1.0        True  wye
+64   Load 10 T17    2 -0.001423 -4.111391e-04              0.0              0.0     NaN      1.0        True  wye
+65   Load 10 T18    2 -0.001302 -3.336180e-04              0.0              0.0     NaN      1.0        True  wye
+66   Load 10 T19    2 -0.001091 -4.480216e-04              0.0              0.0     NaN      1.0        True  wye
+67   Load 10 T20    2 -0.001555 -3.627462e-04              0.0              0.0     NaN      1.0        True  wye
+68   Load 10 T21    2 -0.001212 -3.423673e-04              0.0              0.0     NaN      1.0        True  wye
+69   Load 10 T22    2 -0.001457 -3.314441e-04              0.0              0.0     NaN      1.0        True  wye
+70   Load 10 T23    2 -0.001304 -3.101041e-04              0.0              0.0     NaN      1.0        True  wye
+71   Load 10 T24    2 -0.001358 -3.976876e-04              0.0              0.0     NaN      1.0        True  wye
+72    Load 11 T1    3 -0.001202 -2.333881e-04              0.0              0.0     NaN      1.0        True  wye
+73    Load 11 T2    3 -0.000807 -2.213068e-04              0.0              0.0     NaN      1.0        True  wye
+74    Load 11 T3    3 -0.000864 -2.167828e-04              0.0              0.0     NaN      1.0        True  wye
+75    Load 11 T4    3 -0.000898 -1.986505e-04              0.0              0.0     NaN      1.0        True  wye
+76    Load 11 T5    3 -0.000851 -2.305448e-04              0.0              0.0     NaN      1.0        True  wye
+77    Load 11 T6    3 -0.000894 -1.842462e-04              0.0              0.0     NaN      1.0        True  wye
+78    Load 11 T7    3 -0.001133 -2.270226e-04              0.0              0.0     NaN      1.0        True  wye
+79    Load 11 T8    3 -0.001192 -1.941110e-04              0.0              0.0     NaN      1.0        True  wye
+80    Load 11 T9    3 -0.001176 -1.938504e-04              0.0              0.0     NaN      1.0        True  wye
+81   Load 11 T10    3 -0.001020 -2.309001e-04              0.0              0.0     NaN      1.0        True  wye
+82   Load 11 T11    3 -0.001277 -1.700963e-04              0.0              0.0     NaN      1.0        True  wye
+83   Load 11 T12    3 -0.000983 -1.837572e-04              0.0              0.0     NaN      1.0        True  wye
+84   Load 11 T13    3 -0.001195 -1.897896e-04              0.0              0.0     NaN      1.0        True  wye
+85   Load 11 T14    3 -0.000934 -1.873246e-04              0.0              0.0     NaN      1.0        True  wye
+86   Load 11 T15    3 -0.000944 -1.961052e-04              0.0              0.0     NaN      1.0        True  wye
+87   Load 11 T16    3 -0.001141 -2.238194e-04              0.0              0.0     NaN      1.0        True  wye
+88   Load 11 T17    3 -0.000988 -2.138459e-04              0.0              0.0     NaN      1.0        True  wye
+89   Load 11 T18    3 -0.000951 -2.176606e-04              0.0              0.0     NaN      1.0        True  wye
+90   Load 11 T19    3 -0.001234 -2.175194e-04              0.0              0.0     NaN      1.0        True  wye
+91   Load 11 T20    3 -0.000972 -1.925860e-04              0.0              0.0     NaN      1.0        True  wye
+92   Load 11 T21    3 -0.000959 -1.795208e-04              0.0              0.0     NaN      1.0        True  wye
+93   Load 11 T22    3 -0.001009 -1.847812e-04              0.0              0.0     NaN      1.0        True  wye
+94   Load 11 T23    3 -0.001172 -2.056364e-04              0.0              0.0     NaN      1.0        True  wye
+95   Load 11 T24    3 -0.001038 -2.143677e-04              0.0              0.0     NaN      1.0        True  wye
+96    Load 16 T1    4  0.002636 -3.509323e-04              0.0              0.0     NaN      1.0        True  wye
+97    Load 16 T2    4  0.003238 -4.900165e-04              0.0              0.0     NaN      1.0        True  wye
+98    Load 16 T3    4  0.002830 -3.701865e-04              0.0              0.0     NaN      1.0        True  wye
+99    Load 16 T4    4  0.002877 -4.473129e-04              0.0              0.0     NaN      1.0        True  wye
+100   Load 16 T5    4  0.002793 -4.882059e-04              0.0              0.0     NaN      1.0        True  wye
+101   Load 16 T6    4  0.003099 -5.066649e-04              0.0              0.0     NaN      1.0        True  wye
+102   Load 16 T7    4  0.003136 -5.019052e-04              0.0              0.0     NaN      1.0        True  wye
+103   Load 16 T8    4  0.002239 -4.579192e-04              0.0              0.0     NaN      1.0        True  wye
+104   Load 16 T9    4  0.002351 -3.746400e-04              0.0              0.0     NaN      1.0        True  wye
+105  Load 16 T10    4  0.002118 -3.897200e-04              0.0              0.0     NaN      1.0        True  wye
+106  Load 16 T11    4  0.001012 -4.555398e-04              0.0              0.0     NaN      1.0        True  wye
+107  Load 16 T12    4  0.001406 -4.987798e-04              0.0              0.0     NaN      1.0        True  wye
+108  Load 16 T13    4  0.001576 -3.776384e-04              0.0              0.0     NaN      1.0        True  wye
+109  Load 16 T14    4  0.001184 -4.448672e-04              0.0              0.0     NaN      1.0        True  wye
+110  Load 16 T15    4  0.001700 -4.956152e-04              0.0              0.0     NaN      1.0        True  wye
+111  Load 16 T16    4  0.001930 -3.698624e-04              0.0              0.0     NaN      1.0        True  wye
+112  Load 16 T17    4  0.002951 -4.653292e-04              0.0              0.0     NaN      1.0        True  wye
+113  Load 16 T18    4  0.002775 -3.600105e-04              0.0              0.0     NaN      1.0        True  wye
+114  Load 16 T19    4  0.003093 -3.643476e-04              0.0              0.0     NaN      1.0        True  wye
+115  Load 16 T20    4  0.003182 -3.803507e-04              0.0              0.0     NaN      1.0        True  wye
+116  Load 16 T21    4  0.002498 -4.369916e-04              0.0              0.0     NaN      1.0        True  wye
+117  Load 16 T22    4  0.002609 -3.567940e-04              0.0              0.0     NaN      1.0        True  wye
+118  Load 16 T23    4  0.002850 -4.801289e-04              0.0              0.0     NaN      1.0        True  wye
+119  Load 16 T24    4  0.003585 -4.182694e-04              0.0              0.0     NaN      1.0        True  wye
+120   Load 17 T1    5 -0.000614  3.494928e-04              0.0              0.0     NaN      1.0        True  wye
+121   Load 17 T2    5 -0.001282  5.976985e-04              0.0              0.0     NaN      1.0        True  wye
+122   Load 17 T3    5 -0.000459  3.019726e-04              0.0              0.0     NaN      1.0        True  wye
+123   Load 17 T4    5 -0.000365  5.608376e-04              0.0              0.0     NaN      1.0        True  wye
+124   Load 17 T5    5 -0.001011  5.125691e-04              0.0              0.0     NaN      1.0        True  wye
+125   Load 17 T6    5 -0.001210  5.291015e-04              0.0              0.0     NaN      1.0        True  wye
+126   Load 17 T7    5 -0.001035  4.315274e-04              0.0              0.0     NaN      1.0        True  wye
+127   Load 17 T8    5 -0.000293  5.790629e-04              0.0              0.0     NaN      1.0        True  wye
+128   Load 17 T9    5 -0.000257  3.193683e-04              0.0              0.0     NaN      1.0        True  wye
+129  Load 17 T10    5 -0.000454  3.095700e-04              0.0              0.0     NaN      1.0        True  wye
+130  Load 17 T11    5 -0.000241  5.477280e-04              0.0              0.0     NaN      1.0        True  wye
+131  Load 17 T12    5 -0.000197  5.375478e-04              0.0              0.0     NaN      1.0        True  wye
+132  Load 17 T13    5 -0.000365  4.144478e-04              0.0              0.0     NaN      1.0        True  wye
+133  Load 17 T14    5 -0.000389  4.621323e-04              0.0              0.0     NaN      1.0        True  wye
+134  Load 17 T15    5 -0.000551  5.767493e-04              0.0              0.0     NaN      1.0        True  wye
+135  Load 17 T16    5 -0.000366  3.669830e-04              0.0              0.0     NaN      1.0        True  wye
+136  Load 17 T17    5 -0.001172  3.135050e-04              0.0              0.0     NaN      1.0        True  wye
+137  Load 17 T18    5 -0.000730  3.888614e-04              0.0              0.0     NaN      1.0        True  wye
+138  Load 17 T19    5 -0.000339  1.305523e-04              0.0              0.0     NaN      1.0        True  wye
+139  Load 17 T20    5 -0.000446  2.862782e-04              0.0              0.0     NaN      1.0        True  wye
+140  Load 17 T21    5 -0.001125  4.389759e-04              0.0              0.0     NaN      1.0        True  wye
+141  Load 17 T22    5 -0.001518  3.135310e-04              0.0              0.0     NaN      1.0        True  wye
+142  Load 17 T23    5 -0.001353  4.230226e-04              0.0              0.0     NaN      1.0        True  wye
+143  Load 17 T24    5 -0.000445  3.594102e-04              0.0              0.0     NaN      1.0        True  wye
+144   Load 18 T1    6 -0.002615  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+145   Load 18 T2    6 -0.001945  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+146   Load 18 T3    6 -0.002622  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+147   Load 18 T4    6 -0.002864  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+148   Load 18 T5    6 -0.002217  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+149   Load 18 T6    6 -0.002269  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+150   Load 18 T7    6 -0.002192  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+151   Load 18 T8    6 -0.002634  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+152   Load 18 T9    6 -0.002973  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+153  Load 18 T10    6 -0.002622  6.385409e-16              0.0              0.0     NaN      1.0        True  wye
+154  Load 18 T11    6 -0.002989  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+155  Load 18 T12    6 -0.003033  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+156  Load 18 T13    6 -0.002865  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+157  Load 18 T14    6 -0.002840  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+158  Load 18 T15    6 -0.002678  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+159  Load 18 T16    6 -0.002864  3.043898e-16              0.0              0.0     NaN      1.0        True  wye
+160  Load 18 T17    6 -0.002054  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+161  Load 18 T18    6 -0.002498  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+162  Load 18 T19    6 -0.002641  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+163  Load 18 T20    6 -0.002738  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+164  Load 18 T21    6 -0.002102  3.033056e-16              0.0              0.0     NaN      1.0        True  wye
+165  Load 18 T22    6 -0.001707  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+166  Load 18 T23    6 -0.001950  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+167  Load 18 T24    6 -0.002856  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+168   Load 19 T1    7 -0.001234  4.603486e-04              0.0              0.0     NaN      1.0        True  wye
+169   Load 19 T2    7 -0.001839  4.274013e-04              0.0              0.0     NaN      1.0        True  wye
+170   Load 19 T3    7 -0.001988  5.402645e-04              0.0              0.0     NaN      1.0        True  wye
+171   Load 19 T4    7 -0.001978  4.460173e-04              0.0              0.0     NaN      1.0        True  wye
+172   Load 19 T5    7 -0.001597  4.396179e-04              0.0              0.0     NaN      1.0        True  wye
+173   Load 19 T6    7 -0.002147  5.074217e-04              0.0              0.0     NaN      1.0        True  wye
+174   Load 19 T7    7 -0.002091  6.082448e-04              0.0              0.0     NaN      1.0        True  wye
+175   Load 19 T8    7 -0.001561  4.620200e-04              0.0              0.0     NaN      1.0        True  wye
+176   Load 19 T9    7 -0.001541  5.972251e-04              0.0              0.0     NaN      1.0        True  wye
+177  Load 19 T10    7 -0.000871  5.582373e-04              0.0              0.0     NaN      1.0        True  wye
+178  Load 19 T11    7 -0.000085  4.754855e-04              0.0              0.0     NaN      1.0        True  wye
+179  Load 19 T12    7 -0.000345  4.704833e-04              0.0              0.0     NaN      1.0        True  wye
+180  Load 19 T13    7 -0.000656  5.278709e-04              0.0              0.0     NaN      1.0        True  wye
+181  Load 19 T14    7 -0.000049  5.602232e-04              0.0              0.0     NaN      1.0        True  wye
+182  Load 19 T15    7 -0.000784  4.495284e-04              0.0              0.0     NaN      1.0        True  wye
+183  Load 19 T16    7 -0.000494  4.628510e-04              0.0              0.0     NaN      1.0        True  wye
+184  Load 19 T17    7 -0.002036  5.914104e-04              0.0              0.0     NaN      1.0        True  wye
+185  Load 19 T18    7 -0.002045  5.045712e-04              0.0              0.0     NaN      1.0        True  wye
+186  Load 19 T19    7 -0.002059  6.216750e-04              0.0              0.0     NaN      1.0        True  wye
+187  Load 19 T20    7 -0.001856  6.013901e-04              0.0              0.0     NaN      1.0        True  wye
+188  Load 19 T21    7 -0.001129  4.534510e-04              0.0              0.0     NaN      1.0        True  wye
+189  Load 19 T22    7 -0.001761  5.875178e-04              0.0              0.0     NaN      1.0        True  wye
+190  Load 19 T23    7 -0.002199  5.265938e-04              0.0              0.0     NaN      1.0        True  wye
+191  Load 19 T24    7 -0.002500  4.844928e-04              0.0              0.0     NaN      1.0        True  wye
+192   Load 20 T1    8  0.001790 -4.870322e-04              0.0              0.0     NaN      1.0        True  wye
+193   Load 20 T2    8  0.001787 -5.666995e-04              0.0              0.0     NaN      1.0        True  wye
+194   Load 20 T3    8  0.002199 -5.027473e-04              0.0              0.0     NaN      1.0        True  wye
+195   Load 20 T4    8  0.002290 -5.920315e-04              0.0              0.0     NaN      1.0        True  wye
+196   Load 20 T5    8  0.001994 -4.936089e-04              0.0              0.0     NaN      1.0        True  wye
+197   Load 20 T6    8  0.002482 -5.644462e-04              0.0              0.0     NaN      1.0        True  wye
+198   Load 20 T7    8  0.002141 -5.702309e-04              0.0              0.0     NaN      1.0        True  wye
+199   Load 20 T8    8  0.002213 -6.109930e-04              0.0              0.0     NaN      1.0        True  wye
+200   Load 20 T9    8  0.002382 -5.712357e-04              0.0              0.0     NaN      1.0        True  wye
+201  Load 20 T10    8  0.001797 -5.032307e-04              0.0              0.0     NaN      1.0        True  wye
+202  Load 20 T11    8  0.002276 -5.889375e-04              0.0              0.0     NaN      1.0        True  wye
+203  Load 20 T12    8  0.002139 -5.326815e-04              0.0              0.0     NaN      1.0        True  wye
+204  Load 20 T13    8  0.002279 -5.886947e-04              0.0              0.0     NaN      1.0        True  wye
+205  Load 20 T14    8  0.002067 -5.987436e-04              0.0              0.0     NaN      1.0        True  wye
+206  Load 20 T15    8  0.002280 -5.556244e-04              0.0              0.0     NaN      1.0        True  wye
+207  Load 20 T16    8  0.001763 -4.842804e-04              0.0              0.0     NaN      1.0        True  wye
+208  Load 20 T17    8  0.002273 -4.704876e-04              0.0              0.0     NaN      1.0        True  wye
+209  Load 20 T18    8  0.002459 -5.644573e-04              0.0              0.0     NaN      1.0        True  wye
+210  Load 20 T19    8  0.001905 -4.190491e-04              0.0              0.0     NaN      1.0        True  wye
+211  Load 20 T20    8  0.001818 -5.394043e-04              0.0              0.0     NaN      1.0        True  wye
+212  Load 20 T21    8  0.001824 -4.821513e-04              0.0              0.0     NaN      1.0        True  wye
+213  Load 20 T22    8  0.002342 -5.721573e-04              0.0              0.0     NaN      1.0        True  wye
+214  Load 20 T23    8  0.002611 -5.011236e-04              0.0              0.0     NaN      1.0        True  wye
+215  Load 20 T24    8  0.002165 -4.647467e-04              0.0              0.0     NaN      1.0        True  wye
+216   Load 21 T1    9  0.008108 -1.606946e-06              0.0              0.0     NaN      1.0        True  wye
+217   Load 21 T2    9  0.010023 -1.110223e-16              0.0              0.0     NaN      1.0        True  wye
+218   Load 21 T3    9  0.006079 -1.655761e-06              0.0              0.0     NaN      1.0        True  wye
+219   Load 21 T4    9  0.010748 -7.707634e-07              0.0              0.0     NaN      1.0        True  wye
+220   Load 21 T5    9  0.009390 -1.606033e-06              0.0              0.0     NaN      1.0        True  wye
+221   Load 21 T6    9  0.007422 -1.635598e-06              0.0              0.0     NaN      1.0        True  wye
+222   Load 21 T7    9  0.009753 -7.199369e-07              0.0              0.0     NaN      1.0        True  wye
+223   Load 21 T8    9  0.008114 -1.043150e-06              0.0              0.0     NaN      1.0        True  wye
+224   Load 21 T9    9  0.005922 -4.870954e-07              0.0              0.0     NaN      1.0        True  wye
+225  Load 21 T10    9 -0.000281 -7.285109e-08              0.0              0.0     NaN      1.0        True  wye
+226  Load 21 T11    9  0.000537  2.061646e-03              0.0              0.0     NaN      1.0        True  wye
+227  Load 21 T12    9  0.004469 -4.557678e-05              0.0              0.0     NaN      1.0        True  wye
+228  Load 21 T13    9  0.002761 -2.967308e-03              0.0              0.0     NaN      1.0        True  wye
+229  Load 21 T14    9 -0.001460 -2.678913e-09              0.0              0.0     NaN      1.0        True  wye
+230  Load 21 T15    9  0.000014 -1.292970e-07              0.0              0.0     NaN      1.0        True  wye
+231  Load 21 T16    9  0.003057 -2.548609e-07              0.0              0.0     NaN      1.0        True  wye
+232  Load 21 T17    9  0.008181 -1.189678e-06              0.0              0.0     NaN      1.0        True  wye
+233  Load 21 T18    9  0.008288 -1.570540e-06              0.0              0.0     NaN      1.0        True  wye
+234  Load 21 T19    9  0.007541 -1.633809e-06              0.0              0.0     NaN      1.0        True  wye
+235  Load 21 T20    9  0.009211 -7.459690e-07              0.0              0.0     NaN      1.0        True  wye
+236  Load 21 T21    9  0.009104 -1.610329e-06              0.0              0.0     NaN      1.0        True  wye
+237  Load 21 T22    9  0.009429 -1.605434e-06              0.0              0.0     NaN      1.0        True  wye
+238  Load 21 T23    9  0.009128 -1.549359e-06              0.0              0.0     NaN      1.0        True  wye
+239  Load 21 T24    9  0.008073 -1.625807e-06              0.0              0.0     NaN      1.0        True  wye
+240   Load 22 T1   10  0.013177 -4.777683e-08              0.0              0.0     NaN      1.0        True  wye
+241   Load 22 T2   10  0.011303 -8.309552e-07              0.0              0.0     NaN      1.0        True  wye
+242   Load 22 T3   10  0.011278 -8.722620e-08              0.0              0.0     NaN      1.0        True  wye
+243   Load 22 T4   10  0.009173 -6.273682e-08              0.0              0.0     NaN      1.0        True  wye
+244   Load 22 T5   10  0.011381 -5.461218e-08              0.0              0.0     NaN      1.0        True  wye
+245   Load 22 T6   10  0.010517 -8.167253e-08              0.0              0.0     NaN      1.0        True  wye
+246   Load 22 T7   10  0.008765 -6.321071e-08              0.0              0.0     NaN      1.0        True  wye
+247   Load 22 T8   10  0.007982 -3.701017e-08              0.0              0.0     NaN      1.0        True  wye
+248   Load 22 T9   10  0.004554 -2.283272e-08              0.0              0.0     NaN      1.0        True  wye
+249  Load 22 T10   10  0.001395 -1.397630e-08              0.0              0.0     NaN      1.0        True  wye
+250  Load 22 T11   10  0.000082 -2.061661e-03              0.0              0.0     NaN      1.0        True  wye
+251  Load 22 T12   10 -0.002705  4.556392e-05              0.0              0.0     NaN      1.0        True  wye
+252  Load 22 T13   10  0.000270  2.967289e-03              0.0              0.0     NaN      1.0        True  wye
+253  Load 22 T14   10  0.001786 -8.469962e-10              0.0              0.0     NaN      1.0        True  wye
+254  Load 22 T15   10  0.003573 -1.175323e-08              0.0              0.0     NaN      1.0        True  wye
+255  Load 22 T16   10  0.006506 -2.904118e-08              0.0              0.0     NaN      1.0        True  wye
+256  Load 22 T17   10  0.009172 -4.170819e-08              0.0              0.0     NaN      1.0        True  wye
+257  Load 22 T18   10  0.012509 -4.890197e-08              0.0              0.0     NaN      1.0        True  wye
+258  Load 22 T19   10  0.009546 -8.980199e-08              0.0              0.0     NaN      1.0        True  wye
+259  Load 22 T20   10  0.009572 -6.420168e-08              0.0              0.0     NaN      1.0        True  wye
+260  Load 22 T21   10  0.011937 -5.203598e-08              0.0              0.0     NaN      1.0        True  wye
+261  Load 22 T22   10  0.009885 -6.852751e-08              0.0              0.0     NaN      1.0        True  wye
+262  Load 22 T23   10  0.010835 -5.598010e-08              0.0              0.0     NaN      1.0        True  wye
+263  Load 22 T24   10  0.009193  1.083931e-09              0.0              0.0     NaN      1.0        True  wye
+264   Load 23 T1   11  0.009958  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+265   Load 23 T2   11  0.010119  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+266   Load 23 T3   11  0.014088  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+267   Load 23 T4   11  0.011524  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+268   Load 23 T5   11  0.010674  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+269   Load 23 T6   11  0.013506  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+270   Load 23 T7   11  0.011574  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+271   Load 23 T8   11  0.008831  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+272   Load 23 T9   11  0.007347  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+273  Load 23 T10   11  0.005385  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+274  Load 23 T11   11  0.000980  8.585146e-14              0.0              0.0     NaN      1.0        True  wye
+275  Load 23 T12   11 -0.001764  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+276  Load 23 T13   11 -0.003032 -2.602085e-18              0.0              0.0     NaN      1.0        True  wye
+277  Load 23 T14   11 -0.000326  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+278  Load 23 T15   11  0.004528  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+279  Load 23 T16   11  0.007997 -2.255141e-16              0.0              0.0     NaN      1.0        True  wye
+280  Load 23 T17   11  0.009323  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+281  Load 23 T18   11  0.010076  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+282  Load 23 T19   11  0.014357  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+283  Load 23 T20   11  0.011678  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+284  Load 23 T21   11  0.010404  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+285  Load 23 T22   11  0.012130  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+286  Load 23 T23   11  0.010817  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+287  Load 23 T24   11  0.014179  0.000000e+00              0.0              0.0     NaN      1.0        True  wye
+288   Load 24 T1   12  0.007594  5.184868e-07              0.0              0.0     NaN      1.0        True  wye
+289   Load 24 T2   12  0.006406 -1.175672e-08              0.0              0.0     NaN      1.0        True  wye
+290   Load 24 T3   12  0.004208  5.285741e-07              0.0              0.0     NaN      1.0        True  wye
+291   Load 24 T4   12  0.007633  2.703827e-13              0.0              0.0     NaN      1.0        True  wye
+292   Load 24 T5   12  0.008032  5.155278e-07              0.0              0.0     NaN      1.0        True  wye
+293   Load 24 T6   12  0.004115  5.287441e-07              0.0              0.0     NaN      1.0        True  wye
+294   Load 24 T7   12  0.008669 -8.295181e-07              0.0              0.0     NaN      1.0        True  wye
+295   Load 24 T8   12  0.007560 -7.955199e-07              0.0              0.0     NaN      1.0        True  wye
+296   Load 24 T9   12  0.003518 -4.017035e-07              0.0              0.0     NaN      1.0        True  wye
+297  Load 24 T10   12 -0.001185  5.341209e-07              0.0              0.0     NaN      1.0        True  wye
+298  Load 24 T11   12  0.002437 -4.472172e-09              0.0              0.0     NaN      1.0        True  wye
+299  Load 24 T12   12  0.008866  5.098920e-07              0.0              0.0     NaN      1.0        True  wye
+300  Load 24 T13   12  0.008990  5.090530e-07              0.0              0.0     NaN      1.0        True  wye
+301  Load 24 T14   12  0.006675  5.240461e-07              0.0              0.0     NaN      1.0        True  wye
+302  Load 24 T15   12 -0.000208  1.353411e-03              0.0              0.0     NaN      1.0        True  wye
+303  Load 24 T16   12  0.001353  1.966038e-07              0.0              0.0     NaN      1.0        True  wye
+304  Load 24 T17   12  0.006819  6.135703e-04              0.0              0.0     NaN      1.0        True  wye
+305  Load 24 T18   12  0.007260  5.207417e-07              0.0              0.0     NaN      1.0        True  wye
+306  Load 24 T19   12  0.006564  5.242492e-07              0.0              0.0     NaN      1.0        True  wye
+307  Load 24 T20   12  0.006545 -1.201204e-08              0.0              0.0     NaN      1.0        True  wye
+308  Load 24 T21   12  0.008529 -8.285662e-07              0.0              0.0     NaN      1.0        True  wye
+309  Load 24 T22   12  0.006333  5.246725e-07              0.0              0.0     NaN      1.0        True  wye
+310  Load 24 T23   12  0.005858 -1.074994e-08              0.0              0.0     NaN      1.0        True  wye
+311  Load 24 T24   12  0.006222  5.248901e-07              0.0              0.0     NaN      1.0        True  wye
+312   Load 25 T1   13  0.012416 -4.885248e-03              0.0              0.0     NaN      1.0        True  wye
+313   Load 25 T2   13  0.010805 -5.115352e-03              0.0              0.0     NaN      1.0        True  wye
+314   Load 25 T3   13  0.012398 -4.823334e-03              0.0              0.0     NaN      1.0        True  wye
+315   Load 25 T4   13  0.012228 -5.077561e-03              0.0              0.0     NaN      1.0        True  wye
+316   Load 25 T5   13  0.009996 -5.075770e-03              0.0              0.0     NaN      1.0        True  wye
+317   Load 25 T6   13  0.012537 -4.957998e-03              0.0              0.0     NaN      1.0        True  wye
+318   Load 25 T7   13  0.010869 -4.436338e-03              0.0              0.0     NaN      1.0        True  wye
+319   Load 25 T8   13  0.008810 -4.250232e-03              0.0              0.0     NaN      1.0        True  wye
+320   Load 25 T9   13  0.008160 -4.162733e-03              0.0              0.0     NaN      1.0        True  wye
+321  Load 25 T10   13  0.000086 -4.390618e-03              0.0              0.0     NaN      1.0        True  wye
+322  Load 25 T11   13 -0.001022 -4.999944e-03              0.0              0.0     NaN      1.0        True  wye
+323  Load 25 T12   13 -0.003185 -4.260537e-03              0.0              0.0     NaN      1.0        True  wye
+324  Load 25 T13   13 -0.002741 -4.641152e-03              0.0              0.0     NaN      1.0        True  wye
+325  Load 25 T14   13 -0.002946 -5.680379e-03              0.0              0.0     NaN      1.0        True  wye
+326  Load 25 T15   13  0.001172 -4.792171e-03              0.0              0.0     NaN      1.0        True  wye
+327  Load 25 T16   13  0.004175 -4.545707e-03              0.0              0.0     NaN      1.0        True  wye
+328  Load 25 T17   13  0.010982 -5.873458e-03              0.0              0.0     NaN      1.0        True  wye
+329  Load 25 T18   13  0.012341 -4.328543e-03              0.0              0.0     NaN      1.0        True  wye
+330  Load 25 T19   13  0.011933 -4.593479e-03              0.0              0.0     NaN      1.0        True  wye
+331  Load 25 T20   13  0.012568 -6.048998e-03              0.0              0.0     NaN      1.0        True  wye
+332  Load 25 T21   13  0.011691 -5.876649e-03              0.0              0.0     NaN      1.0        True  wye
+333  Load 25 T22   13  0.013329 -4.849922e-03              0.0              0.0     NaN      1.0        True  wye
+334  Load 25 T23   13  0.011033 -4.247722e-03              0.0              0.0     NaN      1.0        True  wye
+335  Load 25 T24   13  0.013593 -4.397562e-03              0.0              0.0     NaN      1.0        True  wye
+336   Load 26 T1   14  0.011954  4.882579e-03              0.0              0.0     NaN      1.0        True  wye
+337   Load 26 T2   14  0.014752  5.112628e-03              0.0              0.0     NaN      1.0        True  wye
+338   Load 26 T3   14  0.015358  4.820552e-03              0.0              0.0     NaN      1.0        True  wye
+339   Load 26 T4   14  0.012102  5.074891e-03              0.0              0.0     NaN      1.0        True  wye
+340   Load 26 T5   14  0.013935  5.073092e-03              0.0              0.0     NaN      1.0        True  wye
+341   Load 26 T6   14  0.015311  4.955215e-03              0.0              0.0     NaN      1.0        True  wye
+342   Load 26 T7   14  0.012418  4.433692e-03              0.0              0.0     NaN      1.0        True  wye
+343   Load 26 T8   14  0.007146  4.250083e-03              0.0              0.0     NaN      1.0        True  wye
+344   Load 26 T9   14  0.008563  4.162622e-03              0.0              0.0     NaN      1.0        True  wye
+345  Load 26 T10   14  0.001100  4.390600e-03              0.0              0.0     NaN      1.0        True  wye
+346  Load 26 T11   14 -0.001415  4.999921e-03              0.0              0.0     NaN      1.0        True  wye
+347  Load 26 T12   14 -0.005681  4.260469e-03              0.0              0.0     NaN      1.0        True  wye
+348  Load 26 T13   14 -0.006250  4.641081e-03              0.0              0.0     NaN      1.0        True  wye
+349  Load 26 T14   14 -0.003729  5.680335e-03              0.0              0.0     NaN      1.0        True  wye
+350  Load 26 T15   14 -0.000963  3.439278e-03              0.0              0.0     NaN      1.0        True  wye
+351  Load 26 T16   14  0.005847  4.545625e-03              0.0              0.0     NaN      1.0        True  wye
+352  Load 26 T17   14  0.011516  5.258097e-03              0.0              0.0     NaN      1.0        True  wye
+353  Load 26 T18   14  0.012362  4.325864e-03              0.0              0.0     NaN      1.0        True  wye
+354  Load 26 T19   14  0.013466  4.590772e-03              0.0              0.0     NaN      1.0        True  wye
+355  Load 26 T20   14  0.012850  6.046293e-03              0.0              0.0     NaN      1.0        True  wye
+356  Load 26 T21   14  0.011213  5.874082e-03              0.0              0.0     NaN      1.0        True  wye
+357  Load 26 T22   14  0.012301  4.847220e-03              0.0              0.0     NaN      1.0        True  wye
+358  Load 26 T23   14  0.015073  4.244984e-03              0.0              0.0     NaN      1.0        True  wye
+359  Load 26 T24   14  0.012148  4.394860e-03              0.0              0.0     NaN      1.0        True  wye
+--------------------------------------------------
+
+EXT_GRID:
+        name  bus  vm_pu  va_degree  slack_weight  in_service
+0  ExtGrid 0   19    1.0        0.0           1.0        True
+1  ExtGrid 1   21    1.0        0.0           1.0        True
+--------------------------------------------------
+
+LINE:
+       name std_type  from_bus  to_bus  length_km  r_ohm_per_km  x_ohm_per_km  c_nf_per_km  g_us_per_km  max_i_ka   df  parallel  type  in_service   geo
+0    Line 0     None        20      15   0.400000        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+1    Line 7     None        22      17   1.100000        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+2    Line 8     None        15       9   0.316228        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+3   Line 17     None        17      12   0.141421        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+4   Line 18     None        17      13   0.223607        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+5   Line 20     None        16       0   0.136015        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+6   Line 34     None        18       5   0.225610        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+7   Line 36     None        18       7   0.196469        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+8   Line 37     None        18       8   0.050000        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+9   Line 38     None        10       9   0.141421        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+10  Line 40     None        11      10   0.200000        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+11  Line 43     None        14      13   0.200000        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+12  Line 44     None         1       0   0.172047        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+13  Line 46     None         3       0   0.194165        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+14  Line 47     None         2       1   0.263059        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+15  Line 52     None         8       4   0.353836        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+16  Line 53     None         6       5   0.253180        0.5502         0.429          0.0          0.0      0.23  1.0         1  None        True  None
+--------------------------------------------------
+
+TRAFO:
+                  name std_type  hv_bus  lv_bus  sn_mva  vn_hv_kv  vn_lv_kv  vk_percent  vkr_percent  pfe_kw  i0_percent  shift_degree tap_side  tap_neutral  tap_min  tap_max  tap_step_percent  tap_step_degree  tap_pos tap_changer_type  id_characteristic_table  tap_dependency_table  parallel   df  in_service
+0  MV/LV Transformer 2     None      15      16    10.0      15.0       0.4        0.01         0.01    0.01        0.01           0.0     None          NaN      NaN      NaN               NaN              NaN      NaN              NaN                     <NA>                 False         1  1.0        True
+1  MV/LV Transformer 5     None      17      18    10.0      15.0       0.4        0.01         0.01    0.01        0.01           0.0     None          NaN      NaN      NaN               NaN              NaN      NaN              NaN                     <NA>                 False         1  1.0        True
+2  Slack Transformer 0     None      19      20    40.0      70.0      15.0        0.01         0.01    0.01        0.01           0.0     None          NaN      NaN      NaN               NaN              NaN      NaN              NaN                     <NA>                 False         1  1.0        True
+3  Slack Transformer 1     None      21      22    40.0      70.0      15.0        0.01         0.01    0.01        0.01           0.0     None          NaN      NaN      NaN               NaN              NaN      NaN              NaN                     <NA>                 False         1  1.0        True
+--------------------------------------------------
+
+RES_BUS:
+       vm_pu     va_degree      p_mw        q_mvar
+0   0.999972 -1.317880e-03  0.001035  2.122735e-04
+1   0.999975 -1.317880e-03  0.001353  3.937096e-04
+2   1.001482  3.290273e-02 -0.001358 -3.976876e-04
+3   1.000776  2.142470e-02 -0.001038 -2.143677e-04
+4   0.995043 -2.819997e-01  0.003585 -4.182694e-04
+5   1.002239  1.264103e-01 -0.000445  3.594102e-04
+6   1.004712  2.367260e-01 -0.002856  0.000000e+00
+7   1.001342  9.040899e-02 -0.002500  4.844928e-04
+8   0.999036 -5.661538e-02  0.002165 -4.647467e-04
+9   0.999944 -2.404620e-03  0.008073 -1.625807e-06
+10  0.999936 -2.765739e-03  0.009193  1.083931e-09
+11  0.999929 -3.075574e-03  0.014179  0.000000e+00
+12  0.999910 -3.784483e-03  0.006222  5.248901e-07
+13  0.999898 -4.317342e-03  0.013593 -4.397562e-03
+14  0.999890 -4.459649e-03  0.012148  4.394860e-03
+15  0.999968 -1.318164e-03  0.000000  0.000000e+00
+16  0.999968 -1.317880e-03  0.000000  0.000000e+00
+17  0.999912 -3.688344e-03  0.000000  0.000000e+00
+18  0.999912 -3.688061e-03  0.000000  0.000000e+00
+19  1.000000  0.000000e+00 -0.031462 -4.995745e-03
+20  1.000000  4.291097e-07  0.000000  0.000000e+00
+21  1.000000  0.000000e+00 -0.031978 -4.993533e-03
+22  1.000000  4.287929e-07  0.000000  0.000000e+00
+--------------------------------------------------
+
+RES_LINE:
+    p_from_mw   q_from_mvar   p_to_mw     q_to_mvar         pl_mw       ql_mvar  i_from_ka   i_to_ka      i_ka  vm_from_pu  va_from_degree  vm_to_pu  va_to_degree  loading_percent
+0    0.031452  9.957574e-04 -0.031451 -9.950022e-04  9.685388e-07  7.551856e-07   0.001211  0.001211  0.001211    1.000000    4.291097e-07  0.999968     -0.001318         0.526599
+1    0.031968  9.935454e-04 -0.031965 -9.913999e-04  2.751614e-06  2.145479e-06   0.001231  0.001231  0.001231    1.000000    4.287929e-07  0.999912     -0.003688         0.535240
+2    0.031446 -8.044932e-07 -0.031445  1.400742e-06  7.646997e-07  5.962489e-07   0.001210  0.001210  0.001210    0.999968   -1.318164e-03  0.999944     -0.002405         0.526256
+3    0.006222  5.353319e-07 -0.006222 -5.248899e-07  1.339209e-08  1.044203e-08   0.000240  0.000240  0.000240    0.999912   -3.688344e-03  0.999910     -0.003784         0.104140
+4    0.025741 -2.355477e-06 -0.025741  2.638032e-06  3.623818e-07  2.825551e-07   0.000991  0.000991  0.000991    0.999912   -3.688344e-03  0.999898     -0.004317         0.430816
+5   -0.000005 -4.080092e-06  0.000005  4.080108e-06  2.059468e-11  1.605801e-11   0.000010  0.000010  0.000010    0.999968   -1.317880e-03  0.999972     -0.001318         0.004164
+6   -0.003285  3.715089e-04  0.003294 -3.648954e-04  8.481848e-06  6.613436e-06   0.004772  0.004772  0.004772    0.999912   -3.688061e-03  1.002239      0.126410         2.074995
+7   -0.002496  4.879001e-04  0.002500 -4.844928e-04  4.369907e-06  3.407289e-06   0.003671  0.003671  0.003671    0.999912   -3.688061e-03  1.001342      0.090409         1.596028
+8    0.005773 -8.659627e-04 -0.005767  8.705314e-04  5.859473e-06  4.568727e-06   0.008426  0.008426  0.008426    0.999912   -3.688061e-03  0.999036     -0.056615         3.663494
+9   -0.023372 -7.775867e-08  0.023372  2.250649e-07  1.889228e-07  1.473062e-07   0.000900  0.000900  0.000900    0.999936   -2.765739e-03  0.999944     -0.002405         0.391143
+10  -0.014179  2.156016e-13  0.014179  7.667486e-08  9.833713e-08  7.667508e-08   0.000546  0.000546  0.000546    0.999929   -3.075574e-03  0.999936     -0.002766         0.237299
+11  -0.012148 -4.394860e-03  0.012148  4.394924e-03  8.164229e-08  6.365784e-08   0.000497  0.000497  0.000497    0.999890   -4.459649e-03  0.999898     -0.004317         0.216219
+12   0.000003  2.569742e-06 -0.000003 -2.569734e-06  1.033351e-11  8.057211e-12   0.000006  0.000006  0.000006    0.999975   -1.317880e-03  0.999972     -0.001318         0.002623
+13   0.001038  2.143677e-04 -0.001037 -2.137838e-04  7.488386e-07  5.838818e-07   0.001529  0.001529  0.001529    1.000776    2.142470e-02  0.999972     -0.001318         0.664600
+14   0.001358  3.976876e-04 -0.001356 -3.962794e-04  1.806084e-06  1.408234e-06   0.002039  0.002039  0.002039    1.001482    3.290273e-02  0.999975     -0.001318         0.886735
+15   0.003601 -4.057847e-04 -0.003585  4.182696e-04  1.601207e-05  1.248487e-05   0.005236  0.005236  0.005236    0.999036   -5.661538e-02  0.995043     -0.282000         2.276533
+16   0.002856  1.486455e-10 -0.002849  5.485204e-06  7.035060e-06  5.485352e-06   0.004103  0.004103  0.004103    1.004712    2.367260e-01  1.002239      0.126410         1.783901
+--------------------------------------------------
+
+RES_TRAFO:
+    p_hv_mw  q_hv_mvar   p_lv_mw  q_lv_mvar    pl_mw  ql_mvar   i_hv_ka   i_lv_ka  vm_hv_pu  va_hv_degree  vm_lv_pu  va_lv_degree  loading_percent
+0  0.000005   0.000996  0.000005   0.000004  0.00001    0.001  0.000038  0.000010  0.999968     -0.001318  0.999968 -1.317880e-03         0.009958
+1  0.000002   0.000993  0.000008   0.000007  0.00001    0.001  0.000038  0.000015  0.999912     -0.003688  0.999912 -3.688061e-03         0.009933
+2  0.031462   0.004996 -0.031452  -0.000996  0.00001    0.004  0.000263  0.001211  1.000000      0.000000  1.000000  4.291097e-07         0.079639
+3  0.031978   0.004994 -0.031968  -0.000994  0.00001    0.004  0.000267  0.001231  1.000000      0.000000  1.000000  4.287929e-07         0.080914
+--------------------------------------------------
+
+RES_EXT_GRID:
+       p_mw    q_mvar
+0  0.031462  0.004996
+1  0.031978  0.004994
+--------------------------------------------------
+
+RES_LOAD:
+         p_mw        q_mvar
+0    0.000000  0.000000e+00
+1    0.000000  0.000000e+00
+2    0.000000  0.000000e+00
+3    0.000000  0.000000e+00
+4    0.000000  0.000000e+00
+5    0.000000  0.000000e+00
+6    0.000000  0.000000e+00
+7    0.000000  0.000000e+00
+8    0.000000  0.000000e+00
+9    0.000000  0.000000e+00
+10   0.000000  0.000000e+00
+11   0.000000  0.000000e+00
+12   0.000000  0.000000e+00
+13   0.000000  0.000000e+00
+14   0.000000  0.000000e+00
+15   0.000000  0.000000e+00
+16   0.000000  0.000000e+00
+17   0.000000  0.000000e+00
+18   0.000000  0.000000e+00
+19   0.000000  0.000000e+00
+20   0.000000  0.000000e+00
+21   0.000000  0.000000e+00
+22   0.000000  0.000000e+00
+23   0.001035  2.122735e-04
+24   0.000000  0.000000e+00
+25   0.000000  0.000000e+00
+26   0.000000  0.000000e+00
+27   0.000000  0.000000e+00
+28   0.000000  0.000000e+00
+29   0.000000  0.000000e+00
+30   0.000000  0.000000e+00
+31   0.000000  0.000000e+00
+32   0.000000  0.000000e+00
+33   0.000000  0.000000e+00
+34   0.000000  0.000000e+00
+35   0.000000  0.000000e+00
+36   0.000000  0.000000e+00
+37   0.000000  0.000000e+00
+38   0.000000  0.000000e+00
+39   0.000000  0.000000e+00
+40   0.000000  0.000000e+00
+41   0.000000  0.000000e+00
+42   0.000000  0.000000e+00
+43   0.000000  0.000000e+00
+44   0.000000  0.000000e+00
+45   0.000000  0.000000e+00
+46   0.000000  0.000000e+00
+47   0.001353  3.937096e-04
+48  -0.000000 -0.000000e+00
+49  -0.000000 -0.000000e+00
+50  -0.000000 -0.000000e+00
+51  -0.000000 -0.000000e+00
+52  -0.000000 -0.000000e+00
+53  -0.000000 -0.000000e+00
+54  -0.000000 -0.000000e+00
+55  -0.000000 -0.000000e+00
+56  -0.000000 -0.000000e+00
+57  -0.000000 -0.000000e+00
+58  -0.000000 -0.000000e+00
+59  -0.000000 -0.000000e+00
+60  -0.000000 -0.000000e+00
+61  -0.000000 -0.000000e+00
+62  -0.000000 -0.000000e+00
+63  -0.000000 -0.000000e+00
+64  -0.000000 -0.000000e+00
+65  -0.000000 -0.000000e+00
+66  -0.000000 -0.000000e+00
+67  -0.000000 -0.000000e+00
+68  -0.000000 -0.000000e+00
+69  -0.000000 -0.000000e+00
+70  -0.000000 -0.000000e+00
+71  -0.001358 -3.976876e-04
+72  -0.000000 -0.000000e+00
+73  -0.000000 -0.000000e+00
+74  -0.000000 -0.000000e+00
+75  -0.000000 -0.000000e+00
+76  -0.000000 -0.000000e+00
+77  -0.000000 -0.000000e+00
+78  -0.000000 -0.000000e+00
+79  -0.000000 -0.000000e+00
+80  -0.000000 -0.000000e+00
+81  -0.000000 -0.000000e+00
+82  -0.000000 -0.000000e+00
+83  -0.000000 -0.000000e+00
+84  -0.000000 -0.000000e+00
+85  -0.000000 -0.000000e+00
+86  -0.000000 -0.000000e+00
+87  -0.000000 -0.000000e+00
+88  -0.000000 -0.000000e+00
+89  -0.000000 -0.000000e+00
+90  -0.000000 -0.000000e+00
+91  -0.000000 -0.000000e+00
+92  -0.000000 -0.000000e+00
+93  -0.000000 -0.000000e+00
+94  -0.000000 -0.000000e+00
+95  -0.001038 -2.143677e-04
+96   0.000000 -0.000000e+00
+97   0.000000 -0.000000e+00
+98   0.000000 -0.000000e+00
+99   0.000000 -0.000000e+00
+100  0.000000 -0.000000e+00
+101  0.000000 -0.000000e+00
+102  0.000000 -0.000000e+00
+103  0.000000 -0.000000e+00
+104  0.000000 -0.000000e+00
+105  0.000000 -0.000000e+00
+106  0.000000 -0.000000e+00
+107  0.000000 -0.000000e+00
+108  0.000000 -0.000000e+00
+109  0.000000 -0.000000e+00
+110  0.000000 -0.000000e+00
+111  0.000000 -0.000000e+00
+112  0.000000 -0.000000e+00
+113  0.000000 -0.000000e+00
+114  0.000000 -0.000000e+00
+115  0.000000 -0.000000e+00
+116  0.000000 -0.000000e+00
+117  0.000000 -0.000000e+00
+118  0.000000 -0.000000e+00
+119  0.003585 -4.182694e-04
+120 -0.000000  0.000000e+00
+121 -0.000000  0.000000e+00
+122 -0.000000  0.000000e+00
+123 -0.000000  0.000000e+00
+124 -0.000000  0.000000e+00
+125 -0.000000  0.000000e+00
+126 -0.000000  0.000000e+00
+127 -0.000000  0.000000e+00
+128 -0.000000  0.000000e+00
+129 -0.000000  0.000000e+00
+130 -0.000000  0.000000e+00
+131 -0.000000  0.000000e+00
+132 -0.000000  0.000000e+00
+133 -0.000000  0.000000e+00
+134 -0.000000  0.000000e+00
+135 -0.000000  0.000000e+00
+136 -0.000000  0.000000e+00
+137 -0.000000  0.000000e+00
+138 -0.000000  0.000000e+00
+139 -0.000000  0.000000e+00
+140 -0.000000  0.000000e+00
+141 -0.000000  0.000000e+00
+142 -0.000000  0.000000e+00
+143 -0.000445  3.594102e-04
+144 -0.000000  0.000000e+00
+145 -0.000000  0.000000e+00
+146 -0.000000  0.000000e+00
+147 -0.000000  0.000000e+00
+148 -0.000000  0.000000e+00
+149 -0.000000  0.000000e+00
+150 -0.000000  0.000000e+00
+151 -0.000000  0.000000e+00
+152 -0.000000  0.000000e+00
+153 -0.000000  0.000000e+00
+154 -0.000000  0.000000e+00
+155 -0.000000  0.000000e+00
+156 -0.000000  0.000000e+00
+157 -0.000000  0.000000e+00
+158 -0.000000  0.000000e+00
+159 -0.000000  0.000000e+00
+160 -0.000000  0.000000e+00
+161 -0.000000  0.000000e+00
+162 -0.000000  0.000000e+00
+163 -0.000000  0.000000e+00
+164 -0.000000  0.000000e+00
+165 -0.000000  0.000000e+00
+166 -0.000000  0.000000e+00
+167 -0.002856  0.000000e+00
+168 -0.000000  0.000000e+00
+169 -0.000000  0.000000e+00
+170 -0.000000  0.000000e+00
+171 -0.000000  0.000000e+00
+172 -0.000000  0.000000e+00
+173 -0.000000  0.000000e+00
+174 -0.000000  0.000000e+00
+175 -0.000000  0.000000e+00
+176 -0.000000  0.000000e+00
+177 -0.000000  0.000000e+00
+178 -0.000000  0.000000e+00
+179 -0.000000  0.000000e+00
+180 -0.000000  0.000000e+00
+181 -0.000000  0.000000e+00
+182 -0.000000  0.000000e+00
+183 -0.000000  0.000000e+00
+184 -0.000000  0.000000e+00
+185 -0.000000  0.000000e+00
+186 -0.000000  0.000000e+00
+187 -0.000000  0.000000e+00
+188 -0.000000  0.000000e+00
+189 -0.000000  0.000000e+00
+190 -0.000000  0.000000e+00
+191 -0.002500  4.844928e-04
+192  0.000000 -0.000000e+00
+193  0.000000 -0.000000e+00
+194  0.000000 -0.000000e+00
+195  0.000000 -0.000000e+00
+196  0.000000 -0.000000e+00
+197  0.000000 -0.000000e+00
+198  0.000000 -0.000000e+00
+199  0.000000 -0.000000e+00
+200  0.000000 -0.000000e+00
+201  0.000000 -0.000000e+00
+202  0.000000 -0.000000e+00
+203  0.000000 -0.000000e+00
+204  0.000000 -0.000000e+00
+205  0.000000 -0.000000e+00
+206  0.000000 -0.000000e+00
+207  0.000000 -0.000000e+00
+208  0.000000 -0.000000e+00
+209  0.000000 -0.000000e+00
+210  0.000000 -0.000000e+00
+211  0.000000 -0.000000e+00
+212  0.000000 -0.000000e+00
+213  0.000000 -0.000000e+00
+214  0.000000 -0.000000e+00
+215  0.002165 -4.647467e-04
+216  0.000000 -0.000000e+00
+217  0.000000 -0.000000e+00
+218  0.000000 -0.000000e+00
+219  0.000000 -0.000000e+00
+220  0.000000 -0.000000e+00
+221  0.000000 -0.000000e+00
+222  0.000000 -0.000000e+00
+223  0.000000 -0.000000e+00
+224  0.000000 -0.000000e+00
+225 -0.000000 -0.000000e+00
+226  0.000000  0.000000e+00
+227  0.000000 -0.000000e+00
+228  0.000000 -0.000000e+00
+229 -0.000000 -0.000000e+00
+230  0.000000 -0.000000e+00
+231  0.000000 -0.000000e+00
+232  0.000000 -0.000000e+00
+233  0.000000 -0.000000e+00
+234  0.000000 -0.000000e+00
+235  0.000000 -0.000000e+00
+236  0.000000 -0.000000e+00
+237  0.000000 -0.000000e+00
+238  0.000000 -0.000000e+00
+239  0.008073 -1.625807e-06
+240  0.000000 -0.000000e+00
+241  0.000000 -0.000000e+00
+242  0.000000 -0.000000e+00
+243  0.000000 -0.000000e+00
+244  0.000000 -0.000000e+00
+245  0.000000 -0.000000e+00
+246  0.000000 -0.000000e+00
+247  0.000000 -0.000000e+00
+248  0.000000 -0.000000e+00
+249  0.000000 -0.000000e+00
+250  0.000000 -0.000000e+00
+251 -0.000000  0.000000e+00
+252  0.000000  0.000000e+00
+253  0.000000 -0.000000e+00
+254  0.000000 -0.000000e+00
+255  0.000000 -0.000000e+00
+256  0.000000 -0.000000e+00
+257  0.000000 -0.000000e+00
+258  0.000000 -0.000000e+00
+259  0.000000 -0.000000e+00
+260  0.000000 -0.000000e+00
+261  0.000000 -0.000000e+00
+262  0.000000 -0.000000e+00
+263  0.009193  1.083931e-09
+264  0.000000  0.000000e+00
+265  0.000000  0.000000e+00
+266  0.000000  0.000000e+00
+267  0.000000  0.000000e+00
+268  0.000000  0.000000e+00
+269  0.000000  0.000000e+00
+270  0.000000  0.000000e+00
+271  0.000000  0.000000e+00
+272  0.000000  0.000000e+00
+273  0.000000  0.000000e+00
+274  0.000000  0.000000e+00
+275 -0.000000  0.000000e+00
+276 -0.000000 -0.000000e+00
+277 -0.000000  0.000000e+00
+278  0.000000  0.000000e+00
+279  0.000000 -0.000000e+00
+280  0.000000  0.000000e+00
+281  0.000000  0.000000e+00
+282  0.000000  0.000000e+00
+283  0.000000  0.000000e+00
+284  0.000000  0.000000e+00
+285  0.000000  0.000000e+00
+286  0.000000  0.000000e+00
+287  0.014179  0.000000e+00
+288  0.000000  0.000000e+00
+289  0.000000 -0.000000e+00
+290  0.000000  0.000000e+00
+291  0.000000  0.000000e+00
+292  0.000000  0.000000e+00
+293  0.000000  0.000000e+00
+294  0.000000 -0.000000e+00
+295  0.000000 -0.000000e+00
+296  0.000000 -0.000000e+00
+297 -0.000000  0.000000e+00
+298  0.000000 -0.000000e+00
+299  0.000000  0.000000e+00
+300  0.000000  0.000000e+00
+301  0.000000  0.000000e+00
+302 -0.000000  0.000000e+00
+303  0.000000  0.000000e+00
+304  0.000000  0.000000e+00
+305  0.000000  0.000000e+00
+306  0.000000  0.000000e+00
+307  0.000000 -0.000000e+00
+308  0.000000 -0.000000e+00
+309  0.000000  0.000000e+00
+310  0.000000 -0.000000e+00
+311  0.006222  5.248901e-07
+312  0.000000 -0.000000e+00
+313  0.000000 -0.000000e+00
+314  0.000000 -0.000000e+00
+315  0.000000 -0.000000e+00
+316  0.000000 -0.000000e+00
+317  0.000000 -0.000000e+00
+318  0.000000 -0.000000e+00
+319  0.000000 -0.000000e+00
+320  0.000000 -0.000000e+00
+321  0.000000 -0.000000e+00
+322 -0.000000 -0.000000e+00
+323 -0.000000 -0.000000e+00
+324 -0.000000 -0.000000e+00
+325 -0.000000 -0.000000e+00
+326  0.000000 -0.000000e+00
+327  0.000000 -0.000000e+00
+328  0.000000 -0.000000e+00
+329  0.000000 -0.000000e+00
+330  0.000000 -0.000000e+00
+331  0.000000 -0.000000e+00
+332  0.000000 -0.000000e+00
+333  0.000000 -0.000000e+00
+334  0.000000 -0.000000e+00
+335  0.013593 -4.397562e-03
+336  0.000000  0.000000e+00
+337  0.000000  0.000000e+00
+338  0.000000  0.000000e+00
+339  0.000000  0.000000e+00
+340  0.000000  0.000000e+00
+341  0.000000  0.000000e+00
+342  0.000000  0.000000e+00
+343  0.000000  0.000000e+00
+344  0.000000  0.000000e+00
+345  0.000000  0.000000e+00
+346 -0.000000  0.000000e+00
+347 -0.000000  0.000000e+00
+348 -0.000000  0.000000e+00
+349 -0.000000  0.000000e+00
+350 -0.000000  0.000000e+00
+351  0.000000  0.000000e+00
+352  0.000000  0.000000e+00
+353  0.000000  0.000000e+00
+354  0.000000  0.000000e+00
+355  0.000000  0.000000e+00
+356  0.000000  0.000000e+00
+357  0.000000  0.000000e+00
+358  0.000000  0.000000e+00
+359  0.012148  4.394860e-03
+--------------------------------------------------
+
+BUS_GEODATA:
+        x      y
+0    11.0   48.0
+1    25.0   38.0
+2    51.0   42.0
+3     0.0   64.0
+4   129.0  138.0
+5   105.0   88.0
+6   130.0   92.0
+7    81.0  115.0
+8   103.0  114.0
+9    10.0   70.0
+10   20.0   80.0
+11   40.0   80.0
+12   90.0  120.0
+13  120.0  120.0
+14  120.0  100.0
+15    0.0   40.0
+16    0.5   39.5
+17  100.0  110.0
+18  100.5  109.5
+19    0.0    0.0
+20    0.5   -0.5
+21  100.0    0.0
+22  100.5   -0.5
+--------------------------------------------------

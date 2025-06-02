@@ -1,0 +1,57 @@
+Solver command line: []
+
+Read LP format model from file C:\Users\mogli\AppData\Local\Temp\tmpjc50k4vb.pyomo.lp
+Reading time = 0.32 seconds
+x1: 176142 rows, 128622 columns, 587570 nonzeros
+Set parameter TimeLimit to value 600
+Set parameter MIPGap to value 5e-05
+Set parameter IntegralityFocus to value 1
+Set parameter ScaleFlag to value 0
+Set parameter MIPFocus to value 2
+Set parameter Method to value 1
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 11+.0 (26100.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-13620H, instruction set [SSE2|AVX|AVX2]
+Thread count: 10 physical cores, 16 logical processors, using up to 16 threads
+
+Optimize a model with 176142 rows, 128622 columns and 587570 nonzeros
+Model fingerprint: 0xf224a1ee
+Model has 19 SOS constraints
+Variable types: 128499 continuous, 123 integer (123 binary)
+Coefficient statistics:
+  Matrix range     [4e-04, 1e+03]
+  Objective range  [3e-02, 1e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e-04, 1e+03]
+Presolve removed 137769 rows and 47764 columns
+Presolve time: 0.69s
+Presolved: 38373 rows, 80858 columns, 253229 nonzeros
+Variable types: 80810 continuous, 48 integer (45 binary)
+Root relaxation presolve removed 68 rows and 68 columns
+Root relaxation presolved: 38305 rows, 80790 columns, 252964 nonzeros
+
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   23849    2.3149475e+02   1.939533e+04   0.000000e+00      5s
+   35729    4.5503828e+02   6.163473e+04   0.000000e+00     10s
+   49267    6.4743666e+02   5.948973e+04   0.000000e+00     15s
+   63387    8.5067575e+05   7.051819e+07   0.000000e+00     20s
+Warning: very big Kappa = 1.08882e+13, try parameter NumericFocus
+
+Root relaxation: infeasible, 63593 iterations, 19.29 seconds (26.89 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 infeasible    0               - infeasible      -     -   20s
+
+Explored 1 nodes (63593 simplex iterations) in 20.09 seconds (28.86 work units)
+Thread count was 16 (of 16 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+

@@ -1,0 +1,43 @@
+Solver command line: []
+
+Read LP format model from file C:\Users\mogli\AppData\Local\Temp\tmp7we26grd.pyomo.lp
+Reading time = 0.03 seconds
+x1: 14738 rows, 10682 columns, 49538 nonzeros
+Set parameter TimeLimit to value 10800
+Set parameter MIPGap to value 5e-05
+Set parameter IntegralityFocus to value 1
+Set parameter ScaleFlag to value 0
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 11+.0 (26100.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-13620H, instruction set [SSE2|AVX|AVX2]
+Thread count: 10 physical cores, 16 logical processors, using up to 16 threads
+
+Optimize a model with 14738 rows, 10682 columns and 49538 nonzeros
+Model fingerprint: 0xbcc9140d
+Model has 6 SOS constraints
+Variable types: 10642 continuous, 40 integer (40 binary)
+Coefficient statistics:
+  Matrix range     [3e-04, 2e+03]
+  Objective range  [3e-02, 1e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [9e-06, 1e+03]
+Presolve removed 13656 rows and 5992 columns
+Presolve time: 0.02s
+Presolved: 1082 rows, 4690 columns, 10962 nonzeros
+Variable types: 4690 continuous, 0 integer (0 binary)
+
+Root relaxation: objective 2.447403e+03, 1381 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0    2447.4025833 2447.40258  0.00%     -    0s
+
+Explored 1 nodes (1381 simplex iterations) in 0.02 seconds (0.04 work units)
+Thread count was 16 (of 16 available processors)
+
+Solution count 1: 2447.4 
+
+Optimal solution found (tolerance 5.00e-05)
+Best objective 2.447402583306e+03, best bound 2.447402583306e+03, gap 0.0000%
+

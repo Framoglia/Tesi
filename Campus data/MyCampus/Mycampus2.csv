@@ -20,8 +20,6 @@ Bus ID, Position, Size, Type, District, Voltage, Active Power, Reactive Power
 24, (90;120), , MV_load, B, 15000, 10, 3.92
 25, (120;120), , MV_load, B, 15000, 12, -5.07
 26, (120;100), , MV_load, B, 15000, 13, 6.56
-27, (60;120), , HV_sub, , 70000, , 
-
 
 
 

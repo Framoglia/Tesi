@@ -1,0 +1,34 @@
+Solver command line: []
+
+Read LP format model from file C:\Users\mogli\AppData\Local\Temp\tmpbnfo9w1q.pyomo.lp
+Reading time = 0.06 seconds
+x1: 33584 rows, 26072 columns, 116618 nonzeros
+Set parameter TimeLimit to value 10800
+Set parameter MIPGap to value 5e-05
+Set parameter IntegralityFocus to value 1
+Set parameter ScaleFlag to value 0
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 11+.0 (26100.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-13620H, instruction set [SSE2|AVX|AVX2]
+Thread count: 10 physical cores, 16 logical processors, using up to 16 threads
+
+Optimize a model with 33584 rows, 26072 columns and 116618 nonzeros
+Model fingerprint: 0x26ab1c79
+Model has 15 SOS constraints
+Variable types: 25978 continuous, 94 integer (94 binary)
+Coefficient statistics:
+  Matrix range     [4e-04, 2e+03]
+  Objective range  [3e-02, 1e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e-05, 1e+03]
+Presolve removed 31013 rows and 15686 columns
+Presolve time: 0.04s
+
+Explored 0 nodes (0 simplex iterations) in 0.04 seconds (0.08 work units)
+Thread count was 1 (of 16 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+

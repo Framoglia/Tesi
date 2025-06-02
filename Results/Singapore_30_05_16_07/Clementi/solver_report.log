@@ -1,0 +1,53 @@
+Solver command line: []
+
+Read LP format model from file C:\Users\mogli\AppData\Local\Temp\tmpfion6y_c.pyomo.lp
+Reading time = 0.09 seconds
+x1: 48399 rows, 34359 columns, 161975 nonzeros
+Set parameter TimeLimit to value 600
+Set parameter MIPGap to value 5e-05
+Set parameter IntegralityFocus to value 1
+Set parameter ScaleFlag to value 0
+Set parameter MIPFocus to value 2
+Set parameter Method to value 1
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 11+.0 (26100.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-13620H, instruction set [SSE2|AVX|AVX2]
+Thread count: 10 physical cores, 16 logical processors, using up to 16 threads
+
+Optimize a model with 48399 rows, 34359 columns and 161975 nonzeros
+Model fingerprint: 0x4fcae614
+Model has 18 SOS constraints
+Variable types: 34215 continuous, 144 integer (144 binary)
+Coefficient statistics:
+  Matrix range     [1e-03, 2e+03]
+  Objective range  [3e-02, 1e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e-04, 1e+03]
+Presolve removed 39351 rows and 14630 columns
+Presolve time: 0.19s
+Presolved: 9048 rows, 19729 columns, 60315 nonzeros
+Variable types: 19675 continuous, 54 integer (49 binary)
+Root relaxation presolve removed 40 rows and 40 columns
+Root relaxation presolved: 9008 rows, 19689 columns, 60199 nonzeros
+
+
+Root relaxation: objective 1.467361e+03, 9890 iterations, 0.64 seconds (0.67 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 1467.36103    0    1          - 1467.36103      -     -    0s
+     0     0 1468.75841    0    1          - 1468.75841      -     -    1s
+     0     0 infeasible    0               - infeasible      -     -    1s
+
+Cutting planes:
+  Flow cover: 1
+
+Explored 1 nodes (11346 simplex iterations) in 1.18 seconds (1.35 work units)
+Thread count was 16 (of 16 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
