@@ -1,0 +1,48 @@
+Solver command line: []
+
+Read LP format model from file C:\Users\mogli\AppData\Local\Temp\tmpt3ymqv0h.pyomo.lp
+Reading time = 0.08 seconds
+x1: 42491 rows, 29987 columns, 139587 nonzeros
+Set parameter TimeLimit to value 600
+Set parameter MIPGap to value 5e-05
+Set parameter IntegralityFocus to value 1
+Set parameter ScaleFlag to value 0
+Set parameter MIPFocus to value 2
+Set parameter Method to value 1
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 11+.0 (26100.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-13620H, instruction set [SSE2|AVX|AVX2]
+Thread count: 10 physical cores, 16 logical processors, using up to 16 threads
+
+Optimize a model with 42491 rows, 29987 columns and 139587 nonzeros
+Model fingerprint: 0x75ee472e
+Model has 17 SOS constraints
+Variable types: 29868 continuous, 119 integer (119 binary)
+Coefficient statistics:
+  Matrix range     [1e-03, 1e+03]
+  Objective range  [3e-02, 1e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [3e-05, 1e+03]
+Presolve removed 33403 rows and 11367 columns
+Presolve time: 0.13s
+Presolved: 9088 rows, 18620 columns, 58051 nonzeros
+Variable types: 18566 continuous, 54 integer (49 binary)
+Root relaxation presolve removed 37 rows and 37 columns
+Root relaxation presolved: 9051 rows, 18583 columns, 57938 nonzeros
+
+
+Root relaxation: infeasible, 8581 iterations, 0.36 seconds (0.34 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 infeasible    0               - infeasible      -     -    0s
+
+Explored 1 nodes (8581 simplex iterations) in 0.51 seconds (0.63 work units)
+Thread count was 16 (of 16 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+

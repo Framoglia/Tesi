@@ -54,8 +54,8 @@ def run_daysxtractor():
             sys.executable,
             "-m",
             "daysxtractor",
-            "-n", "4",
-            "-t", "180",
+            "-n", "1",
+            "-t", "30",
             "-s", "gurobi",
             "-v",
             "-p", str(temp_input.name)  # Use the copied file
