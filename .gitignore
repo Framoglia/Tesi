@@ -9,7 +9,8 @@ venv*/           # Excludes ALL virtual env folders (venv-win, venv-linux, etc.)
 !.vscode/settings.json
 
 # Data/Results (Exclude large/auto-generated files)
-Results/     # If raw data shouldn't be versioned
+Campus data/     # If raw data shouldn't be versioned
+Results/
 *.pdf            # Exclude PDF papers (or move to separate folder)
 *.pptx           # Exclude PowerPoint files
 
