@@ -21,15 +21,17 @@ BASE_I_LV = BASE_POWER/BASE_VOLTAGE_LV #Amps    2.5000  2500
 ################################################################################################################
 
 def fetch_base_z_from_line(DATA, l):
+    
     LBUS,SUBS,SLACK,LINES,LINES_OPT,N_PERIODS = DATA
+    BUS = LBUS | SUBS | SLACK
+
     sending_bus = LINES[l].to_bus
-    try :
-        voltage_level = LBUS[sending_bus].voltage_level
-    except :
-        try :
-            voltage_level = SUBS[sending_bus].voltage_level 
-        except:
-            voltage_level = SLACK[sending_bus].voltage_level
+    receving_bus = LINES[l].from_bus
+
+    if BUS[sending_bus].voltage_level >= BUS[receving_bus].voltage_level:  
+        voltage_level = BUS[receving_bus].voltage_level
+    else:
+        voltage_level = BUS[sending_bus].voltage_level
 
     if voltage_level == 70000:
         return BASE_Z_HV
@@ -42,14 +44,15 @@ def fetch_base_z_from_line(DATA, l):
 
 def fetch_base_i_from_line(DATA, l):
     LBUS,SUBS,SLACK,LINES,LINES_OPT,N_PERIODS = DATA
+    BUS = LBUS | SUBS | SLACK
+
     sending_bus = LINES[l].to_bus
-    try :
-        voltage_level = LBUS[sending_bus].voltage_level
-    except :
-        try :
-            voltage_level = SUBS[sending_bus].voltage_level 
-        except:
-            voltage_level = SLACK[sending_bus].voltage_level
+    receving_bus = LINES[l].from_bus
+
+    if BUS[sending_bus].voltage_level >= BUS[receving_bus].voltage_level:  
+        voltage_level = BUS[receving_bus].voltage_level
+    else:
+        voltage_level = BUS[sending_bus].voltage_level
 
     if voltage_level == 70000:
         return BASE_I_HV
@@ -84,6 +87,20 @@ def is_line_to_LV_load(DATA, l):
         else:
             return False
     except:
+        return False
+    
+################################################################################################################
+
+def is_line_to_or_from_load(DATA, l):
+    LBUS,SUBS,SLACK,LINES,LINES_OPT,N_PERIODS = DATA
+    BUSES = LBUS | SUBS | SLACK
+    receving_bus = LINES[l].to_bus
+    sending_bus = LINES[l].from_bus
+    type_1 = BUSES[receving_bus].b_type
+    type_2 = BUSES[sending_bus].b_type 
+    if type_1 in ["LV_load", "MV_load"] or type_2 in ["LV_load", "MV_load"]:
+        return True
+    else:   
         return False
         
 ################################################################################################################

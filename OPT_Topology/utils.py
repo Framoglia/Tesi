@@ -85,7 +85,7 @@ def is_line_to_LV_load(DATA, l):
             return False
     except:
         return False
-    
+        
 ################################################################################################################
 
 def is_line_to_or_from_load(DATA, l):
@@ -101,7 +101,6 @@ def is_line_to_or_from_load(DATA, l):
         return False
         
 ################################################################################################################
-
 def obtain_coef(n):
     # Adjust the angle to rotate the first vertex to the positive y-axis
     angle_offset = math.pi / 2  # 90 degrees in radians

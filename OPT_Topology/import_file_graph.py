@@ -8,6 +8,7 @@ import dill
 from collections import defaultdict
 from param import *
 from pathlib import Path
+import numpy as np
 import re
 import pandas as pd
 
@@ -251,7 +252,7 @@ def load_conductors_csv(file_path = BASE_DIR / "Campus data" / "MyCampus" / "no_
 
 
 def load_bus(city, folder_path= BASE_DIR / "Campus data" / "UpdatedData"):
-    random.seed(8)
+    random.seed(7)
     START_DATE = (1,1,0)  #Day, Month, Hour
     N_PERIODS_MAX = 365 * 24
 
@@ -669,7 +670,10 @@ from collections import defaultdict
 
 def calculate_distance(bus1, bus2):
     """Calculate Euclidean distance between two buses."""
-    return ((bus2.x_coord - bus1.x_coord)**2 + (bus2.y_coord - bus1.y_coord)**2)**0.5
+    distance =((bus2.x_coord - bus1.x_coord)**2 + (bus2.y_coord - bus1.y_coord)**2)**0.5
+    randomized_distance = distance * (1 + random.uniform(-3, 3))  # Randomize distance by ±5%
+
+    return randomized_distance
 
 def build_graph(BUS):
     """Builds a NetworkX graph based on the connection rules."""
@@ -798,6 +802,55 @@ def load_lines(BUS, index):
     
     return lines_dict, line_id
 
+import networkx as nx
+
+def is_radial_topology(BUS, selected_lines, debug=False):
+    """
+    Checks if the selected lines form a radial topology (no loops).
+    If debug=True, prints the lines forming loops.
+
+    Args:
+        BUS (dict): Dictionary of buses.
+        selected_lines (dict): Selected lines {line_id: Line}.
+        debug (bool): If True, prints loop details.
+
+    Returns:
+        bool: True if radial (no loops), False if loops exist.
+    """
+    G = nx.Graph()
+
+    # Add all buses as nodes
+    for bus_id in BUS:
+        G.add_node(bus_id)
+
+    # Add selected lines as edges (with line_id as an attribute)
+    line_id_map = {}  # Maps edges (u, v) to line_id
+    for line_id, line in selected_lines.items():
+        u, v = line.from_bus, line.to_bus
+        G.add_edge(u, v, line_id=line_id)
+        line_id_map[(u, v)] = line_id
+        line_id_map[(v, u)] = line_id  # Ensure undirected access
+    # Check if the graph has cycles
+    if nx.is_forest(G):
+        if debug:
+            print("The topology is radial")
+        return True  # A tree has no cycles → radial
+    else:
+        cycles = list(nx.cycle_basis(G))  # List of cycles (each cycle is a list of nodes)
+
+        if debug:
+            print("Found loops in the topology:")
+            for i, cycle in enumerate(cycles, 1):
+                print(f"  Cycle {i}:")
+                # Print the lines forming the cycle
+                for j in range(len(cycle)):
+                    u = cycle[j]
+                    v = cycle[(j + 1) % len(cycle)]  # Wrap around to close the cycle
+                    line_id = line_id_map.get((u, v), line_id_map.get((v, u), "Unknown"))
+                    print(f"    - Line {line_id}: {u} → {v}")
+
+        return False  # Has cycles → not radial
+
 
 def update_bus_loads(LBUS, stages):
     """
@@ -866,85 +919,6 @@ def update_bus_loads(LBUS, stages):
     return stage_outputs
 
 
-import random
-import numpy as np
-
-def load_ev(LBUS, EV_option, max_power=22) -> dict[int, EV]:
-    T = 24
-    if EV_option == False:
-        for bus in LBUS.values():
-            if bus.b_type == 'MV_load':
-                continue
-
-            location = [np.nan] * T
-            consumption = [np.nan] * T
-
-            bus.vehicle_location = location
-            bus.vehicle_consumption = consumption
-
-            return {}
-        
-    profiles_proba = {
-        'stay': 0,
-        'morning': 0,
-        'evening': 0,
-        'full_day': 1
-    }
-    profiles = ['stay', 'morning', 'evening', 'full_day']
-    total = sum(profiles_proba[p] for p in profiles)
-    weights = [profiles_proba[p] / total for p in profiles]
-  # Hourly resolution for one day
-    mv_load_counts = defaultdict(int)
-
-    for bus in LBUS.values():
-        if bus.b_type == 'MV_load':
-            continue
-
-        # Sample profile correctly
-        profile = random.choices(profiles, weights=weights, k=1)[0]
-        away_bus = random.choice([b for b in LBUS.keys() if b != bus.bus_id and LBUS[b].b_type == 'MV_load'])
-
-        mv_load_counts[away_bus] += 1
-
-        # Initialize
-        location = [np.nan] * T
-        consumption = [np.nan] * T
-
-        if profile == 'stay':
-            # Vehicle never leaves: stays at its home bus all day
-            location = [bus.bus_id] * T
-        else:
-            # Determine departure and return times based on profile
-            if profile == 'morning':
-                depart = random.randint(6, 8)
-                returna = random.randint(10, 12)
-            elif profile == 'evening':
-                depart = random.randint(11, 13)
-                returna = random.randint(16, 18)
-            elif profile == 'full_day':
-                depart = random.randint(6, 8)
-                returna = random.randint(16, 18)
-
-            # Assign two charging events
-            consumption[depart] = round(random.uniform(0.1 * max_power, max_power), 2)
-            consumption[returna] = round(random.uniform(0.1 * max_power, max_power), 2)
-
-            # Build the location timeline
-            for t in range(depart):
-                location[t] = bus.bus_id
-            location[depart] = np.nan
-            for t in range(depart + 1, returna):
-                location[t] = away_bus
-            location[returna] = np.nan
-            for t in range(returna + 1, T):
-                location[t] = bus.bus_id
-
-        bus.vehicle_location = location
-        bus.vehicle_consumption = consumption
-
-    return mv_load_counts
-
-
 
 def build_cond_table(LINES, LINES_OPT):
     cond_table = {}
@@ -1011,26 +985,6 @@ def get_lines_with_upgradable_conductors(cond_table, ranked_conductors, loading_
             upgradable_lines.append(line_id)
     
     return loading_df[upgradable_lines]
-
-def reset_conductor_table(cond_table, LINES, LINES_OPT):
-    """
-    Downgrade conductors for specified lines if possible
-    
-    Args:
-        cond_table: Dictionary of dictionaries showing current conductor assignments
-        ranked_conductors: List of conductor IDs sorted from best to worst
-        lines_to_downgrade: List of line IDs that should be considered for downgrade
-        
-    Returns:
-        Updated cond_table with downgrades applied where possible
-    """
-    cond_table = {k: v for k, v in cond_table.items() if k in LINES.keys()}
-    for line_id in cond_table.keys():
-        # Reset all conductors to the best conductor
-        for conductor_id in cond_table[line_id].keys():
-                cond_table[line_id][conductor_id] = 1
-
-    return cond_table
 
 def save_pkl(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, count = 0):
     data = {

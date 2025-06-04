@@ -9,13 +9,14 @@ from representative_days import *
 # LOAD DATA--------------------------------------
 
 cities = ["Newcampus", "Mycampus", "Abu Dhabi", "Brussels", "Buenos Aires", "Copenhagen", "Los Angeles", "Singapore", "Vancouver", "Montreal", "Tucson", "Miami", "Guayaquil"]
-cities = "Buenos Aires"
+cities = "Vancouver"
 
 #Read data from file
 LINES_OPT = load_conductors_csv(BASE_DIR / "Campus data" / "MyCampus" / "conductors.csv")
 LBUS, SUBS, SLACK, irradiation = load_bus(cities)
 
 approaches = []
+
 folders = []
 district_results = {}
 index = 0
@@ -141,8 +142,8 @@ for district in set(b.district for b in LBUS.values() if b.district and b.distri
         try:
             plot_opt(model, new_LBUS_d, SUBS_d, SLACK, LINES, LINES_OPT, N_PERIODS)
             export_optimal_values(model, count)
-            fig = plot_network_solution_2(model, new_LBUS_d, SUBS_d, SLACK, LINES, LINES_OPT, count)
-            net, pp_bus_map, pp_line_map, results = export_and_solve(model, new_LBUS_d, SUBS_d, SLACK, LINES, LINES_OPT)
+            fig = plot_network_solution_3(model, new_LBUS_d, SUBS_d, SLACK, LINES, LINES_OPT, count)
+            net, pp_bus_map, pp_line_map, results = export_and_solve_2(model, new_LBUS_d, SUBS_d, SLACK, LINES, LINES_OPT)
             voltage_df , loading_df = pf_hm(results, pp_bus_map, pp_line_map, count)
         except TypeError:
             break  
@@ -158,14 +159,25 @@ for district in set(b.district for b in LBUS.values() if b.district and b.distri
         
         count += 1
     
-    district_results[district] = {
-        "model": models[-2],
-        "LBUS": LBUS_d,
-        "SUBS": SUBS_d,
-        "LINES": LINES,
-        "irradiation": irradiation,  
-        "cond_table": cond_table      
-    }
+    if len(models)>=2:
+        district_results[district] = {
+            "model": models[-2],
+            "LBUS": LBUS_d,
+            "SUBS": SUBS_d,
+            "LINES": LINES,
+            "irradiation": irradiation,  
+            "cond_table": cond_table      
+        }
+    else:
+        district_results[district] = {
+            "model": models[-1],
+            "LBUS": LBUS_d,
+            "SUBS": SUBS_d,
+            "LINES": LINES,
+            "irradiation": irradiation,  
+            "cond_table": cond_table      
+        }
+
 
     new_folder = move_files_to_folder(folder_name)
     folders.append(new_folder)

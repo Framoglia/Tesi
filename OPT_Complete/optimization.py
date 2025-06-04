@@ -622,6 +622,27 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     def fix_conductor_rule(m,l,p):
         return m.line_opt[l,p] <= cond_table[l][p]
     
+    def topology_rule(m):
+        return sum(m.line_act[l] for l in m.lines if is_line_to_or_from_load(DATA, l)) == len(LBUS.keys())
+    
+    def topolgy_rule_2(m, s):
+        relevant_lines = [l for l in m.lines if LINES[l].to_bus == s or LINES[l].from_bus == s]
+
+        # If no relevant lines exist, skip constraint
+        if not relevant_lines:
+            return Constraint.Feasible
+
+        # Filter out lines going to/from load (data only)
+        lines_not_to_from_load = [l for l in relevant_lines if not is_line_to_or_from_load(DATA, l)]
+
+        # If that filter removes all lines, skip constraint again
+        if not lines_not_to_from_load:
+            return Constraint.Feasible
+
+        # Otherwise return symbolic Pyomo inequality
+        expr = sum(m.line_act[l] for l in lines_not_to_from_load)
+        return expr <= 1
+    
 
 
     model.PV_incr_cstr = Constraint(model.buses, rule=PV_increasing_rule)
@@ -779,6 +800,9 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     model.current_scaling_cstr = Constraint(model.periods, model.lines, model.conductors, rule=current_scaling_rule)
     model.phi_scaling_cstr= Constraint(model.periods, rule=phi_scaling_rule)
     model.fix_conductor_cstr = Constraint(model.lines, model.conductors, rule=fix_conductor_rule)
+
+    model.topology_cstr = Constraint(rule=topology_rule)
+    model.topology_cstr_2 = Constraint(model.subs_mv, rule=topolgy_rule_2)
     
 
 

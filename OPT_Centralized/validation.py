@@ -238,6 +238,9 @@ def export_and_solve(model, LBUS, SUBS, SLACK, LINES, LINES_OPT):
                 "trafo": net.res_trafo.copy() if not net.trafo.empty else None,
                 "net": copy.deepcopy(net)  # Store the entire network state
             }
+            if t == 16:
+                # Plot the power flow results for this timestep
+                pf_res_plotly(net)
         except pp.powerflow.LoadflowNotConverged:
             results[t] = "Power flow did not converge"
 

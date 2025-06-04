@@ -2,7 +2,6 @@ import pandapower as pp
 import pandas as pd
 from pyomo.environ import Var, Param, Expression
 import math
-import csv
 import plotly.graph_objects as go
 from utils import *
 import plotly.io as pio
@@ -15,9 +14,8 @@ import matplotlib.pyplot as plt
 from pandapower.plotting.plotly import simple_plotly, pf_res_plotly
 from pyomo.environ import value  # Import Pyomo's value() function
 import seaborn as sns
-from collections import defaultdict
 
-def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
+def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, district):
     # Combine all buses from different categories into one list
     all_buses = LBUS | SUBS| SLACK
 
@@ -44,27 +42,23 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
         "LV_load": ("x", "blue")   # X, Blue
     }
 
-    plotted_types = set()
     for bus in m.B | m.subs_hv:
         if bus in m.buses:
             x = LBUS[bus].x_coord
             y = LBUS[bus].y_coord
-            b_type = LBUS[bus].b_type
+            b_type = LBUS[bus].b_type  # Assuming each bus has a 'p_type' attribute
         elif bus in m.subs_hv:
             x = SLACK[bus].x_coord
             y = SLACK[bus].y_coord
-            b_type = SLACK[bus].b_type
+            b_type = SLACK[bus].b_type  # Assuming each substation has a 'p_type' attribute
         else:
             x = SUBS[bus].x_coord
             y = SUBS[bus].y_coord
             b_type = SUBS[bus].b_type
-
-        marker, color = type_markers.get(b_type, ("o", "black"))
+            
         
-        label = b_type if b_type not in plotted_types else None
-        plotted_types.add(b_type)
-        
-        plt.scatter(x, y, s=100, c=color, marker=marker, label=label)
+        marker, color = type_markers.get(b_type, ("o", "black"))  # Default to black circle if unknown
+        plt.scatter(x, y, s=100, c=color, marker=marker, label=b_type if bus == list(m.B)[0] else "")
 
     # Assuming 'LINES_OPT' is already defined, and it contains the necessary information for each conductor
     # Sort the conductors by 'imax' values
@@ -129,7 +123,7 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     plt.title('Bus Locations')
     plt.legend()
     plt.grid(True)
-    name=f"optimal_topology.png"
+    name=f"optimal_topology_{district}.png"
     plt.savefig(name)
     plt.close()
 
@@ -173,15 +167,12 @@ def plot_opt_district(district_results, SLACK, LINES_OPT):
         "LV_load": ("x", "blue")   # X, Blue
     }
 
-    buses_by_type = defaultdict(list)
-    for bus in all_buses.values():
-        buses_by_type[bus.b_type].append(bus)
-
-    # Plot once per bus type
-    for b_type, buses in buses_by_type.items():
-        marker, color = type_markers.get(b_type, ("o", "black"))
-        x = [bus.x_coord for bus in buses]
-        y = [bus.y_coord for bus in buses]
+    for bus in all_buses.keys():
+        x = all_buses[bus].x_coord
+        y = all_buses[bus].y_coord
+        b_type = all_buses[bus].b_type
+            
+        marker, color = type_markers.get(b_type, ("o", "black"))  # Default to black circle if unknown
         plt.scatter(x, y, s=100, c=color, marker=marker, label=b_type)
 
     conductors = sorted(LINES_OPT, key=lambda conductor: LINES_OPT[conductor].imax_kA)
@@ -789,22 +780,13 @@ def move_files_to_folder(folder_name='organized_files'):
 ################################################################################################################
 
 def group_folders(folders, group_name='all_organized_folders'):
-
-    if group_name != "Bilevel" and group_name != "Centralized":
-        timestamp = datetime.now().strftime("%d_%m_%H_%M")
-        main_folder = f"{group_name}_{timestamp}" 
-    else: 
-        main_folder = f"{group_name}"
-
+    timestamp = datetime.now().strftime("%d_%m_%H_%M")
+    main_folder = f"{group_name}_{timestamp}" 
     os.makedirs(main_folder, exist_ok=True)
     for folder in folders:
         if os.path.exists(folder):
             shutil.move(folder, os.path.join(main_folder, folder))
-    if group_name == "Bilevel" or group_name == "Centralized":
-        shutil.move("optimal_topology.png",os.path.join(main_folder, "optimal_topology.png"))
     print(f"Grouped all folders into '{main_folder}'.")
-
-    return main_folder
 
 ################################################################################################################
 
@@ -1303,396 +1285,3 @@ def check_loads(LBUS):
 
         plt.tight_layout()
         plt.show()
-
-def plot_network_solution_3(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, count):
-
-    """
-    Creates an interactive Plotly figure of the optimized distribution network.
-    
-    Parameters:
-      model      : The solved optimization model.
-      LBUS       : Dict of load bus objects with attributes: voltage_level, x_coord, y_coord, and surface.
-      SUBS       : Dict of substation objects with attributes: voltage_level, x_coord, y_coord.
-      SLACK      : Dict of slack bus objects with attributes: voltage_level, x_coord, y_coord.
-      LINES      : Dict of line objects with attributes: from_bus, to_bus, length.
-      LINES_OPT  : Dict of conductor objects (keyed by conductor type) with attributes: r_per_km, xl_per_km, imax_kA.
-    
-    Returns:
-      fig        : A Plotly figure with a timestep slider and update buttons.
-    """
-    import plotly.graph_objects as go
-
-    # ====== CONFIGURATION ======
-    bus_type_info = {
-        "LV LOAD":  {"color": "blue",   "symbol": "circle",   "name": "LV Load Bus"},
-        "MV LOAD":  {"color": "yellow",   "symbol": "circle",   "name": "MV Load Bus"},
-        "SUBS":  {"color": "red",    "symbol": "square",   "name": "Substation"},
-        "SLACK": {"color": "green",  "symbol": "diamond",  "name": "Slack"}
-    }
-    not_built_color = "grey"
-    
-    # Marker symbols and offsets
-    pv_symbol      = "star"
-    inv_symbol     = "x"
-    storage_symbol = "diamond"
-    pv_offset      = (2.5, 5)
-    inv_offset     = (2.5, 2.5)
-    storage_offset = (-2.5, 2.5)
-    
-    # Conductor colors
-    conductor_colors = {
-        "Poppy": "#90E0EF",
-        "Oxlip": "#00B4D8",
-        "Daisy": "#0077B6",
-        "Tulip": "#03045E"
-    }
-    
-    # ====== BUILD STATIC TRACES ======
-    # -- Load Buses (LBUS) -- static hover info: only the bus id.
-    lbus_traces = []
-    lbus_by_type = {"LV LOAD": {"x": [], "y": [], "ids": []},
-                    "MV LOAD": {"x": [], "y": [], "ids": []}}
-
-    for bus_id, bus in LBUS.items():
-        typex = "MV LOAD"
-        if bus.voltage_level == 400:
-            typex = "LV LOAD"
-        lbus_by_type[typex]["x"].append(bus.x_coord)
-        lbus_by_type[typex]["y"].append(bus.y_coord)
-        lbus_by_type[typex]["ids"].append(bus_id)
-
-    # Create one trace per type
-    for typex, data in lbus_by_type.items():
-        trace = go.Scatter(
-            x=data["x"], y=data["y"],
-            mode="markers",
-            marker=dict(
-                color=bus_type_info[typex]["color"],
-                symbol=bus_type_info[typex]["symbol"],
-                size=10
-            ),
-            text=[f"Bus {bus_id}" for bus_id in data["ids"]],
-            hoverinfo="text",
-            name=bus_type_info[typex]["name"]
-        )
-        lbus_traces.append(trace)
-    
-    lv_ids = lbus_by_type["LV LOAD"]["ids"]
-    mv_ids = lbus_by_type["MV LOAD"]["ids"]
-        
-    # -- Substations (SUBS) -- initial texts will be updated dynamically.
-    subs_built_x, subs_built_y, subs_built_text = [], [], []
-    subs_not_built_x, subs_not_built_y, subs_not_built_text = [], [], []
-    for sub_id, sub in SUBS.items():
-        if hasattr(model, "gamma") and model.gamma[sub_id].value >= 0.8:
-            subs_built_x.append(sub.x_coord)
-            subs_built_y.append(sub.y_coord)
-            subs_built_text.append(f"Substation {sub_id} (Built)")
-        else:
-            subs_not_built_x.append(sub.x_coord)
-            subs_not_built_y.append(sub.y_coord)
-            subs_not_built_text.append(f"Substation {sub_id} (Not Built)")
-    
-    subs_built_trace = go.Scatter(
-        x=subs_built_x, y=subs_built_y,
-        mode="markers",
-        marker=dict(color=bus_type_info["SUBS"]["color"],
-                    symbol=bus_type_info["SUBS"]["symbol"],
-                    size=12),
-        text=subs_built_text,
-        hoverinfo="text",
-        name="Substations (Built)"
-    )
-    subs_not_built_trace = go.Scatter(
-        x=subs_not_built_x, y=subs_not_built_y,
-        mode="markers",
-        marker=dict(color=not_built_color,
-                    symbol=bus_type_info["SUBS"]["symbol"],
-                    size=12),
-        text=subs_not_built_text,
-        hoverinfo="text",
-        name="Substations (Not Built)"
-    )
-    
-    # -- Slack Buses (SLACK) -- initial texts will be updated dynamically.
-    slack_built_x, slack_built_y, slack_built_text = [], [], []
-    slack_not_built_x, slack_not_built_y, slack_not_built_text = [], [], []
-    for slack_id, slack in SLACK.items():
-        if hasattr(model, "beta") and model.beta[slack_id].value >= 0.8:
-            slack_built_x.append(slack.x_coord)
-            slack_built_y.append(slack.y_coord)
-            slack_built_text.append(f"Slack {slack_id} (Active)")
-        else:
-            slack_not_built_x.append(slack.x_coord)
-            slack_not_built_y.append(slack.y_coord)
-            slack_not_built_text.append(f"Slack {slack_id} (Not Active)")
-    
-    slack_built_trace = go.Scatter(
-        x=slack_built_x, y=slack_built_y,
-        mode="markers",
-        marker=dict(color=bus_type_info["SLACK"]["color"],
-                    symbol=bus_type_info["SLACK"]["symbol"],
-                    size=12),
-        text=slack_built_text,
-        hoverinfo="text",
-        name="Slack (Active)"
-    )
-    slack_not_built_trace = go.Scatter(
-        x=slack_not_built_x, y=slack_not_built_y,
-        mode="markers",
-        marker=dict(color=not_built_color,
-                    symbol=bus_type_info["SLACK"]["symbol"],
-                    size=12),
-        text=slack_not_built_text,
-        hoverinfo="text",
-        name="Slack (Not Active)"
-    )
-    
-    
-    # -- Build Line Traces (Geometry and Midpoint Markers)
-    bus_coords = {bus_id: (bus.x_coord, bus.y_coord) for bus_id, bus in LBUS.items()}
-    bus_coords.update({sub_id: (sub.x_coord, sub.y_coord) for sub_id, sub in SUBS.items()})
-    bus_coords.update({slack_id: (slack.x_coord, slack.y_coord) for slack_id, slack in SLACK.items()})
-    
-    lines_geom_by_conductor = {}   # For drawing the lines
-    midpoints_by_conductor = {}      # For midpoint markers with dynamic hover info
-    conductor_order = []  # to maintain order of conductor groups
-    t0 = next(iter(model.periods))  # initial timestep
-    
-    for line_id, line in LINES.items():
-        built = False
-        if hasattr(model, 'line_act') and model.line_act[line_id].value > 0.8:
-            built = True
-
-        if built:
-            chosen_conductor = None
-            for cond in LINES_OPT.keys():
-                if model.line_opt[line_id, cond].value > 0.8:
-                    chosen_conductor = cond
-                    break
-            if chosen_conductor is None:
-                chosen_conductor = "unknown"
-        else:
-            chosen_conductor = "not_built"
-        
-        if line.from_bus in bus_coords and line.to_bus in bus_coords:
-            x0, y0 = bus_coords[line.from_bus]
-            x1, y1 = bus_coords[line.to_bus]
-            xm, ym = (x0 + x1) / 2, (y0 + y1) / 2
-            
-            line_hover = ""  # will be updated dynamically in frames
-            
-            if chosen_conductor not in lines_geom_by_conductor:
-                lines_geom_by_conductor[chosen_conductor] = {"x": [], "y": []}
-                midpoints_by_conductor[chosen_conductor] = {"x": [], "y": [], "text": []}
-                conductor_order.append(chosen_conductor)
-            lines_geom_by_conductor[chosen_conductor]["x"].extend([x0, x1, None])
-            lines_geom_by_conductor[chosen_conductor]["y"].extend([y0, y1, None])
-            midpoints_by_conductor[chosen_conductor]["x"].append(xm)
-            midpoints_by_conductor[chosen_conductor]["y"].append(ym)
-            midpoints_by_conductor[chosen_conductor]["text"].append(line_hover)
-    
-    line_traces = []
-    midpoint_trace_refs = []  # For dynamic update
-    for cond in conductor_order:
-        if cond == "not_built":
-            color = "grey"
-            dash = "dash"
-            name = "Not Built"
-        else:
-            color = conductor_colors.get(cond, "black")
-            dash = "solid"
-            name = f"Conductor {cond}"
-        geom_trace = go.Scatter(
-            x=lines_geom_by_conductor[cond]["x"],
-            y=lines_geom_by_conductor[cond]["y"],
-            mode="lines",
-            line=dict(color=color, width=2, dash=dash),
-            hoverinfo="none",
-            name=name
-        )
-        midpoint_trace = go.Scatter(
-            x=midpoints_by_conductor[cond]["x"],
-            y=midpoints_by_conductor[cond]["y"],
-            mode="markers",
-            marker=dict(color=color, size=8, symbol="circle"),
-            text=midpoints_by_conductor[cond]["text"],
-            hoverinfo="text",
-            name=name + " (Info)"
-        )
-        line_traces.append(geom_trace)
-        line_traces.append(midpoint_trace)
-        midpoint_trace_refs.append(midpoint_trace)
-    
-    # ====== ASSEMBLE THE FIGURE ======
-    data = [
-        lbus_traces[0],
-        lbus_traces[1],
-        subs_built_trace,
-        subs_not_built_trace,
-        slack_built_trace,
-        slack_not_built_trace,
-    ] + line_traces
-
-    fig = go.Figure(data=data)
-    
-    # ====== BUILD FRAMES FOR TIMESTEP UPDATES ======
-    frames = []
-    for t in model.periods:
-        # Update dynamic hover texts.
-
-        updated_lbus_lv, updated_lbus_mv = [], []
-       
-
-        # --- LV Buses ---
-        for bus_id in lv_ids:
-            # Load data
-            P_val = model.P_load[t, bus_id].value
-            Q_val = model.Q_load[t, bus_id].value
-            updated_lbus_lv.append(
-                f"LV Bus {bus_id}<br>Load: {P_val:.3f} MW, {Q_val:.3f} MVAR (Timestep {t})"
-            )
-
-
-        # --- MV Buses ---
-        for bus_id in mv_ids:
-            # Load data
-            P_val = model.P_load[t, bus_id].value
-            Q_val = model.Q_load[t, bus_id].value
-            updated_lbus_mv.append(
-                f"MV Bus {bus_id}<br>Load: {P_val:.3f} MW, {Q_val:.3f} MVAR (Timestep {t})"
-            )
-
-        updated_subs_built_text = []
-        updated_subs_not_built_text = []
-        updated_slack_built_text = []
-        updated_slack_not_built_text = []
-        
-        # Update slack buses' dynamic info.
-        for slack_id, slack in SLACK.items():
-            if hasattr(model, "beta"):
-                if model.beta[slack_id].value >= 0.8:
-                    sub_capacity = model.subs_hv_capacity[slack_id].value
-                    sub_power = (model.subs_hv_P[t,slack_id].value**2+model.subs_hv_Q[t,slack_id].value**2)**0.5
-                    sub_lin_power = model.subs_hv_S[t,slack_id].value
-                    updated_slack_built_text.append(
-                        f"Slack {slack_id} (Active)<br>Capacity: {sub_capacity:.3f}<br>Power: {sub_power:.3f}<br>Lin Power: {sub_lin_power:.3f}"
-                    )
-                else:
-                    sub_capacity = model.subs_hv_capacity[slack_id].value
-                    sub_power = (model.subs_hv_P[t,slack_id].value**2+model.subs_hv_Q[t,slack_id].value**2)**0.5
-                    updated_slack_not_built_text.append(
-                        f"Slack {slack_id} (Not Active)<br>Beta: {model.beta[slack_id].value:.3f}<br>Capacity: {sub_capacity:.3f}<br>Power: {sub_power:.3f}"
-                    )
-        
-        # Update line midpoint hover texts.
-        new_midpoint_texts = []
-        for cond in conductor_order:
-            texts = []
-            for line_id, line in LINES.items():
-                built = False
-                if hasattr(model, 'line_act') and model.line_act[line_id].value > 0.8:
-                    built = True
-
-                if built:
-                    chosen_conductor = None
-                    for cond_key in LINES_OPT.keys():
-                        if model.line_opt[line_id, cond_key].value > 0.8:
-                            chosen_conductor = cond_key
-                            break
-                    if chosen_conductor is None:
-                        chosen_conductor = "unknown"
-                else:
-                    chosen_conductor = "not_built"
-                
-                if chosen_conductor == cond:
-                    act_p = model.active_power[t, line_id].value if hasattr(model, "active_power") else 0
-                    react_p = model.reactive_power[t, line_id].value if hasattr(model, "reactive_power") else 0
-                    losses = model.losses[t, line_id].value if hasattr(model, "losses") else 0
-                    fict_p = model.fictitious_power[t, line_id].value if hasattr(model, "fictitious_power") else 0
-                    texts.append(
-                        f"Line {line_id}<br>Length: {line.length}<br>Active: {act_p:.3f} MW<br>"
-                        f"Reactive: {react_p:.3f} MVAR<br>Losses: {losses:.3f}<br>Fict: {fict_p:.3f} (Timestep {t})"
-                    )
-            new_midpoint_texts.append(texts)
-        
-        # Assemble frame update list.
-        # Data order:
-        # 0: lbus, 1: subs_built, 2: subs_not_built, 3: slack_built, 4: slack_not_built,
-        # 5: PV, 6: inverters, 7: storage, then line traces (for each conductor group: geometry then midpoint).
-        frame_updates = [
-            {"text": updated_lbus_lv},     # Trace 0: LV buses
-            {"text": updated_lbus_mv}, 
-            {"text": updated_subs_built_text},
-            {"text": updated_subs_not_built_text},
-            {"text": updated_slack_built_text},
-            {"text": updated_slack_not_built_text}
-        ]
-        
-        for texts in new_midpoint_texts:
-            frame_updates.append({})             # geometry trace remains unchanged
-            frame_updates.append({"text": texts})  # update midpoint markers
-        
-        frames.append(go.Frame(data=frame_updates, name=str(t)))
-    
-    fig.frames = frames
-
-    # ====== ADD SLIDER ======
-    slider = dict(
-        steps=[dict(
-            method="animate",
-            args=[[str(t)], 
-                  dict(mode="immediate",
-                       frame=dict(duration=500, redraw=True),
-                       transition=dict(duration=300))],
-            label=str(t)
-        ) for t in model.periods],
-        active=0,
-        transition=dict(duration=300),
-        currentvalue=dict(prefix="Timestep: ", visible=True, xanchor="center"),
-        x=0, y=0, len=1.0
-    )
-    
-    fig.update_layout(
-        title="Optimized Distribution Network Solution",
-        xaxis_title="X Coordinate",
-        yaxis_title="Y Coordinate",
-        sliders=[slider],
-        hovermode="closest"
-    )
-
-    filename = f"Results_{count}.html"
-    fig.write_html(filename)
-    
-    return fig
-
-def write_inv_info_to_csv(inv_infos, filename='inv_info_table.csv', missing_value='NA'):
-    """
-    Writes inverter information per bus to a CSV file.
-
-    Parameters:
-    - inv_infos (dict): Dictionary where keys are bus IDs and values are dicts of inverter info.
-    - filename (str): Output CSV file path.
-    - missing_value (any): Value to insert for missing keys in some entries.
-    """
-
-    # Get all unique field names from all inv_info dictionaries
-    all_keys = set()
-    for info in inv_infos.values():
-        all_keys.update(info.keys())
-    all_keys = sorted(all_keys)  # Optional: sort keys for consistent column order
-
-    # Add 'bus_id' as the first column
-    fieldnames = ['bus_id'] + all_keys
-
-    with open(filename, mode='w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=fieldnames)
-        writer.writeheader()
-
-        for bus_id, info in inv_infos.items():
-            row = {'bus_id': bus_id}
-            for key in all_keys:
-                row[key] = info.get(key, missing_value)
-            writer.writerow(row)
-
-    print(f"Data successfully written to {filename}")
