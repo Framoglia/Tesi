@@ -8,7 +8,7 @@ from representative_days import *
 
 
 cities = ["Newcampus", "Mycampus", "Abu Dhabi", "Brussels", "Buenos Aires", "Copenhagen", "Los Angeles", "Singapore", "Vancouver", "Montreal", "Tucson", "Miami", "Guayaquil"]
-cities = "Copenhagen"
+cities = "Montreal"
 
 #Read data from file
 LINES_OPT = load_conductors_csv(BASE_DIR / "Campus data" / "MyCampus" / "conductors.csv")
@@ -43,7 +43,7 @@ for district in set(b.district for b in LBUS.values() if b.district and b.distri
 
     cond_table, ranked_conductors = build_cond_table(LINES, LINES_OPT)
 
-    while count < 2:   
+    while True:   
 
 
         if count != 0:
@@ -91,7 +91,7 @@ for district in set(b.district for b in LBUS.values() if b.district and b.distri
         pf_vs_opt = plot_comparisons(net, powerflow_results[x-1], models[x-1], pp_bus_map)
 
     district_results[district] = {
-        "model": models[-1],
+        "model": models[x-1],
         "LBUS": new_LBUS_d,
         "SUBS": SUBS_d,
         "LINES": LINES,
@@ -103,7 +103,7 @@ for district in set(b.district for b in LBUS.values() if b.district and b.distri
     folders.append(new_folder)
 
 plot_opt_district(district_results, SLACK, LINES_OPT)
-group_folders(folders, group_name='Abu Dhabi')
+group_folders(folders, group_name=cities)
 
 
 

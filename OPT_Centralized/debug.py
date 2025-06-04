@@ -786,6 +786,7 @@ def group_folders(folders, group_name='all_organized_folders'):
     for folder in folders:
         if os.path.exists(folder):
             shutil.move(folder, os.path.join(main_folder, folder))
+    shutil.move('optimal_topology.png', main_folder)  # Move the organized files folder into the main folde
     print(f"Grouped all folders into '{main_folder}'.")
 
 ################################################################################################################
