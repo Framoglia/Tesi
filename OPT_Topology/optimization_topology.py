@@ -45,6 +45,10 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.fictitious_power = Var(model.lines, within=Reals)
     model.unserved_fictitious_power = Var(model.buses, within=NonNegativeReals)
 
+    model.gamma_used = Var(model.subs_mv, within=Binary)
+    model.abs_fict_p = Var(model.lines, within=NonNegativeReals)
+
+
     #Constraints
 
     def conductors_cost(m):
@@ -98,31 +102,6 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     def sos1_line_opt_rule(m, l):
         return [m.line_opt[l, c] for c in m.conductors]
     
-    def topology_rule(m):
-        return sum(m.line_act[l] for l in m.lines if is_line_to_or_from_load(DATA, l)) == len(LBUS.keys())
-    
-    def topolgy_rule_2(m, s):
-        relevant_lines = [l for l in m.lines if LINES[l].to_bus == s or LINES[l].from_bus == s]
-
-        # If no relevant lines exist, skip constraint
-        if not relevant_lines:
-            return Constraint.Feasible
-
-        # Filter out lines going to/from load (data only)
-        lines_not_to_from_load = [l for l in relevant_lines if not is_line_to_or_from_load(DATA, l)]
-
-        # If that filter removes all lines, skip constraint again
-        if not lines_not_to_from_load:
-            return Constraint.Feasible
-
-        # Otherwise return symbolic Pyomo inequality
-        expr = sum(m.line_act[l] for l in lines_not_to_from_load)
-        return expr <= 1
-    
-    
-    model.gamma_used = Var(model.subs_mv, within=Binary)
-    model.abs_fict_p = Var(model.lines, within=NonNegativeReals)
-
     def abs_fict_rule(m,l):
         return m.abs_fict_p[l] >= m.fictitious_power[1,l]
     
@@ -159,8 +138,6 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     model.abs_fict_p_cstr = Constraint(model.lines, rule=abs_fict_rule)
     model.abs_fict_p_cstr_2 = Constraint(model.lines, rule=abs_fict_rule_2)
     model.gamma_switch_fict_cstr = Constraint(model.subs_mv, rule=gamma_switch_fict_rule)
-    #model.topology_cstr = Constraint(rule=topology_rule)
-    #model.topology_cstr_2 = Constraint(model.subs_mv, rule=topolgy_rule_2)
     model.topology_cstr_3 = Constraint(model.subs_mv, rule=topology_rule_3)
 
     def objective_rule(m):
