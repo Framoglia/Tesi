@@ -37,7 +37,6 @@ def plot_opt(m, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS):
     type_markers = {
         "HV_sub": ("s", "red"),   # Square, Red
         "MV_sub": ("D", "orange"), # Diamond, Orange
-        "LV_sub": ("^", "yellow"), # Triangle, Yellow
         "MV_load": ("o", "green"), # Circle, Green
         "LV_load": ("x", "blue")   # X, Blue
     }
@@ -159,38 +158,33 @@ def plot_opt_district(district_results, SLACK, LINES_OPT):
     plt.ylim(y_min, y_max)
 
     # Plot LBUS
+# Plot buses with unique legend entries
     type_markers = {
-        "HV_sub": ("s", "red"),   # Square, Red
-        "MV_sub": ("D", "orange"), # Diamond, Orange
-        "LV_sub": ("^", "yellow"), # Triangle, Yellow
-        "MV_load": ("o", "green"), # Circle, Green
-        "LV_load": ("x", "blue")   # X, Blue
+        "HV_sub": ("s", "red"),
+        "MV_sub": ("D", "orange"),
+        "MV_load": ("o", "green"),
+        "LV_load": ("x", "blue")
     }
+    plotted_types = set()
 
     for bus in all_buses.keys():
         x = all_buses[bus].x_coord
         y = all_buses[bus].y_coord
         b_type = all_buses[bus].b_type
-            
-        marker, color = type_markers.get(b_type, ("o", "black"))  # Default to black circle if unknown
-        plt.scatter(x, y, s=100, c=color, marker=marker, label=b_type)
+        marker, color = type_markers.get(b_type, ("o", "black"))
+        label = b_type if b_type not in plotted_types else ""
+        plt.scatter(x, y, s=100, c=color, marker=marker, label=label)
+        plotted_types.add(b_type)
 
+    # Plot lines (unchanged)
     conductors = sorted(LINES_OPT, key=lambda conductor: LINES_OPT[conductor].imax_kA)
-
-    # Create a monochromatic colormap based on the number of unique conductors
-    num_conductors = len(conductors)
-    colormap = cm.get_cmap('Blues', num_conductors)  # 'Blues' colormap
-    colormap = colormap(np.linspace(0.3, 1, num_conductors))  # Start at 0.3 to avoid the very light colors
-
-    # Create a mapping from code_word to color
+    colormap = cm.get_cmap('Blues', len(conductors))
+    colormap = colormap(np.linspace(0.3, 1, len(conductors)))
     color_mapping = {code_word: colormap[i] for i, code_word in enumerate(conductors)}
 
-    # Add a legend for the code words and their corresponding colors
+    # Add legend entries for conductors (unchanged)
     for code_word, color in color_mapping.items():
         plt.plot([], [], color=color, label=code_word)
-
-    plt.legend()
-
 
     # Plot lines based on the activated lines and conductors
     for line in LINES.keys():
@@ -276,7 +270,6 @@ def plot_topology_basic(LBUS, SUBS, SLACK, LINES):
     type_markers = {
         "HV_sub": ("s", "red"),
         "MV_sub": ("D", "orange"),
-        "LV_sub": ("^", "yellow"),
         "MV_load": ("o", "green"),
         "LV_load": ("x", "blue")
     }
@@ -336,12 +329,12 @@ def plot_topology_basic(LBUS, SUBS, SLACK, LINES):
 
 ################################################################################################################
 
-def export_optimal_values(model, count=0,  blacklist=[]): 
+def export_optimal_values(model, suffix="",  blacklist=[]): 
     """
     Export optimal solution values for variables, parameters, and expressions not in the blacklist.
     Saves as 'optimal_values.csv'.
     """
-    filename = f"optimal_values_{count}.csv"
+    filename = f"optimal_values{suffix}.csv"
     rows = []
     global_sets = []
     comp_set_map = {}
@@ -680,7 +673,7 @@ def plot_comparisons_normalized(net, results, model, pp_bus_map, filename):
 
 ################################################################################################################
 
-def pf_hm(results, pp_bus_map, pp_line_map, count=0):
+def pf_hm(results, pp_bus_map, pp_line_map, suffix=""):
     inv_bus_map = {v: k for k, v in pp_bus_map.items()}
     inv_line_map = {v: k for k, v in pp_line_map.items()}
 
@@ -710,7 +703,7 @@ def pf_hm(results, pp_bus_map, pp_line_map, count=0):
     plt.xlabel("Original Bus ID")
     plt.ylabel("Time Step")
     plt.tight_layout()
-    plt.savefig(f"bus_voltages_{count}.png")
+    plt.savefig(f"bus_voltages{suffix}.png")
     plt.close()
 
     # Line Loading Heatmap
@@ -720,7 +713,7 @@ def pf_hm(results, pp_bus_map, pp_line_map, count=0):
     plt.xlabel("Original Line ID")
     plt.ylabel("Time Step")
     plt.tight_layout()
-    plt.savefig(f"line_loadings_{count}.png")
+    plt.savefig(f"line_loadings{suffix}.png")
     plt.close()
 
     return voltage_df , loading_df
@@ -758,7 +751,7 @@ def move_files_to_folder(folder_name='organized_files'):
     os.makedirs(comparison_folder, exist_ok=True)
 
     # File type patterns
-    file_types = ['*.pdf', '*.csv', '*.txt', '*.log', '*.lp', '*.pkl', '*.html']
+    file_types = ['*.pdf', '*.txt', '*.log', '*.lp', '*.pkl', '*.html']
 
     # Move comparison PNGs to comparison folder
     for file in glob.glob('comparison_t*.png'):
@@ -767,6 +760,10 @@ def move_files_to_folder(folder_name='organized_files'):
     # Move other PNGs to main folder
     for file in glob.glob('*.png'):
         if not file.startswith('comparison_t'):
+            shutil.move(file, os.path.join(main_folder, file))
+
+    for file in glob.glob('*.csv'):
+        if not file.startswith('days'):
             shutil.move(file, os.path.join(main_folder, file))
 
     # Move other file types
@@ -786,12 +783,99 @@ def group_folders(folders, group_name='all_organized_folders'):
     for folder in folders:
         if os.path.exists(folder):
             shutil.move(folder, os.path.join(main_folder, folder))
-    shutil.move('optimal_topology.png', main_folder)  # Move the organized files folder into the main folde
+    shutil.move('optimal_topology.png', main_folder)
+    shutil.move('days.csv', main_folder)
+    shutil.move('final_optimal_values.csv', main_folder)
     print(f"Grouped all folders into '{main_folder}'.")
 
 ################################################################################################################
 
-def plot_network_solution_2(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, count = 0):
+import pandas as pd
+import os
+
+def merge_district_results(folders_list, output_file='merged_optimal_values.csv'):
+    """
+    Merge optimal_values.csv files from multiple district folders with blacklist support.
+    
+    Args:
+        folders_list (list): List of folder paths containing optimal_values.csv files
+        output_file (str): Path for the merged output file
+    """
+    # Define variables that should NOT be summed (take the first occurrence)
+    BLACKLIST = [
+        'subs_hv_inst_cost'
+    ]
+    
+    # Initialize an empty DataFrame to store merged results
+    merged_df = pd.DataFrame()
+    
+    # Define the columns that form the unique identifier for each variable
+    id_columns = ['Name', 'periods', 'lines', 'conductors', 'subs_hv', 'subs_mv', 
+                 'buses', 'SetUnion_OrderedSet', 'NPWB']
+    
+    for folder in folders_list:
+        csv_path = os.path.join(folder, 'optimal_values.csv')
+        
+        if not os.path.exists(csv_path):
+            print(f"Warning: File not found in {folder}, skipping")
+            continue
+            
+        # Read the CSV file
+        df = pd.read_csv(csv_path)
+        
+        # Fill NA values in the ID columns for proper grouping
+        df[id_columns] = df[id_columns].fillna('')
+        
+        if merged_df.empty:
+            # First file - just use it as the base
+            merged_df = df
+        else:
+            # Split the data into blacklisted and non-blacklisted variables
+            blacklisted = df[df['Name'].isin(BLACKLIST)]
+            non_blacklisted = df[~df['Name'].isin(BLACKLIST)]
+            
+            # For non-blacklisted variables, merge and sum values
+            if not non_blacklisted.empty:
+                temp_df = non_blacklisted[id_columns + ['Value']]
+                temp_df = temp_df.groupby(id_columns, as_index=False).sum()
+                
+                # Merge with existing non-blacklisted data
+                merged_non_black = merged_df[~merged_df['Name'].isin(BLACKLIST)]
+                merged_non_black = pd.merge(
+                    merged_non_black,
+                    temp_df,
+                    on=id_columns,
+                    how='outer',
+                    suffixes=('', '_new')
+                )
+                
+                # Where we have both old and new values, sum them
+                mask = ~merged_non_black['Value_new'].isna()
+                merged_non_black.loc[mask, 'Value'] = merged_non_black.loc[mask, 'Value'].fillna(0) + merged_non_black.loc[mask, 'Value_new']
+                merged_non_black.drop(columns=['Value_new'], inplace=True)
+                
+                # Combine with blacklisted variables (keeping the original merged_df values)
+                merged_black = merged_df[merged_df['Name'].isin(BLACKLIST)]
+                merged_df = pd.concat([merged_non_black, merged_black], ignore_index=True)
+            
+            # For blacklisted variables, we keep the first occurrence (already in merged_df)
+            # So we don't need to do anything with them
+    
+    # Sort the results for better readability
+    merged_df.sort_values(by=['Name'] + id_columns[1:], inplace=True)
+    
+    # Save the merged results
+    merged_df.to_csv(output_file, index=False)
+    print(f"Merged results saved to {output_file}")
+
+# Example usage:
+# folders_list = ['district1', 'district2', 'district3']
+# merge_district_results(folders_list)
+
+
+################################################################################################################
+
+def plot_network_solution_2(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, suffix=""):
 
     """
     Creates an interactive Plotly figure of the optimized distribution network.
@@ -1254,7 +1338,7 @@ def plot_network_solution_2(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, count = 
         hovermode="closest"
     )
 
-    filename = f"Results_{count}.html"
+    filename = f"Results{suffix}.html"
     fig.write_html(filename)
     
     return fig
@@ -1286,3 +1370,30 @@ def check_loads(LBUS):
 
         plt.tight_layout()
         plt.show()
+
+
+def loading_data_from_model(model, BUSES, LINES, LINES_OPT, cond_table, ranked_conductors):
+    
+    loading_data = {}
+    
+    for line_id, line in LINES.items():
+        count = 0
+
+        currents = list(model.current_squared[p, line_id].value for p in model.periods)
+        while True:
+            value = cond_table[line_id][ranked_conductors[count]]
+            if value == 1:
+                max_current = LINES_OPT[ranked_conductors[count]].imax_kA * 1000
+                break
+            else:
+                count += 1
+
+        lv = False
+        if is_line_lv(BUSES, LINES, line_id):
+            lv = True
+
+        base_current = BASE_I_LV if lv == True else BASE_I_MV
+        currents = list(math.sqrt(model.current_squared[t, line_id].value) * base_current for t in model.periods)
+        print(f"line {line_id}, currents = {currents}")
+        loading_data[line_id] = max(currents) / max_current 
+    return loading_data

@@ -4,7 +4,7 @@ from utils import *
 from pyomo.core import SOSConstraint
 
 
-def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, weights, initial_config, cond_table, setting = [2,15,1,16], EV_option = False):
+def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, weights, initial_config, cond_table, setting = [2,15,1,16]):
     lin_type, NPWB, limits, n_segm = setting
     DATA = LBUS,SUBS, SLACK, LINES,LINES_OPT,N_PERIODS
 
@@ -29,7 +29,6 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     model.C_inv = Var(within=NonNegativeReals)
     model.C_PV = Var(within=NonNegativeReals)
     model.C_storage_capacity = Var(within=NonNegativeReals)
-    """model.C_storage_power = Var(within=NonNegativeReals)"""
     model.subs_hv_inst_cost = Var(within=NonNegativeReals)
     model.subs_mv_inst_cost = Var(within=NonNegativeReals)
     model.PV_inst_cost = Var(within=NonNegativeReals)
@@ -37,9 +36,13 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     model.C_electricity = Var(model.periods, within=Reals)
     model.C_losses = Var(model.periods, within=NonNegativeReals)  
     model.unserved_fictitious_power_cost = Var(within=NonNegativeReals)
+    model.phi = Var(model.periods, within=NonNegativeReals)
+    model.phi_1000 = Var(model.periods, within=NonNegativeReals)
+    
 
     model.total_C_electricity = Expression(expr=sum(model.C_electricity[p] * get_weights(p, weights) for p in model.periods)) #Total cost of electricity
     model.total_C_losses = Expression(expr=sum(model.C_losses[p] * get_weights(p, weights) for p in model.periods)) #Total cost of electricity
+    model.total_phi = Expression(expr=sum(model.phi_1000[p] / 1000 * get_weights(p, weights) for p in model.periods)) #Total cost of ovecurrents
 
     model.line_opt = Var(model.lines, model.conductors, within=Binary)  # Conductor chosen when line is active 
     model.line_act = Var(model.lines, within=Binary)                    # Is the line activated ?
@@ -61,9 +64,6 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     model.c_s_k_1000 = Var(model.periods, model.lines, model.conductors, within=NonNegativeReals)
     model.current_squared = Var(model.periods, model.lines, within=NonNegativeReals)
     model.current_slack = Var(model.periods, model.lines, model.conductors, within=NonNegativeReals)
-    model.phi = Var(model.periods, within=NonNegativeReals)
-    model.phi_1000 = Var(model.periods, within=NonNegativeReals)
-    model.total_phi = Expression(expr=sum(model.phi_1000[p] / 1000 * get_weights(p, weights) for p in model.periods)) #Total cost of ovecurrents
     model.losses = Var(model.periods, model.lines, within=NonNegativeReals)
 
     model.active_power_k = Var( model.periods,model.lines, model.conductors, within=Reals)
@@ -76,7 +76,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     model.fictitious_power = Var(model.periods, model.lines, within=Reals)
     model.unserved_fictitious_power = Var(model.periods, model.buses, within=NonNegativeReals)
 
-    model.voltage_squared = Var(model.periods, model.subs_hv | model.B, within=NonNegativeReals)
+    model.voltage_squared = Var(model.periods, model.buses| model.subs_mv| model.subs_hv, within=NonNegativeReals)
 
     model.P_load = Param(model.periods, model.buses, mutable=True)
     model.Q_load = Param(model.periods, model.buses, mutable=True)
@@ -84,8 +84,6 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     model.P_pv = Var(model.periods, model.buses, within=NonNegativeReals)
     model.P_inv = Var(model.periods, model.buses, within=NonNegativeReals)
     model.Q_inv = Var(model.periods, model.buses, within=NonNegativeReals)
-
-    """model.P_sun = Var(model.periods, model.buses, within=NonNegativeReals)"""
     model.S_inv = Var(model.buses, within=NonNegativeReals)
     model.PV_surf = Var(model.buses, within=NonNegativeReals)
     model.pi = Var(model.buses, within=Binary)
@@ -102,25 +100,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     model.P_storage_discharge = Var(model.periods, model.buses, within=NonNegativeReals)
     model.storage_energy = Var(model.periods, model.buses, within=NonNegativeReals)
 
-    if EV_option:
-        chiavi = list(LBUS.keys())
-        chiavi_lv = [k for k in chiavi if LBUS[k].b_type == "LV_load"]
-        model.lv_load = Set(initialize=chiavi_lv)
 
-        model.C_EV = Var(within=NonNegativeReals)
-        model.total_C_gas = Expression(expr=sum(model.C_gas[e] for e in model.lv_load)*365) #Total cost of electricity
-        model.C_gas = Var(model.lv_load, within=NonNegativeReals)
-        model.EV_option = Var(model.lv_load, within=Binary)               #OCCHIO CHE TU VUOI EV SOLO QUANDO LBUS è LV
-        model.EV_capacity = Var(model.lv_load, within=NonNegativeReals)
-        model.EV_power = Var(model.lv_load, within=NonNegativeReals)      #in realtà mi piacerebbe fosse discreto tipo 3 11 o 22 kW ma forse complica le cose.
-        model.EV_energy = Var(model.periods, model.lv_load, within=NonNegativeReals)
-        model.EV_ch_P = Var(model.periods, model.lv_load, within=NonNegativeReals)
-        model.EV_disch_P = Var(model.periods, model.lv_load, within=NonNegativeReals)
-
-        model.initial_EV_capacity = Param(model.lv_load, mutable=True)
-        model.initial_EV_power = Param(model.lv_load, mutable=True)
-
-    # Model parameters representing initial investment status:
 
 
     model.initial_line_opt = Param(model.lines, model.conductors, mutable=True)
@@ -133,10 +113,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     model.initial_PV_surf = Param(model.buses, mutable=True)
     model.initial_storage_option = Param(model.buses, mutable=True)
     model.initial_storage_capacity = Param(model.buses, mutable=True)
-    """model.initial_storage_power = Param(model.buses, mutable=True)"""
         
-
-
 
     if 'line_opt' not in initial_config:
         for l in model.lines:
@@ -157,13 +134,6 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
             model.initial_pi[b] = 0
             model.initial_storage_option[b] = 0
             model.initial_storage_capacity[b] = 0
-            """model.initial_storage_power[b] = 0"""
-
-        if EV_option:
-            for e in model.lv_load:
-                model.initial_EV_capacity[e] = 0
-                model.initial_EV_power[e] = 0
-
 
     else:
         for l in model.lines:
@@ -184,16 +154,13 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
             model.initial_pi[b] = initial_config.pi[b].value
             model.initial_storage_option[b] = initial_config.storage_option[b].value
             model.initial_storage_capacity[b] = initial_config.storage_capacity[b].value
-            model.initial_storage_power[b] = initial_config.storage_power[b].value
 
-        if EV_option:
-            for e in model.lv_load:
-                model.initial_EV_capacity[e] = initial_config.EV_capacity[e].value
-                model.initial_EV_power[e] = initial_config.EV_power[e].value
-
+    # Linearization of squared power variables
 
     if lin_type != 0:
+
         model.NPWB = RangeSet(NPWB)
+
         model.active_power_plus = Var(model.periods, model.lines, within=NonNegativeReals)
         model.reactive_power_plus = Var(model.periods, model.lines, within=NonNegativeReals)
         model.active_power_minus = Var(model.periods, model.lines, within=NonNegativeReals)
@@ -221,6 +188,9 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
 
                 #print(f"LPWB[{l},{block}] = {model.LPWB[l, block].value}")
                 #print(f"SPWB[{l},{block}] = {model.SPWB[l, block].value}")
+
+
+    #Assignment of Loads and Irradiation
 
     for p in model.periods:
         for b in model.buses:  
@@ -459,28 +429,10 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
         return m.C_electricity[p] >= sum(m.subs_hv_S[p,s] for s in m.subs_hv) * BASE_POWER / 1000 * ENERGY_COST_EXP * DELTA_T
     
     def bus_active_power_balance_rule(m,p,b):
-            if EV_option:
-                return m.P_bus[p,b] == m.P_load[p,b] - m.P_pv[p,b] + m.P_storage_charge[p,b] - m.P_storage_discharge[p,b] + sum(m.EV_ch_P[p,e] - m.EV_disch_P[p,e] for e in m.lv_load if (hasattr(LBUS[e], 'vehicle_location') and LBUS[e].vehicle_location is not None and LBUS[e].vehicle_location[(p - 1) % 24] == b)) 
-            else:
-                return m.P_bus[p,b] == m.P_load[p,b] - m.P_inv[p,b]
+            return m.P_bus[p,b] == m.P_load[p,b] - m.P_inv[p,b]
     
     def bus_reactive_power_balance_rule(m,p,b):
         return m.Q_bus[p,b] == m.Q_load[p,b] - m.Q_inv[p,b] 
-    
-    """def sun_power_rule_1(m,p,b):                                                  #Questa da rivedere con i veri limiti??
-        return m.P_sun[p,b] <= (1-2**0.5) * m.Q_sun[p,b] + m.S_sun[p,b]
-    
-    def sun_power_rule_4(m,p,b):                                                  #Questa da rivedere con i veri limiti??
-        return m.P_sun[p,b] <= -(1-2**0.5) * m.Q_sun[p,b] + m.S_sun[p,b]
-    
-    def sun_power_rule_2(m,p,b):
-        return m.P_sun[p,b] >= - m.Q_sun[p,b]
-    
-    def sun_power_rule_3(m,p,b):
-        return m.P_sun[p,b] >= m.Q_sun[p,b]
-    
-    def inv_limit_rule(m,p,b):
-        return m.S_inv[b] >= m.S_sun[p,b]"""
     
     def pv_production_rule(m,p,b):
         return m.P_pv[p,b] * BASE_POWER / 1000 <= m.PV_surf[b] * m.Irr[p] * 0.2 / 1000
@@ -539,20 +491,11 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     def storage_capacity_rule(m,b):
         return m.storage_option[b] >= m.storage_capacity[b]
     
-    """def storage_power_rule(m,b):
-        return m.storage_option[b] >= m.storage_power[b] 
-    
-    def storage_active_power_limit_rule_1(m,p,b):
-        return m.P_storage_charge[p,b] <= m.storage_power[b] 
-    
-    def storage_active_power_limit_rule_2(m,p,b):
-        return m.P_storage_discharge[p,b] <= m.storage_power[b] """
-    
     def storage_energy_rule(m,p,b):
         if (p-1)%24 != 0 and (p-1)%24 != 1:
             return m.storage_energy[p,b] == m.storage_energy[p-1,b] + (m.P_storage_charge[p,b] * STORAGE_EFFICIENCY - m.P_storage_discharge[p,b] / STORAGE_EFFICIENCY) * DELTA_T 
         elif (p-1)%24 == 1:
-            return m.storage_energy[p,b] == m.storage_energy[p-1,b] + ((m.P_storage_charge[p,b] + m.P_storage_charge[p-1,b]) * EV_CHARGE_EFFICIENCY - (m.P_storage_discharge[p,b] + m.P_storage_discharge[p-1,b]) / EV_CHARGE_EFFICIENCY) * DELTA_T
+            return m.storage_energy[p,b] == m.storage_energy[p-1,b] + ((m.P_storage_charge[p,b] + m.P_storage_charge[p-1,b]) * STORAGE_EFFICIENCY - (m.P_storage_discharge[p,b] + m.P_storage_discharge[p-1,b]) / STORAGE_EFFICIENCY) * DELTA_T
         else:
             return m.storage_energy[p+23,b] >= m.storage_energy[p,b] * STORAGE_DAILY_MAX_VARIATION
         
@@ -562,56 +505,8 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     def storage_capacity_cost_rule(m):
         return m.C_storage_capacity == sum((m.storage_capacity[b] - m.initial_storage_capacity[b])  * STORAGE_CAPACITY_COST for b in m.buses) * BASE_POWER / 1000
     
-    """def storage_power_cost_rule(m):
-        return m.C_storage_power == sum((m.storage_power[b] - m.initial_storage_power[b]) * STORAGE_POWER_COST for b in m.buses) * BASE_POWER / 1000"""
-            
     def DC_balance_rule(m,p,b):
         return m.P_pv[p,b] + m.P_storage_discharge[p,b] - m.P_storage_charge[p,b] == m.P_inv[p,b]
-
-    def EV_capacity_rule(m,e):
-        return m.EV_option[e] >= m.EV_capacity[e]
-    
-    def EV_power_rule(m,e):
-        return m.EV_option[e] >= m.EV_power[e] 
-    
-    def EV_active_power_limit_rule_1(m,p,e):
-        return m.EV_ch_P[p,e] <= m.EV_power[e] 
-    
-    def EV_active_power_limit_rule_2(m,p,e):
-        return m.EV_disch_P[p,e] <= m.EV_power[e] 
-    
-    def EV_cost_rule(m):
-        return m.C_EV == sum((m.EV_capacity[e] - m.initial_EV_capacity[e]) * EV_CAPACITY_COST + (m.EV_power[e] - m.initial_EV_power[e]) * EV_POWER_COST for e in m.lv_load) * BASE_POWER / 1000
-    
-    def EV_cost_rule_2(m,e):
-        return m.C_gas[e] == (1-m.EV_option[e]) * GAS_COST * sum(x for x in LBUS[e].vehicle_consumption if not (isinstance(x, float) and math.isnan(x)))
-        
-    def EV_soc_rule(m,p,e):
-        if (p-1)%24 != 0 and (p-1)%24 != 1:
-            return m.EV_energy[p,e] == m.EV_energy[p-1,e] + (m.EV_ch_P[p,e] * EV_CHARGE_EFFICIENCY - m.EV_disch_P[p,e] / EV_CHARGE_EFFICIENCY) * DELTA_T
-        elif (p-1)%24 == 1:
-            return m.EV_energy[p,e] == m.EV_energy[p-1,e] + ((m.EV_ch_P[p,e] + m.EV_ch_P[p-1,e]) * EV_CHARGE_EFFICIENCY - (m.EV_disch_P[p,e] + m.EV_disch_P[p-1,e]) / EV_CHARGE_EFFICIENCY) * DELTA_T
-        else:
-            return m.EV_energy[p+23,e] >= m.EV_energy[p,e] * EV_DAILY_MAX_VARIATION
-    
-    def EV_soc_limit_rule(m,p,e):
-        return m.EV_energy[p,e] <= m.EV_capacity[e] * 1000 / BASE_POWER
-    
-    def EV_power_limit_rule_1(m,p,e):
-        val = LBUS[e].vehicle_location[p%24-1]
-        if val and not (isinstance(val, float) and math.isnan(val)):
-            return m.EV_ch_P[p,e] <= m.EV_power[e]  * 1000 / BASE_POWER
-        else:
-            return m.EV_ch_P[p,e] == 0  
-        
-    def EV_power_limit_rule_2(m,p,e):
-        val = LBUS[e].vehicle_location[p%24-1]
-        if val and not (isinstance(val, float) and math.isnan(val)):
-            return m.EV_disch_P[p,e] <= m.EV_power[e]  * 1000/ BASE_POWER
-        else:
-            print(f"EV discharge power is equal to {LBUS[e].vehicle_consumption[p%24-1]} kW for bus {e} at period {p} becuse every EV_option is 1 ")
-            return m.EV_disch_P[p,e] == m.EV_option[e] * LBUS[e].vehicle_consumption[p%24-1] * 1000 / BASE_POWER     
-        
 
     def current_scaling_rule(m,p,l,c):
         return m.current_squared_k[p,l,c] == m.c_s_k_1000[p,l,c] * 1000 
@@ -622,27 +517,6 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     def fix_conductor_rule(m,l,c):
         return m.line_opt[l,c] <= cond_table[l][c]
     
-
-    def topology_rule(m):
-        return sum(m.line_act[l] for l in m.lines if is_line_to_or_from_load(DATA, l)) == len(LBUS.keys())
-    
-    def topolgy_rule_2(m, s):
-        relevant_lines = [l for l in m.lines if LINES[l].to_bus == s or LINES[l].from_bus == s]
-
-        # If no relevant lines exist, skip constraint
-        if not relevant_lines:
-            return Constraint.Feasible
-
-        # Filter out lines going to/from load (data only)
-        lines_not_to_from_load = [l for l in relevant_lines if not is_line_to_or_from_load(DATA, l)]
-
-        # If that filter removes all lines, skip constraint again
-        if not lines_not_to_from_load:
-            return Constraint.Feasible
-
-        # Otherwise return symbolic Pyomo inequality
-        expr = sum(m.line_act[l] for l in lines_not_to_from_load)
-        return expr <= 1
     
     
     model.gamma_used = Var(model.subs_mv, within=Binary)
@@ -655,7 +529,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
         return m.abs_fict_p[l] >= -m.fictitious_power[1,l]
 
     def gamma_switch_fict_rule(m,s):
-        return m.gamma_used[s] * OMEGA <= sum(m.abs_fict_p[l] for l in m.lines if LINES[l].to_bus==s)
+        return m.gamma_used[s] * OMEGA <= sum(m.abs_fict_p[l] for l in m.lines if (LINES[l].to_bus==s or LINES[l].from_bus ==s))
     
     def topology_rule_3(m,s):
         return sum(m.line_act[l] for l in m.lines) == len(LBUS.keys()) + sum(m.beta[s] for s in m.subs_hv) + sum(m.gamma_used[s] for s in m.subs_mv) - 1
@@ -664,10 +538,7 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     model.abs_fict_p_cstr = Constraint(model.lines, rule=abs_fict_rule)
     model.abs_fict_p_cstr_2 = Constraint(model.lines, rule=abs_fict_rule_2)
     model.gamma_switch_fict_cstr = Constraint(model.subs_mv, rule=gamma_switch_fict_rule)
-    #model.topology_cstr = Constraint(rule=topology_rule)
-    #model.topology_cstr_2 = Constraint(model.subs_mv, rule=topolgy_rule_2)
     model.topology_cstr_3 = Constraint(model.subs_mv, rule=topology_rule_3)
-
 
     model.PV_incr_cstr = Constraint(model.buses, rule=PV_increasing_rule)
     model.inv_incr_cstr = Constraint(model.buses, rule=inv_increasing_rule)
@@ -678,7 +549,6 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     model.hv_substation_cost_cstr = Constraint(rule=hv_substation_cost_rule)
     model.mv_substation_cost_cstr = Constraint(rule=mv_substation_cost_rule)
     model.loss_cost = Constraint(model.periods, rule=loss_cost)
-    #model.budget_balance = Constraint(rule=budget_balance)
     
     model.active_power_cstr = Constraint(model.periods, model.lines, rule=active_power_rule)
     model.reactive_power_cstr = Constraint(model.periods, model.lines, rule=reactive_power_rule)
@@ -750,11 +620,6 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
 
     model.bus_active_power_balance_cstr = Constraint(model.periods, model.buses, rule=bus_active_power_balance_rule)
     model.bus_reactive_power_balance_cstr = Constraint(model.periods, model.buses, rule=bus_reactive_power_balance_rule)
-    """model.sun_power_cstr_1 = Constraint(model.periods, model.buses, rule=sun_power_rule_1)
-    model.sun_power_cstr_4 = Constraint(model.periods, model.buses, rule=sun_power_rule_4)
-    model.sun_power_cstr_2 = Constraint(model.periods, model.buses, rule=sun_power_rule_2)
-    model.sun_power_cstr_3 = Constraint(model.periods, model.buses, rule=sun_power_rule_3)
-    model.inv_limit_cstr = Constraint(model.periods, model.buses, rule=inv_limit_rule)"""
     model.pv_production_cstr = Constraint(model.periods, model.buses, rule=pv_production_rule)
     model.inverter_cost_cstr = Constraint(rule=inverter_cost_rule)
     model.PV_cost_cstr = Constraint(rule=PV_cost_rule)
@@ -771,24 +636,8 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     model.storage_capacity_cstr = Constraint(model.buses, rule=storage_capacity_rule)
     model.storage_capacity_cost_cstr = Constraint(rule=storage_capacity_cost_rule)
     model.storage_inst_cost_cstr = Constraint(rule=storage_inst_cost_rule)
-    """model.storage_power_cost_cstr = Constraint(rule=storage_power_cost_rule)
-    model.storage_power_cstr = Constraint(model.buses, rule=storage_power_rule)
-    model.storage_active_power_limit_cstr_1 = Constraint(model.periods, model.buses, rule=storage_active_power_limit_rule_1)
-    model.storage_active_power_limit_cstr_2 = Constraint(model.periods, model.buses, rule=storage_active_power_limit_rule_2)"""
     model.storage_energy_cstr = Constraint(model.periods, model.buses, rule=storage_energy_rule)
     model.storage_soc_limit_cstr = Constraint(model.periods, model.buses, rule=storage_soc_limit_rule)
-
-    if EV_option:
-        model.EV_soc_cstr= Constraint(model.periods, model.lv_load, rule=EV_soc_rule)
-        model.EV_soc_limit_cstr = Constraint(model.periods, model.lv_load, rule=EV_soc_limit_rule)
-        model.EV_power_limit_cstr_1 = Constraint(model.periods, model.lv_load, rule=EV_power_limit_rule_1)
-        model.EV_power_limit_cstr_2 = Constraint(model.periods, model.lv_load, rule=EV_power_limit_rule_2)
-        model.EV_cost_cstr = Constraint(rule=EV_cost_rule)  
-        model.EV_cost_2_cstr = Constraint(model.lv_load, rule=EV_cost_rule_2)  
-        model.EV_active_power_limit_cstr_1 = Constraint(model.periods, model.lv_load, rule=EV_active_power_limit_rule_1)
-        model.EV_active_power_limit_cstr_2 = Constraint(model.periods, model.lv_load, rule=EV_active_power_limit_rule_2)
-        model.EV_capacity_cstr = Constraint(model.lv_load, rule=EV_capacity_rule)  
-        model.EV_power_cstr = Constraint(model.lv_load, rule=EV_power_rule)  
 
     model.energy_imp_cost_cstr = Constraint(model.periods, rule=energy_imp_cost_rule)
     model.energy_exp_cost_cstr = Constraint(model.periods, rule=energy_exp_cost_rule)
@@ -809,8 +658,8 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     else:
         model.complex_power_cstr = Constraint(model.periods, model.lines, rule=conic_complex_power_rule)
 
-    model.voltage_lim_1_cstr = Constraint(model.periods, model.B, rule=voltage_lim_1_rule)
-    model.voltage_lim_2_cstr = Constraint(model.periods, model.B, rule=voltage_lim_2_rule)
+    model.voltage_lim_1_cstr = Constraint(model.periods, model.buses| model.subs_mv, rule=voltage_lim_1_rule)
+    model.voltage_lim_2_cstr = Constraint(model.periods, model.buses| model.subs_mv, rule=voltage_lim_2_rule)
 
     model.losses_calc_cstr = Constraint(model.periods, model.lines, rule=losses_rule)
 
@@ -826,17 +675,9 @@ def optimize_log(LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, we
     model.fix_conductor_cstr = Constraint(model.lines, model.conductors, rule=fix_conductor_rule)
 
 
-    
-
-
-
     def objective_rule(m):
-        if EV_option:
-            return 1/INV_HORIZON_DSO * (m.C_subs_hv + m.C_subs_mv + m.C_cond + m.C_inv + m.C_PV + m.PV_inst_cost + m.subs_hv_inst_cost + m.subs_mv_inst_cost + m.storage_inst_cost + m.C_storage_capacity + m.C_storage_power + m.C_EV) + (m.total_C_electricity + m.total_C_losses + m.total_C_gas)  + OMEGA * (model.total_phi + m.unserved_fictitious_power_cost)
-        else:
-             return 1/INV_HORIZON_DSO * (m.C_subs_hv + m.C_subs_mv + m.C_cond + m.C_inv + m.C_PV + m.PV_inst_cost + m.subs_hv_inst_cost + m.subs_mv_inst_cost + m.storage_inst_cost + m.C_storage_capacity 
-                                         #+ m.C_storage_power
-                                         ) + (m.total_C_electricity + m.total_C_losses)  + OMEGA * (m.total_phi + m.unserved_fictitious_power_cost)
+
+        return 1/INV_HORIZON_DSO * (m.C_subs_hv + m.C_subs_mv + m.C_cond + m.C_inv + m.C_PV + m.PV_inst_cost + m.subs_hv_inst_cost + m.subs_mv_inst_cost + m.storage_inst_cost + m.C_storage_capacity) + (m.total_C_electricity + m.total_C_losses)  + OMEGA * (m.total_phi * 10 + m.unserved_fictitious_power_cost)
 
 
     model.objective_rule = Objective(rule=objective_rule, sense=minimize)

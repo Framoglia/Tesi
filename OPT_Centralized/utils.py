@@ -77,6 +77,18 @@ def is_line_from_LV_load(DATA, l):
     
 ################################################################################################################
 
+def is_line_lv(BUSES, LINES, l):
+    receving_bus = LINES[l].to_bus
+    sending_bus = LINES[l].from_bus
+    type_1 = BUSES[receving_bus].b_type
+    type_2 = BUSES[sending_bus].b_type 
+    if type_1 in ["LV_load"] or type_2 in ["LV_load"]:
+        return True
+    else:   
+        return False
+    
+################################################################################################################
+
 def is_line_to_LV_load(DATA, l):
     LBUS,SUBS,SLACK,LINES,LINES_OPT,N_PERIODS = DATA
     receving_bus = LINES[l].to_bus

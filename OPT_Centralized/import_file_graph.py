@@ -799,73 +799,6 @@ def load_lines(BUS, index):
     return lines_dict, line_id
 
 
-def update_bus_loads(LBUS, stages):
-    """
-    Update the list of buses for each stage.
-
-    Parameters:
-      - LBUS: dict of Bus objects keyed by bus_id
-      - stages: list of stage numbers (e.g., [0, 1, 2])
-      
-    Returns:
-      A dictionary mapping each stage to the modified LBUS dictionary.
-    """
-    # Initialize output dictionary
-    stage_outputs = {}
-
-    # Mapping to keep track if a bus has EV or HP. Format: {bus_id: {"ev": bool, "hp": bool}}
-    bus_has_device = {bus.bus_id: {"hp": False} for bus in LBUS.values()}
-
-    # Stage 0: copy original dictionary
-    stage_outputs[0] = copy.deepcopy(LBUS)
-
-    # For each subsequent stage
-    for stage in stages:
-        if stage == 0:
-            continue  # Already processed stage 0
-
-        # Build a map from actual district names to district_thresholds keys
-        unique_districts = sorted(set(bus.district for bus in LBUS.values()))
-        district_name_to_threshold_key = {
-            name: str(i + 1) for i, name in enumerate(unique_districts)
-        }
-
-        # Process a new stage; we update the same LBUS dict in-place.
-        for bus in LBUS.values():
-            # Adjust load based on voltage level
-            if bus.voltage_level == 15000:
-                factor = industrial_growth_demand
-            else:  # assume voltage level is 400 if not 15000
-                factor = residential_growth_demand
-
-            # Multiply every element in load_kW and load_kVAR by the factor
-            bus.load_kW = [value * factor for value in bus.load_kW]
-            bus.load_kVAR = [value * factor for value in bus.load_kVAR]
-
-            """# Get district thresholds for EV and HP
-            district = bus.district
-            # Map district name to threshold key
-            threshold_key = district_name_to_threshold_key.get(district)
-            thresholds = district_thresholds.get(threshold_key, {"hp": 0.0})
-
-            # For HP
-            if not bus_has_device[bus.bus_id]["hp"]:
-                rand_hp = random.random()
-                if rand_hp < thresholds["hp"]:
-                    bus_has_device[bus.bus_id]["hp"] = True
-                    bus.load_kW = [
-                        lw + hp_daily_load[i % 24] for i, lw in enumerate(bus.load_kW)
-                    ]
-                    bus.load_kVAR = [
-                        lv + hp_daily_load[i % 24] for i, lv in enumerate(bus.load_kVAR)
-                    ]"""
-
-        # Save a deep copy of the updated LBUS for the current stage
-        stage_outputs[stage] = copy.deepcopy(LBUS)
-    print(bus_has_device)
-    return stage_outputs
-
-
 import random
 import numpy as np
 
@@ -968,9 +901,6 @@ def downgrade_conductors(cond_table, ranked_conductors, lines_to_downgrade):
         cond_table: Dictionary of dictionaries showing current conductor assignments
         ranked_conductors: List of conductor IDs sorted from best to worst
         lines_to_downgrade: List of line IDs that should be considered for downgrade
-        
-    Returns:
-        Updated cond_table with downgrades applied where possible
     """
     for line_id in lines_to_downgrade:
         current_cond = next(cond for cond in cond_table[line_id] if cond_table[line_id][cond] == 1)
@@ -987,8 +917,8 @@ def downgrade_conductors(cond_table, ranked_conductors, lines_to_downgrade):
             # Update the cond_table
             cond_table[line_id][current_cond] = 0
             cond_table[line_id][next_worse_cond] = 1
-            
-    return cond_table
+    
+        
 
 def get_lines_with_upgradable_conductors(cond_table, ranked_conductors, loading_df):
     """
@@ -1032,7 +962,7 @@ def reset_conductor_table(cond_table, LINES, LINES_OPT):
 
     return cond_table
 
-def save_pkl(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, count = 0):
+def save_pkl(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation, suffix =""):
     data = {
         "model": model,
         "LBUS": LBUS,
@@ -1043,7 +973,7 @@ def save_pkl(model, LBUS, SUBS, SLACK, LINES, LINES_OPT, N_PERIODS, irradiation,
         "N_PERIODS": N_PERIODS,
         "irradiation": irradiation        
     }
-    filename = f"model_{count}.pkl"
+    filename = f"model{suffix}.pkl"
     with open(filename, "wb") as f:
         dill.dump(data, f)
 

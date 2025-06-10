@@ -95,6 +95,212 @@ def cost_check(csv_path):
     plt.tight_layout()
     plt.show()
 
+import plotly.graph_objects as go
+import pandas as pd
+
+import plotly.graph_objects as go
+import pandas as pd
+
+def sankey_cost_check(csv_path, inv_horizon_dso=INV_HORIZON_DSO):
+    # Load data
+    df = pd.read_csv(csv_path)
+    df = df.set_index('Name')
+    
+    # --- Calculate all cost components ---
+    # CAPEX components
+    capex = {
+        'Conductor': df.loc['C_cond', 'Value'],
+        'HV Substation': df.loc['C_subs_hv', 'Value'] + df.loc['subs_hv_inst_cost', 'Value'],
+        'MV Substation': df.loc['C_subs_mv', 'Value'] + df.loc['subs_mv_inst_cost', 'Value'],
+        'PV System': df.loc['C_PV', 'Value'] + df.loc['PV_inst_cost', 'Value'],
+        'Storage': df.loc['C_storage_capacity', 'Value'] + df.loc['storage_inst_cost', 'Value'],
+        'Inverter': df.loc['C_inv', 'Value'],
+    }
+    
+    # Annualize DSO CAPEX
+    dso_capex_annual = {k: v / inv_horizon_dso 
+                        for k, v in capex.items() 
+                        if k in ['Conductor', 'HV Substation', 'MV Substation']}
+    
+    # Household CAPEX (not annualized)
+    household_capex = {k: v / inv_horizon_dso  for k, v in capex.items() 
+                       if k in ['PV System', 'Storage', 'Inverter']}
+    
+    # OPEX components
+    opex = {
+        'Electricity': df.loc['C_electricity', 'Value'].sum(),
+        'Losses': df.loc['C_losses', 'Value'].sum()
+    }
+    
+    # --- Sankey Diagram Structure ---
+    # Nodes ordered from left (level 1) to right (level 4)
+    labels = [
+        # Level 1: Total (leftmost)
+        'Total System Cost',
+        
+        # Level 2: Aggregates
+        'Household Total', 'DSO Total',
+        
+        # Level 3: CAPEX/OPEX
+        'Household CAPEX', 'Household OPEX',
+        'DSO CAPEX', 'DSO OPEX',
+        
+        # Level 4: Technologies (rightmost)
+        'PV System', 'Storage', 'Inverter',  # Household
+        'HV Substation', 'MV Substation', 'Conductor',  # DSO
+        'Electricity', 'Losses'  # OPEX sources
+    ]
+    
+    # Node positions (x-axis from 0 to 1, left to right)
+    node_x = [
+        0.1,    # Level 1
+        0.3, 0.3,  # Level 2
+        0.6, 0.6, 0.6, 0.6,  # Level 3
+        1, 1, 1, 1, 1, 1, 1, 1  # Level 4
+    ]
+    
+    # Node vertical positions (y-axis)
+    node_y = [
+        0.5,   # Total
+        0.3, 0.7,  # Household Total, DSO Total
+        0.2, 0.4,  # Household CAPEX, OPEX
+        0.6, 0.8,  # DSO CAPEX, OPEX
+        0.1, 0.2, 0.3,  # PV, Storage, Inverter
+        0.6, 0.7, 0.8,  # HV, MV, Conductor
+        0.4, 0.8   # Electricity, Losses
+    ]
+    
+    # Define all flows (source -> target)
+    sources = []
+    targets = []
+    values = []
+    
+    # Level 4 -> Level 3 flows
+    # Household technologies -> Household CAPEX
+    for tech in ['PV System', 'Storage', 'Inverter']:
+        sources.append(labels.index(tech))
+        targets.append(labels.index('Household CAPEX'))
+        values.append(household_capex[tech])
+    
+    # DSO technologies -> DSO CAPEX
+    for tech in ['HV Substation', 'MV Substation', 'Conductor']:
+        sources.append(labels.index(tech))
+        targets.append(labels.index('DSO CAPEX'))
+        values.append(dso_capex_annual[tech])
+    
+    # OPEX sources -> OPEX categories
+    sources.append(labels.index('Electricity'))
+    targets.append(labels.index('Household OPEX'))
+    values.append(opex['Electricity'])
+    
+    sources.append(labels.index('Losses'))
+    targets.append(labels.append('DSO OPEX'))
+    values.append(opex['Losses'])
+    
+    # Level 3 -> Level 2 flows
+    # Household
+    household_capex_total = sum(household_capex.values())
+    sources.append(labels.index('Household CAPEX'))
+    targets.append(labels.index('Household Total'))
+    values.append(household_capex_total)
+    
+    sources.append(labels.index('Household OPEX'))
+    targets.append(labels.index('Household Total'))
+    values.append(opex['Electricity'])
+    
+    # DSO
+    dso_capex_total = sum(dso_capex_annual.values())
+    sources.append(labels.index('DSO CAPEX'))
+    targets.append(labels.index('DSO Total'))
+    values.append(dso_capex_total)
+    
+    sources.append(labels.index('DSO OPEX'))
+    targets.append(labels.index('DSO Total'))
+    values.append(opex['Losses'])
+    
+    # Level 2 -> Level 1 flows
+    sources.append(labels.index('Household Total'))
+    targets.append(labels.index('Total System Cost'))
+    values.append(household_capex_total + opex['Electricity'])
+    
+    sources.append(labels.index('DSO Total'))
+    targets.append(labels.index('Total System Cost'))
+    values.append(dso_capex_total + opex['Losses'])
+    
+    # --- Create Sankey Diagram ---
+    fig = go.Figure(go.Sankey(
+        arrangement="snap",
+        node=dict(
+            pad=30,
+            thickness=15,
+            line=dict(color="black", width=0.5),
+            label=labels,
+            x=node_x,
+            y=node_y,
+            color=["#1f77b4"]*len(labels)  # Base color
+        ),
+        link=dict(
+            source=sources,
+            target=targets,
+            value=values,
+            color=["rgba(31, 119, 180, 0.5)" for _ in values]
+        )
+    ))
+    
+    fig.update_layout(
+        title_text="System Cost Breakdown (Annual)",
+        font_size=12,
+        width=1000,
+        height=600,
+        margin=dict(l=50, r=50, b=50, t=50)
+    )
+    try:
+        fig.show()
+    except UnicodeEncodeError as e:
+        print("UnicodeEncodeError encountered while displaying the Sankey diagram. Attempting to save as HTML instead.")
+        fig.write_html("sankey_cost_check_output.html")
+        print("Sankey diagram saved as 'sankey_cost_check_output.html'. Please open this file in your browser to view the diagram.")
+
+######################################################################################################
+
+def household_installation_distribution(csv_path):
+    """
+    Plots the distribution of household installation sizes (PV_surf, storage_capacity, S_inv)
+    as mono-dimensional scatter plots (strip plots) for each technology, ignoring bus ID.
+    """
+    df = pd.read_csv(csv_path)
+    relevant_names = ['PV_surf', 'storage_capacity', 'S_inv']
+    filtered = df[df['Name'].isin(relevant_names)]
+
+    # Prepare data for each technology
+    pv_surf = filtered[filtered['Name'] == 'PV_surf']['Value'].values * 0.2
+    storage_capacity = filtered[filtered['Name'] == 'storage_capacity']['Value'].values*1000
+    s_inv = filtered[filtered['Name'] == 'S_inv']['Value'].values*1000
+
+    # Plot mono-dimensional scatter (strip) plots
+    fig, axs = plt.subplots(3, 1, figsize=(8, 7), sharex=False)
+
+    axs[0].scatter(pv_surf, [0]*len(pv_surf), alpha=0.3, color='tab:blue', s=40)
+    axs[0].set_yticks([])
+    axs[0].set_xlabel('PV_surf')
+    axs[0].set_title('Distribution of PV_surf')
+
+    axs[1].scatter(storage_capacity, [0]*len(storage_capacity), alpha=0.3, color='tab:orange', s=40)
+    axs[1].set_yticks([])
+    axs[1].set_xlabel('Storage Capacity')
+    axs[1].set_title('Distribution of Storage Capacity')
+
+    axs[2].scatter(s_inv, [0]*len(s_inv), alpha=0.3, color='tab:green', s=40)
+    axs[2].set_yticks([])
+    axs[2].set_xlabel('S_inv')
+    axs[2].set_title('Distribution of S_inv')
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+
 def check_subs(csv_file_path):
 
     # --- Load data ---
@@ -177,6 +383,7 @@ def check_storage(csv_file_path):
                 bus = float(row[6])
                 val = float(row[-1])
                 t = float(row[1])
+                buses_with_storage.add(bus)
                 if tag == 'P_storage_charge':
                     charging_data[bus][t] = abs(val)
                 elif tag == 'P_storage_discharge':
@@ -257,8 +464,16 @@ def check_storage(csv_file_path):
         
     # Example
 
+    # Only plot buses that have nonzero storage capacity/activity
     for bus in buses_with_storage:
-        plot_bus_activity(bus)
+        # Check if the bus has any nonzero charging, discharging, or energy data
+        has_data = (
+            any(abs(v) > 1e-8 for v in charging_data[bus].values()) or
+            any(abs(v) > 1e-8 for v in discharging_data[bus].values()) or
+            any(abs(v) > 1e-8 for v in energy_data[bus].values())
+        )
+        if has_data:
+            plot_bus_activity(bus)
 
 def check_pv(csv_path, bus = None):
     # Read the CSV file
@@ -463,6 +678,7 @@ def check_all(csv_path: str):
     bus_check(csv_path, [0.0, 1.0, 2.0])
 
 import argparse
+import pandas as pd
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run checks on a CSV file.")
     parser.add_argument("csv_path", type=str, help="Path to the CSV file (e.g., optimal_values.csv)")
